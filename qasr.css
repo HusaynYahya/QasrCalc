@@ -380,3 +380,31 @@ input::placeholder { color: var(--ink-faint); }
   text-transform: none; letter-spacing: .03em;
 }
 .map { cursor: crosshair; }
+
+/* ---- choosing which city counts ---------------------------------------- */
+.citypick {
+  margin-top: .9rem; padding: 1rem 1.1rem;
+  background: var(--bg-sink); border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+}
+.citypick__lead {
+  margin: 0 0 .4rem; font-family: var(--font-label); font-size: .88rem;
+  color: var(--ink); font-weight: 600;
+}
+.cities { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .4rem; }
+.city {
+  width: 100%; text-align: left; cursor: pointer;
+  background: var(--bg-raise); border: 1px solid var(--hair); border-radius: var(--radius);
+  padding: .65rem .8rem; display: grid; gap: .1rem; font-family: var(--font-label);
+  transition: border-color .15s ease, background .15s ease;
+}
+.city:hover { border-color: var(--accent-line); }
+.city.is-on { border-color: var(--accent); background: rgba(77, 182, 164, .1); }
+.city b { font-size: .88rem; font-weight: 600; color: var(--ink); }
+.city span { font-size: .78rem; color: var(--ink-mute); }
+.city.is-on span { color: var(--accent-bright); }
+
+.citypick__own { margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--hair); }
+.citypick__row { display: flex; gap: .5rem; }
+.citypick__row input { flex: 1; }
+.citypick__row .btn { flex: none; margin-top: 0; }

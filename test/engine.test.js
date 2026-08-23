@@ -294,6 +294,25 @@ test("a route that never leaves the city yields no crossing", function () {
   assert.strictEqual(G.borderExitKm([[0,0],[1,1],[2,2]], city, 1), null);
 });
 
+test("a route that leaves, re-enters and leaves again counts the last exit", function () {
+  /* A city spanning latitudes 0 to 1, and a road that dips out and back in
+     before finally leaving. Leaving town is the last crossing, not the first. */
+  var city = { type: "Polygon", coordinates: [[[-1,0],[-1,1],[1,1],[1,0],[-1,0]]] };
+  var line = [[0.2,0],[0.5,0],[1.2,0],[0.8,0],[0.95,0],[2,0]];
+  var exit = G.borderExitKm(line, city, 1);
+  /* The first crossing falls at about 89 km along; the last at about 178.
+     One degree of latitude is roughly 111 km.                               */
+  assert.ok(exit > 170 && exit < 185, "expected about 178 km, got " + exit);
+});
+
+test("a start outside the city still counts a crossing if the road passes through", function () {
+  /* Someone whose own town lies outside the city they reckon as theirs. */
+  var city = { type: "Polygon", coordinates: [[[-1,0],[-1,1],[1,1],[1,0],[-1,0]]] };
+  var line = [[-0.5,0],[0.5,0],[1.5,0]];       /* starts south of it, drives through */
+  var exit = G.borderExitKm(line, city, 1);
+  assert.ok(exit > 100 && exit < 200, "expected the far border, got " + exit);
+});
+
 test("a route starting outside the city yields no crossing", function () {
   var city = { type: "Polygon", coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
   assert.strictEqual(G.borderExitKm([[5,5],[6,6]], city, 1), null);

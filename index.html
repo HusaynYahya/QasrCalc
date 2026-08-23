@@ -45,6 +45,21 @@
         </div>
         <p class="hint" id="fromHint">Your hometown, or wherever the journey begins.</p>
         <button type="button" class="btn btn--small" id="locateBtn">Use my location</button>
+        <button type="button" class="btn btn--small" id="cityBtn" hidden>Change which city</button>
+
+        <div class="citypick" id="cityPick" hidden>
+          <p class="citypick__lead">Which city's border does your journey start from?</p>
+          <p class="hint">The count begins where people would stop calling you local — a judgment of common usage, not of council boundaries. Someone in Watford may reckon London's edge as theirs. Choose the one that fits.</p>
+          <ul class="cities" id="cityList"></ul>
+          <div class="citypick__own">
+            <label for="citySearch">Or name the city yourself</label>
+            <div class="citypick__row">
+              <input id="citySearch" type="text" autocomplete="off" placeholder="e.g. London" />
+              <button type="button" class="btn btn--small" id="cityGo">Use it</button>
+            </div>
+            <p class="hint" id="cityMsg"></p>
+          </div>
+        </div>
       </div>
 
       <div class="field">

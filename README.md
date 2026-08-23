@@ -45,6 +45,18 @@ labelled fallback.
 
 ## Cities and borders
 
+Which city's edge counts as leaving town is a judgment of common usage, not one
+a boundary database can settle — someone in Watford may well reckon London's edge
+as theirs. So the calculator **suggests and asks rather than deciding**: the city
+it finds is labelled a suggestion, alternatives are offered from the town, city
+and county levels around the same point, and any other city can be named outright
+and its published border used instead.
+
+The crossing is taken as the **last** moment the route is inside the chosen city,
+not the first, so a road that dips out and back has not taken you out of town —
+and a reader whose own town sits inside the larger city they have named still gets
+a crossing where the road finally leaves it.
+
 Each address is resolved to the city it sits in — named under the input, and
 outlined on the map from the boundary Nominatim publishes for it. The route is
 then walked against the home city's polygon to find where it crosses the border,
@@ -123,7 +135,7 @@ notes.
 node test/engine.test.js
 ```
 
-37 cases over the distance thresholds, the destination rules, the exemptions,
+39 cases over the distance thresholds, the destination rules, the exemptions,
 the intention, the cautions, and the geometry behind the city-border deduction
 (point-in-polygon with holes, multipolygons, and the border crossing along a route). They stub the browser and never touch the
 network.

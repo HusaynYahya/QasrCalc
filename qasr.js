@@ -94,12 +94,17 @@
      is what the map draws and what the border deduction is measured against. */
   var cityCache = Object.create(null);
 
-  function cityOf(place) {
-    var key = place.lat.toFixed(3) + "," + place.lon.toFixed(3);
+  function cityOf(place) { return cityAt(place, 10); }
+
+  /* Zoom 12 answers with the town or borough, 10 with the city, 8 with the
+     county or metropolitan area. Which of them is "your city" is a judgment
+     of common usage, so all three are offered and the reader chooses.        */
+  function cityAt(place, zoom) {
+    var key = zoom + "|" + place.lat.toFixed(3) + "," + place.lon.toFixed(3);
     if (cityCache[key]) return Promise.resolve(cityCache[key]);
 
     var url = NOMINATIM.replace("/search", "/reverse") +
-              "?format=jsonv2&zoom=10&addressdetails=1&polygon_geojson=1" +
+              "?format=jsonv2&zoom=" + zoom + "&addressdetails=1&polygon_geojson=1" +
               "&lat=" + place.lat + "&lon=" + place.lon;
 
     return nominatim(url, { headers: { Accept: "application/json" } })
@@ -121,6 +126,42 @@
       })
       .catch(function (err) {
         return { name: null, area: null, shape: null, reason: err && err.message };
+      });
+  }
+
+  /* The candidates for "your city", nearest first, without repeats. */
+  function cityChoices(place) {
+    var found = [];
+    return [12, 10, 8].reduce(function (chain, zoom) {
+      return chain.then(function () {
+        return cityAt(place, zoom).then(function (city) {
+          if (city && city.name && !found.some(function (c) { return c.name === city.name; })) {
+            found.push(city);
+          }
+        });
+      });
+    }, Promise.resolve()).then(function () { return found; });
+  }
+
+  /* A city named by the reader — Londoners in all but postcode may want
+     London's border rather than their own town's.                            */
+  function cityByName(name) {
+    var url = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=1" +
+              "&featuretype=settlement&q=" + encodeURIComponent(name);
+    return nominatim(url, { headers: { Accept: "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw nominatimError(r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        if (!rows || !rows.length) throw new Error("No city of that name was found.");
+        var row = rows[0], a = row.address || {};
+        return {
+          name: a.city || a.town || a.village || a.municipality ||
+                (row.display_name || "").split(",")[0],
+          area: a.state || a.county || a.country || null,
+          shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
+        };
       });
   }
 
@@ -376,6 +417,7 @@
   var crowRoute = null;               /* the straight line, for comparison */
   var lastRoute = null;               /* whichever is being ruled on */
   var edgeTouched = false;            /* the reader overrode the measured border */
+  var cityConfirmed = false;          /* the reader settled which city counts */
 
   function isReturn()  { return document.querySelector("input[name='trip']:checked").value === "return"; }
   function byCrow()    { return document.querySelector("input[name='measure']:checked").value === "crow"; }
@@ -525,24 +567,33 @@
      legal distance starts being counted: the point at which people would call
      you a traveller, which the workshop puts at the city border.             */
   function borderExitKm(line, shape, scale) {
-    if (!shape || !inShape(line[0][0], line[0][1], shape)) return null;
-    var run = 0;
+    if (!shape) return null;
+
+    /* The last moment the route is inside the city — not the first. A road
+       that leaves and re-enters has not taken you out of town, and a reader
+       whose own town sits inside a larger city they have named may start
+       outside the polygon and pass through it.                               */
+    var run = 0, exit = null, inside = inShape(line[0][0], line[0][1], shape);
     for (var i = 1; i < line.length; i++) {
       var a = line[i - 1], b = line[i];
       var seg = haversineKm({ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] }) * scale;
-      if (!inShape(b[0], b[1], shape)) {
-        /* Bisect the straddling segment to place the crossing. */
-        var lo = 0, hi = 1;
-        for (var k = 0; k < 14; k++) {
-          var mid = (lo + hi) / 2;
-          var pt = [a[0] + (b[0] - a[0]) * mid, a[1] + (b[1] - a[1]) * mid];
-          if (inShape(pt[0], pt[1], shape)) lo = mid; else hi = mid;
-        }
-        return run + seg * lo;
-      }
+      var nowIn = inShape(b[0], b[1], shape);
+      if (inside && !nowIn) exit = run + seg * crossing(a, b, shape);
+      inside = nowIn;
       run += seg;
     }
-    return null;   /* the whole route stays inside the city */
+    return exit;   /* null if the route never leaves the city, or never enters it */
+  }
+
+  /* Bisect a straddling segment to place the crossing along it. */
+  function crossing(a, b, shape) {
+    var lo = 0, hi = 1;
+    for (var k = 0; k < 14; k++) {
+      var mid = (lo + hi) / 2;
+      if (inShape(a[0] + (b[0] - a[0]) * mid, a[1] + (b[1] - a[1]) * mid, shape)) lo = mid;
+      else hi = mid;
+    }
+    return lo;
   }
 
   function polylineKm(line) {
@@ -860,11 +911,68 @@
     $(spec.hint).className = "hint";
     renderMap(null);                        /* the pin, straight away */
 
+    if (slot === "from") { cityConfirmed = false; cityOptions = null; }
+
     return cityOf(place).then(function (city) {
       if (places[slot] !== place) return;   /* the reader moved on */
       cities[slot] = city;
       showCity(slot, spec.hint, spec.lead);
+      if (slot === "from") {
+        $("cityBtn").hidden = false;        /* a suggestion, open to correction */
+        renderCityChoices();
+      }
       renderMap(null);
+    });
+  }
+
+  /* Take a city as the one whose border the count starts from. */
+  function useCity(city, byHand) {
+    cities.from = city;
+    cityConfirmed = !!byHand;
+    edgeTouched = false;                 /* a new border means a new measurement */
+    showCity("from", "fromHint", "Your city is");
+    applyBorderDeduction();
+    renderCityChoices();
+    if (lastRoute) recalc(); else renderMap(null);
+  }
+
+  function cityRow(city, isOn) {
+    var li = document.createElement("li");
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "city" + (isOn ? " is-on" : "");
+    btn.setAttribute("aria-pressed", isOn ? "true" : "false");
+    btn.innerHTML = "<b>" + city.name + "</b><span>" +
+      (city.area && city.area !== city.name ? city.area + " · " : "") +
+      (city.shape ? "border published" : "no border published — nothing to deduct") +
+      "</span>";
+    btn.addEventListener("click", function () { useCity(city, true); });
+    li.appendChild(btn);
+    return li;
+  }
+
+  function renderCityChoices() {
+    var list = $("cityList");
+    list.innerHTML = "";
+    (cityOptions || []).forEach(function (c) {
+      list.appendChild(cityRow(c, cities.from && c.name === cities.from.name));
+    });
+    /* A city named by hand belongs in the list too, once chosen. */
+    if (cities.from && !(cityOptions || []).some(function (c) { return c.name === cities.from.name; })) {
+      list.appendChild(cityRow(cities.from, true));
+    }
+  }
+
+  var cityOptions = null;
+
+  function loadCityChoices() {
+    if (!places.from) return;
+    $("cityMsg").textContent = "Looking for the alternatives…";
+    $("cityMsg").className = "hint";
+    cityChoices(places.from).then(function (found) {
+      cityOptions = found;
+      $("cityMsg").textContent = "";
+      renderCityChoices();
     });
   }
 
@@ -873,7 +981,8 @@
     if (city && city.name) {
       hint.innerHTML = lead + " <b>" + city.name + "</b>" +
         (city.area && city.area !== city.name ? ", " + city.area : "") +
-        (city.shape ? " — its border is outlined on the map." : " — no published border to outline.");
+        (city.shape ? " — its border is outlined on the map." : " — no published border to outline.") +
+        (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";
     } else {
       hint.textContent = city && city.reason
@@ -989,7 +1098,10 @@
         say("Finding the city borders…");
         /* A missing border costs the deduction, not the ruling, so a failure
            here must not sink the calculation. */
-        return cityOf(places.from).then(function (home) {
+        return (cityConfirmed && cities.from
+                  ? Promise.resolve(cities.from)
+                  : cityOf(places.from)
+               ).then(function (home) {
           return cityOf(places.to).then(function (away) { return [home, away]; });
         });
       })
@@ -1048,6 +1160,37 @@
       });
     }
 
+    $("cityBtn").addEventListener("click", function () {
+      var pick = $("cityPick");
+      pick.hidden = !pick.hidden;
+      this.textContent = pick.hidden ? "Change which city" : "Done choosing";
+      if (!pick.hidden && !cityOptions) loadCityChoices();
+    });
+
+    $("cityGo").addEventListener("click", function () {
+      var name = $("citySearch").value.trim();
+      if (!name) return;
+      $("cityMsg").textContent = "Looking for " + name + "…";
+      $("cityMsg").className = "hint";
+      cityByName(name).then(function (city) {
+        if (!city.shape) {
+          $("cityMsg").textContent = "Found " + city.name + ", but it has no published border, so nothing can be deducted from it.";
+          $("cityMsg").className = "hint hint--warn";
+        } else {
+          $("cityMsg").textContent = "";
+          $("citySearch").value = "";
+        }
+        useCity(city, true);
+      }).catch(function (err) {
+        $("cityMsg").textContent = err.message;
+        $("cityMsg").className = "hint hint--warn";
+      });
+    });
+
+    $("citySearch").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); $("cityGo").click(); }
+    });
+
     $("locateBtn").addEventListener("click", function () {
       var btn = this;
       if (!navigator.geolocation) {
@@ -1085,6 +1228,13 @@
       routes = [];
       roadRoute = crowRoute = lastRoute = null;
       edgeTouched = false;
+      cityConfirmed = false;
+      cityOptions = null;
+      $("cityPick").hidden = true;
+      $("cityBtn").hidden = true;
+      $("cityBtn").textContent = "Change which city";
+      $("cityList").innerHTML = "";
+      $("cityMsg").textContent = "";
       $("routePick").hidden = true;
       mapState.fitted = null;
       if (mapState.map) mapState.map.setView([30, 10], 2);
