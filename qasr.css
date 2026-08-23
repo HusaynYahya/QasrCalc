@@ -4,25 +4,28 @@
    ========================================================================== */
 
 :root {
-  --bg:        #0d1117;
-  --bg-raise:  #141b24;
-  --bg-sink:   #0a0e14;
+  /* Paper, and ink on it */
+  --bg:        #f4f7f8;
+  --bg-raise:  #ffffff;
+  --bg-sink:   #eef2f4;
 
-  --accent:        #4db6a4;   /* verdigris — the "shorten" colour */
-  --accent-bright: #86e2d0;
-  --accent-line:   rgba(77, 182, 164, 0.22);
+  /* Verdigris — the "shorten" colour, dark enough to read on paper */
+  --accent:        #0f8a76;
+  --accent-bright: #0a6455;
+  --accent-line:   rgba(15, 138, 118, 0.30);
 
-  --amber:        #d9a441;    /* the "pray full" colour */
-  --amber-bright: #f0c977;
-  --amber-line:   rgba(217, 164, 65, 0.22);
+  /* Amber — the "pray full" colour */
+  --amber:        #b0740d;
+  --amber-bright: #8a5a06;
+  --amber-line:   rgba(176, 116, 13, 0.30);
 
-  --ink:       #e6ebf0;
-  --ink-soft:  #b6c0cc;
-  --ink-mute:  #8792a1;
-  --ink-faint: #616c7a;
+  --ink:       #16212b;
+  --ink-soft:  #3d4c58;
+  --ink-mute:  #64737f;
+  --ink-faint: #93a1ac;
 
-  --hair: rgba(230, 235, 240, 0.10);
-  --danger: #e2706a;
+  --hair: rgba(22, 33, 43, 0.12);
+  --danger: #b3261e;
 
   --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
@@ -30,7 +33,8 @@
 
   --max: 860px;
   --pad: clamp(1.1rem, 4vw, 2.25rem);
-  --radius: 4px;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(22, 33, 43, .05), 0 6px 18px rgba(22, 33, 43, .05);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -72,7 +76,7 @@ i { font-style: italic; }
 .masthead {
   padding: clamp(2.5rem, 7vw, 4.5rem) 0 clamp(1.5rem, 4vw, 2.5rem);
   border-bottom: 1px solid var(--hair);
-  background: linear-gradient(180deg, var(--bg-sink), var(--bg));
+  background: var(--bg-raise);
 }
 .eyebrow {
   font-family: var(--font-label); text-transform: uppercase;
@@ -89,7 +93,8 @@ main { padding: clamp(1.75rem, 5vw, 3rem) 0 4rem; }
   background: var(--bg-raise);
   border: 1px solid var(--hair);
   border-radius: var(--radius);
-  padding: clamp(1.25rem, 3.5vw, 2rem);
+  box-shadow: var(--shadow);
+  padding: clamp(1.35rem, 3.5vw, 2rem);
   margin-bottom: 1.5rem;
 }
 .block + .block { margin-top: 2.25rem; padding-top: 2rem; border-top: 1px solid var(--hair); }
@@ -118,7 +123,7 @@ label {
 label .opt { color: var(--ink-faint); }
 
 input[type="text"], input[type="number"], select {
-  width: 100%; padding: .75rem .85rem;
+  width: 100%; padding: .8rem .9rem;
   background: var(--bg-sink); color: var(--ink);
   border: 1px solid var(--hair); border-radius: var(--radius);
   font-family: var(--font-label); font-size: .98rem; line-height: 1.4;
@@ -138,14 +143,14 @@ input::placeholder { color: var(--ink-faint); }
   position: absolute; z-index: 20; inset-inline: 0; top: calc(100% + 4px);
   margin: 0; padding: .25rem; list-style: none;
   background: var(--bg-sink); border: 1px solid var(--accent-line);
-  border-radius: var(--radius); box-shadow: 0 14px 34px rgba(0, 0, 0, .55);
+  border-radius: var(--radius); box-shadow: 0 12px 28px rgba(22, 33, 43, .14);
   max-height: 17rem; overflow-y: auto;
 }
 .suggest li {
   padding: .55rem .7rem; cursor: pointer; border-radius: 3px;
   font-family: var(--font-label); font-size: .88rem; color: var(--ink-soft); line-height: 1.4;
 }
-.suggest li[aria-selected="true"], .suggest li:hover { background: rgba(77, 182, 164, .14); color: var(--ink); }
+.suggest li[aria-selected="true"], .suggest li:hover { background: rgba(15, 138, 118, .12); color: var(--ink); }
 .suggest li.is-empty { cursor: default; color: var(--ink-faint); }
 
 /* ---- questions -------------------------------------------------------- */
@@ -156,14 +161,14 @@ input::placeholder { color: var(--ink-faint); }
   border: 1px solid transparent; border-radius: var(--radius); cursor: pointer;
   transition: background .15s ease, border-color .15s ease;
 }
-.q:hover { background: rgba(255, 255, 255, .025); border-color: var(--hair); }
+.q:hover { background: var(--bg-sink); border-color: var(--hair); }
 .q input { width: 1.05rem; height: 1.05rem; margin-top: .35rem; accent-color: var(--accent); cursor: pointer; }
 .q b { display: block; font-weight: 400; font-family: var(--font-body); color: var(--ink); line-height: 1.5; }
 .q em {
   display: block; font-style: normal; font-family: var(--font-label);
   font-size: .8rem; color: var(--ink-mute); margin-top: .25rem; line-height: 1.5;
 }
-.q:has(input:checked) { background: rgba(77, 182, 164, .07); border-color: var(--accent-line); }
+.q:has(input:checked) { background: rgba(15, 138, 118, .07); border-color: var(--accent-line); }
 
 /* ---- buttons ---------------------------------------------------------- */
 .actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-top: 2rem; }
@@ -174,8 +179,8 @@ input::placeholder { color: var(--ink-faint); }
   border-radius: var(--radius); transition: border-color .15s ease, color .15s ease, background .15s ease;
 }
 .btn:hover { border-color: var(--accent-line); color: var(--accent-bright); }
-.btn--solid { background: var(--accent); border-color: var(--accent); color: #06110f; font-weight: 600; }
-.btn--solid:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #06110f; }
+.btn--solid { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn--solid:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 .btn[disabled] { opacity: .5; cursor: progress; }
 .status { font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute); margin: 0; }
 .status--err { color: var(--danger); }
@@ -183,7 +188,8 @@ input::placeholder { color: var(--ink-faint); }
 /* ---- verdict ---------------------------------------------------------- */
 .result { scroll-margin-top: 1rem; }
 .verdict {
-  border: 1px solid var(--accent-line); border-left-width: 4px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--accent-line); border-left-width: 5px;
   border-radius: var(--radius); background: var(--bg-raise);
   padding: clamp(1.5rem, 4vw, 2.25rem); margin-bottom: 1.5rem;
 }
@@ -252,11 +258,11 @@ input::placeholder { color: var(--ink-faint); }
 .note {
   margin-top: 1.25rem; padding: .9rem 1.1rem; border-radius: var(--radius);
   border: 1px solid var(--amber-line); border-left-width: 3px;
-  background: rgba(217, 164, 65, .06);
+  background: rgba(176, 116, 13, .07);
   font-family: var(--font-label); font-size: .87rem; color: var(--ink-soft); line-height: 1.6;
 }
 .note b { color: var(--amber-bright); font-weight: 600; }
-.note--info { border-color: var(--accent-line); background: rgba(77, 182, 164, .06); }
+.note--info { border-color: var(--accent-line); background: rgba(15, 138, 118, .06); }
 .note--info b { color: var(--accent-bright); }
 
 /* ---- reference notes -------------------------------------------------- */
@@ -286,7 +292,7 @@ input::placeholder { color: var(--ink-faint); }
 }
 .leaflet-container { background: var(--bg-sink); font-family: var(--font-label); }
 .leaflet-control-attribution {
-  background: rgba(10, 14, 20, .8) !important;
+  background: rgba(255, 255, 255, .88) !important;
   color: var(--ink-faint) !important;
   font-size: .68rem !important;
 }
@@ -298,7 +304,7 @@ input::placeholder { color: var(--ink-faint); }
 .leaflet-bar a:hover { background: var(--bg-sink); color: var(--accent-bright); }
 .leaflet-tooltip {
   background: var(--bg-sink); color: var(--ink);
-  border: 1px solid var(--accent-line); box-shadow: none;
+  border: 1px solid var(--accent-line); box-shadow: var(--shadow);
   font-family: var(--font-label); font-size: .78rem;
 }
 .leaflet-tooltip::before { border-top-color: var(--accent-line); }
@@ -333,13 +339,13 @@ input::placeholder { color: var(--ink-faint); }
   transition: border-color .15s ease, background .15s ease;
 }
 .route:hover { border-color: var(--accent-line); }
-.route.is-on { border-color: var(--accent); background: rgba(77, 182, 164, .08); }
+.route.is-on { border-color: var(--accent); background: rgba(15, 138, 118, .08); }
 .route b { font-size: .88rem; font-weight: 600; color: var(--ink); }
 .route span { font-size: .82rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .route em { font-style: normal; font-size: .76rem; color: var(--ink-mute); }
 .route.is-on em { color: var(--accent-bright); }
 
-.key--border { border: 1px dashed var(--accent); background: rgba(77, 182, 164, .12); }
+.key--border { border: 1px dashed var(--accent); background: rgba(15, 138, 118, .12); }
 
 /* ---- segmented choices ------------------------------------------------- */
 .label-ish {
@@ -357,7 +363,8 @@ input::placeholder { color: var(--ink-faint); }
 }
 .seg label:hover span { border-color: var(--accent-line); }
 .seg input:checked + span {
-  background: rgba(77, 182, 164, .12); border-color: var(--accent); color: var(--accent-bright);
+  background: rgba(15, 138, 118, .10); border-color: var(--accent); color: var(--accent-bright);
+  font-weight: 600;
 }
 .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -399,7 +406,7 @@ input::placeholder { color: var(--ink-faint); }
   transition: border-color .15s ease, background .15s ease;
 }
 .city:hover { border-color: var(--accent-line); }
-.city.is-on { border-color: var(--accent); background: rgba(77, 182, 164, .1); }
+.city.is-on { border-color: var(--accent); background: rgba(15, 138, 118, .09); }
 .city b { font-size: .88rem; font-weight: 600; color: var(--ink); }
 .city span { font-size: .78rem; color: var(--ink-mute); }
 .city.is-on span { color: var(--accent-bright); }

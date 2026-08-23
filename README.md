@@ -27,7 +27,8 @@ QasrCalc/
 
 | Step | Source |
 | --- | --- |
-| Address → coordinates | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap), debounced to stay inside its one-request-per-second policy |
+| Typing an address | [Photon](https://photon.komoot.io/) — the same OpenStreetMap data, indexed for type-ahead: partial words, fuzzy spelling, no one-a-second limit, and biased towards the other address once one is set. Falls back to Nominatim if unreachable |
+| Address → coordinates, and boundaries | [Nominatim](https://nominatim.openstreetmap.org), through a queue that spaces requests to respect its one-a-second policy |
 | Coordinates → road distance | [OSRM](https://project-osrm.org/) driving route |
 | If routing is unreachable | great-circle distance, clearly labelled as the straight line |
 | If neither can be reached | the "I already know the distance" panel in the form takes a figure by hand and needs no network at all |
@@ -40,9 +41,9 @@ labelled fallback.
 
 - **There and back / one way** — a return journey adds the legs together, so
   22 km each way reaches the limit.
-- **By road / as the crow flies** — the road is the default and what the law
-  counts; the straight line is offered for comparison and labelled every time
-  it is used, since it is always shorter and can understate a journey.
+- **By road / straight line** — the road is the default and what the law counts;
+  the straight line is offered for comparison and labelled every time it is used,
+  since it is always shorter and can understate a journey.
 - **Which road** — where the routing service offers alternatives, each is listed
   with its distance and the ruling it would produce.
 - **A distance typed by hand**, which overrides all of the above and needs no
@@ -53,9 +54,14 @@ labelled fallback.
 Which city's edge counts as leaving town is a judgment of common usage, not one
 a boundary database can settle — someone in Watford may well reckon London's edge
 as theirs. So the calculator **suggests and asks rather than deciding**: the city
-it finds is labelled a suggestion, alternatives are offered from the town, city
-and county levels around the same point, and any other city can be named outright
-and its published border used instead.
+it finds is labelled a suggestion, alternatives are offered from the town and
+city levels around the same point, and any other city can be named outright and
+its published border used instead.
+
+The border is always a **settlement's** — a city, town or village. A lookup that
+answers with a district, a borough or a county is taken only for the settlement
+name it carries, and that settlement's own boundary is fetched instead. Leaving a
+county is not what the law means by leaving town.
 
 The crossing is taken as the **last** moment the route is inside the chosen city,
 not the first, so a road that dips out and back has not taken you out of town —

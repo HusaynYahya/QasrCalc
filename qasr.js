@@ -26,6 +26,12 @@
   var KM_PER_MI  = 1.609344;
 
   var NOMINATIM = "https://nominatim.openstreetmap.org/search";
+  /* Nominatim wants a fairly complete address before it will answer, which
+     makes it a poor companion while someone is still typing. Photon indexes
+     the same OpenStreetMap data for type-ahead: partial words, fuzzy
+     spelling, and no one-a-second limit. It answers the suggestions;
+     Nominatim keeps the boundary work, which it does better.                 */
+  var PHOTON = "https://photon.komoot.io/api/";
   var OSRM      = "https://router.project-osrm.org/route/v1/driving/";
 
   /* ==========================================================================
@@ -64,6 +70,46 @@
 
   var geocodeCache = Object.create(null);
 
+  /* Build a readable line from Photon's parts, without repeating itself. */
+  function photonLabel(p) {
+    var head = p.name || [p.housenumber, p.street].filter(Boolean).join(" ") || p.street;
+    var rest = [p.district, p.city || p.town || p.village, p.county, p.state, p.country];
+    var seen = Object.create(null), out = [];
+    [head].concat(rest).forEach(function (part) {
+      if (!part || seen[part]) return;
+      seen[part] = true;
+      out.push(part);
+    });
+    return out.join(", ");
+  }
+
+  /* Suggestions while typing. Biased towards a place already chosen, so the
+     second address is looked for near the first.                             */
+  function suggest(query, near, signal) {
+    var url = PHOTON + "?limit=8&lang=en&q=" + encodeURIComponent(query) +
+              (near ? "&lat=" + near.lat + "&lon=" + near.lon : "");
+
+    return fetch(url, { signal: signal, headers: { Accept: "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Search returned " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        return (data.features || []).map(function (f) {
+          return {
+            label: photonLabel(f.properties || {}),
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0]
+          };
+        }).filter(function (p) { return p.label; });
+      })
+      /* If it is unreachable, the older search still answers. */
+      .catch(function (err) {
+        if (err.name === "AbortError") throw err;
+        return geocode(query, 6, signal);
+      });
+  }
+
   function geocode(query, limit, signal) {
     var key = limit + "|" + query.toLowerCase();
     if (geocodeCache[key]) return Promise.resolve(geocodeCache[key]);
@@ -94,11 +140,26 @@
      is what the map draws and what the border deduction is measured against. */
   var cityCache = Object.create(null);
 
-  function cityOf(place) { return cityAt(place, 10); }
+  /* The border must be a town's or a city's. A district, a borough, a county
+     or a region is not what the law means by leaving town, so a lookup that
+     answers with one is taken only for the settlement name it carries, and
+     the settlement's own boundary is fetched instead.                        */
+  var SETTLEMENT = /^(city|town|village|municipality)$/;
 
-  /* Zoom 12 answers with the town or borough, 10 with the city, 8 with the
-     county or metropolitan area. Which of them is "your city" is a judgment
-     of common usage, so all three are offered and the reader chooses.        */
+  function cityOf(place) {
+    return cityAt(place, 10).then(function (city) {
+      if (!city.name) return city;
+      if (SETTLEMENT.test(city.kind || "") && city.shape) return city;
+      /* Named, but the shape belongs to something larger or smaller. */
+      return cityByName(city.name).catch(function () {
+        return { name: city.name, area: city.area, shape: null };
+      });
+    });
+  }
+
+  /* Zoom 12 answers with the town, 10 with the city. Which of them is "your
+     city" is a judgment of common usage, so both are offered and the reader
+     chooses; the county is not offered at all.                               */
   function cityAt(place, zoom) {
     var key = zoom + "|" + place.lat.toFixed(3) + "," + place.lon.toFixed(3);
     if (cityCache[key]) return Promise.resolve(cityCache[key]);
@@ -115,9 +176,9 @@
       .then(function (row) {
         var a = row.address || {};
         var city = {
-          name: a.city || a.town || a.village || a.municipality || a.county ||
-                (row.name || "").split(",")[0] || null,
-          area: a.state || a.county || a.country || null,
+          name: a.city || a.town || a.village || a.municipality || null,
+          area: a.county || a.state || a.country || null,
+          kind: row.addresstype || null,
           /* Only an area has a border to draw; a point result has none. */
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
@@ -132,12 +193,16 @@
   /* The candidates for "your city", nearest first, without repeats. */
   function cityChoices(place) {
     var found = [];
-    return [12, 10, 8].reduce(function (chain, zoom) {
+    return [12, 10].reduce(function (chain, zoom) {
       return chain.then(function () {
         return cityAt(place, zoom).then(function (city) {
-          if (city && city.name && !found.some(function (c) { return c.name === city.name; })) {
-            found.push(city);
-          }
+          if (!city || !city.name) return;
+          if (found.some(function (c) { return c.name === city.name; })) return;
+          if (SETTLEMENT.test(city.kind || "") && city.shape) { found.push(city); return; }
+          /* Named by a district or a county — take the settlement itself. */
+          return cityByName(city.name)
+            .then(function (settlement) { found.push(settlement); })
+            .catch(function () { found.push({ name: city.name, area: city.area, shape: null }); });
         });
       });
     }, Promise.resolve()).then(function () { return found; });
@@ -146,6 +211,8 @@
   /* A city named by the reader — Londoners in all but postcode may want
      London's border rather than their own town's.                            */
   function cityByName(name) {
+    /* featuretype=settlement confines the answer to cities, towns, villages
+       and hamlets — never a county, a district or a region.                   */
     var url = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=1" +
               "&featuretype=settlement&q=" + encodeURIComponent(name);
     return nominatim(url, { headers: { Accept: "application/json" } })
@@ -508,16 +575,18 @@
       var q = input.value.trim();
       if (timer) clearTimeout(timer);
       if (controller) controller.abort();
-      if (q.length < 3) { close(); return; }
+      if (q.length < 2) { close(); return; }
 
-      /* Nominatim asks for no more than one request a second; the debounce
-         keeps well inside that, and in-flight requests are abandoned.        */
+      /* Photon carries no one-a-second rule, so the wait is only long enough
+         to avoid searching on every keystroke; stale requests are abandoned. */
       timer = setTimeout(function () {
         controller = new AbortController();
-        geocode(q, 6, controller.signal)
+        /* The other address, when there is one, biases the search nearby. */
+        var near = places[slot === "from" ? "to" : "from"];
+        suggest(q, near, controller.signal)
           .then(render)
           .catch(function (err) { if (err.name !== "AbortError") close(); });
-      }, 450);
+      }, 250);
     });
 
     input.addEventListener("keydown", function (e) {
@@ -631,7 +700,7 @@
     }
     mapState.map = L.map("map", { scrollWheelZoom: false, attributionControl: true })
                     .setView([30, 10], 2);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(mapState.map);
@@ -641,7 +710,7 @@
 
   function pin(at, colour, label) {
     L.circleMarker(at, {
-      radius: 7, color: colour, weight: 3, fillColor: "#0d1117", fillOpacity: 1
+      radius: 7, color: colour, weight: 3, fillColor: "#ffffff", fillOpacity: 1
     }).addTo(mapState.drawn).bindTooltip(label);
   }
 
@@ -663,7 +732,7 @@
        destination's is drawn for orientation only, since the count runs to
        the destination itself, not to its border.                             */
     var drewBorder = false;
-    [["from", "#4db6a4", "Your city"], ["to", "#d9a441", "Destination city"]]
+    [["from", "#0f8a76", "Your city"], ["to", "#b0740d", "Destination city"]]
       .forEach(function (spec) {
         var city = cities[spec[0]];
         if (!city || !city.shape) return;
@@ -676,11 +745,11 @@
       });
 
     if (places.from) {
-      pin([places.from.lat, places.from.lon], "#86e2d0", places.from.label.split(",")[0] + " — start");
+      pin([places.from.lat, places.from.lon], "#0a6455", places.from.label.split(",")[0] + " — start");
       seen.push(L.latLngBounds([[places.from.lat, places.from.lon]]));
     }
     if (places.to) {
-      pin([places.to.lat, places.to.lon], "#f0c977", places.to.label.split(",")[0] + " — destination");
+      pin([places.to.lat, places.to.lon], "#8a5a06", places.to.label.split(",")[0] + " — destination");
       seen.push(L.latLngBounds([[places.to.lat, places.to.lon]]));
     }
 
@@ -690,7 +759,7 @@
     if (line) {
       straight = lastRoute.source === "straight" || lastRoute.source === "crow";
       L.polyline(line, {
-        color: "#4db6a4", weight: 4, opacity: .85,
+        color: "#0f8a76", weight: 5, opacity: .9,
         dashArray: straight ? "6 8" : null
       }).addTo(mapState.drawn);
       seen.push(L.latLngBounds(line));
@@ -704,7 +773,7 @@
       at = m.meets ? walkTo(line, m.edgeKm + oneWayNeeded, scale) : null;
       if (at) {
         L.circleMarker(at, {
-          radius: 6, color: "#4db6a4", weight: 2, fillColor: "#0d1117", fillOpacity: 1
+          radius: 6, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
         }).addTo(mapState.drawn).bindTooltip("Eight farsakh — " + fmtKm(m.limitKm) +
           (m.roundTrip ? " counted, outward and back" : ""));
       }
@@ -714,7 +783,7 @@
     var hasEdge = !drewBorder && m && m.edgeKm > 0 && line;
     if (hasEdge) {
       L.circle(line[0], {
-        radius: m.edgeKm * 1000, color: "#8792a1", weight: 1,
+        radius: m.edgeKm * 1000, color: "#64737f", weight: 1,
         dashArray: "4 6", fill: false
       }).addTo(mapState.drawn).bindTooltip("Edge of town — " + fmtKm(m.edgeKm) + " out");
     }
@@ -1100,7 +1169,7 @@
           km: haversineKm(places.from, places.to),
           minutes: null,
           source: "crow",
-          label: "As the crow flies",
+          label: "Straight line",
           line: [[places.from.lat, places.from.lon], [places.to.lat, places.to.lon]]
         };
         chooseRoute();
