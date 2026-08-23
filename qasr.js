@@ -724,7 +724,7 @@
         ? "The straight line between the two places, as you asked. It is not a road, and the law measures the road."
       : straight
         ? "The road could not be fetched, so this is the straight line between the two places — not a route."
-        : "The driving route, which is what the law measures. Counting starts where the route leaves your city border and runs to the destination itself — not to the destination's border, which is drawn only to place it. The eight-<i>farsakh</i> mark shows where that distance falls; the shortening itself begins a little later, at the <i>hadd al-tarakhkhus</i>.";
+        : "Counted from where the route leaves your city border to the destination itself. The destination's border is drawn only to place it.";
 
     /* Frame whatever is on the map, and only when that changes, so toggling a
        circumstance does not yank the view about.                             */
@@ -785,10 +785,10 @@
 
     $("measureNote").innerHTML =
       src === "straight" ? "The routing service could not be reached, so this is the straight-line distance — always shorter than the road. Enter the real distance by hand before relying on this verdict." :
-      src === "crow"     ? "Measured as the crow flies, at your request. <b>The law counts the road actually travelled</b>, which is longer — so a journey that falls short by this measure may well qualify by road." +
-                           (roadRoute ? " By road it is " + fmtKm(roadRoute.km) + "." : "") :
+      src === "crow"     ? "As the crow flies, at your request. <b>The law counts the road travelled</b>, which is longer" +
+                           (roadRoute ? " — " + fmtKm(roadRoute.km) + " by road." : ".") :
       src === "manual"   ? "Measured from the distance you entered by hand." :
-      "Measured along the driving route, as the law requires: the path travelled, not the straight line on the map.";
+      "Measured along the driving route — the path travelled, as the law requires.";
     $("measureNote").className = "hint" + (src === "straight" ? " hint--warn" : "");
 
     /* the prayers */
@@ -805,11 +805,11 @@
 
     /* the fast */
     var fastRoad = verdict.enRoute === "qasr"
-      ? "You do not fast while travelling. If you are fasting and set out <b>after</b> the adhan of Dhuhr, that day's fast must be completed; if you set out before it, the fast is not valid and is made up later."
+      ? "Do not fast. Setting out <b>after</b> the adhan of Dhuhr, complete that day's fast; before it, make it up later."
       : "Fast as usual — this journey does not lift the obligation.";
     var fastDest =
-      verdict.atDest === "both" ? "The precaution to pray both settles the prayer, not the fast. Ask a scholar what to do about fasting in this state rather than reasoning from the prayer." :
-      verdict.atDest.indexOf("qasr") === 0 ? "You do not fast at the destination either, and the days are made up afterwards." :
+      verdict.atDest === "both" ? "The precaution settles the prayer, not the fast — ask a scholar." :
+      verdict.atDest.indexOf("qasr") === 0 ? "Do not fast there either; make the days up afterwards." :
       "At the destination you fast as a resident.";
 
     $("fasting").innerHTML =
@@ -838,12 +838,8 @@
       warn.appendChild(div);
     });
     if (shortensSomewhere) {
-      note(warn, "Where it begins and where it ends",
-        "Two different lines govern the journey, and they are not the same one. The <b>distance</b> is counted from your <b>city border</b> — the point at which people would call you a traveller — and runs to the <b>actual destination</b>, not to the destination's border. The <b>shortening</b> itself begins later, at the <i>hadd al-tarakhkhus</i>: the point at which the people of your town can no longer see you, nor you them. Pray full until then, even at the border itself.");
-      note(warn, "Coming home",
-        "On the return the two lines swap. Keep shortening until you are inside your <b>city border</b> — reaching the <i>hadd al-tarakhkhus</i> is not enough on the way back. And if you mean to keep a fast, you must be within that city border before the adhan of Dhuhr; the <i>hadd al-tarakhkhus</i> will not do.");
-      note(warn, "Breaking a fast on the way out",
-        "The mirror of it: you may not break a fast at the city border merely because the journey has begun. Wait until you have crossed the <i>hadd al-tarakhkhus</i>.");
+      note(warn, "Two lines, not one",
+        "The distance is counted from your <b>city border</b>; the shortening begins later, at the <i>hadd al-tarakhkhus</i>. Coming home, shorten until you are inside the city border again. <a href='rules.html'>The rulings in full</a>.");
       note(warn, "The four places of choice",
         "In Makkah, Madinah, the Masjid of Kufa and the sanctuary of Imam al-Husayn (peace be upon him), a traveller may choose between shortening and praying in full.");
     }

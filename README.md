@@ -9,9 +9,14 @@ Published with GitHub Pages from `main`; `.nojekyll` keeps the files served
 verbatim, which matters because Jekyll would otherwise drop directories it
 treats as its own.
 
+The page carries four things and nothing else: the addresses, the map, the
+conditions, and the ruling. The rulings themselves live on their own page,
+one link away, rather than filling the page you came to use.
+
 ```
 QasrCalc/
-├── index.html          the page, the form and the reference notes
+├── index.html          the addresses, the map, the conditions, the ruling
+├── rules.html          the rulings in full
 ├── qasr.css            styles; the design tokens sit at the top
 ├── qasr.js             geocoding, routing, the map, the ruling engine, the interface
 ├── lib/leaflet/        Leaflet 1.9.4, vendored — no CDN to depend on (BSD-2-Clause)

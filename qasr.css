@@ -408,3 +408,17 @@ input::placeholder { color: var(--ink-faint); }
 .citypick__row { display: flex; gap: .5rem; }
 .citypick__row input { flex: 1; }
 .citypick__row .btn { flex: none; margin-top: 0; }
+
+/* ---- the reasoning, folded away until wanted ---------------------------- */
+.why > summary {
+  font-family: var(--font-label); font-size: .78rem; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--ink-mute); font-weight: 600; cursor: pointer;
+}
+.why > summary:hover { color: var(--accent-bright); }
+.why[open] > summary { margin-bottom: 1.25rem; }
+
+.backlink {
+  margin: 0 0 2rem; font-family: var(--font-label); font-size: .85rem;
+}
+.backlink a { text-decoration: none; }
+.backlink a:hover { text-decoration: underline; }
