@@ -1025,6 +1025,9 @@
     }
 
     var el = $("condState");
+    /* Every slider now rests on the ordinary journey, so nothing is normally
+       unanswered. The branch stands because the engine can still be handed an
+       undefined answer, and silence must never read as "no". §15            */
     if (unanswered.length) {
       el.textContent = "Needs an answer — " + unanswered.join("; ");
       el.className = "conds__state is-asking";

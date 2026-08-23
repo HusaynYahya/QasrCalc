@@ -20,11 +20,11 @@ journeys need none of them changed — and the fold names anything that has been
 set, so a condition can never quietly decide a verdict from behind a closed
 panel. It opens itself when the engine wants an answer.
 
-Each is a **yes/no slider**. The two that decide the most — is the destination
-your waṭan, will you stay ten days — begin with **neither side taken**, because a
-slider resting on "No" is an answer nobody gave, and §15 forbids inferring these.
-Until both are answered the page rules on nothing and says which questions it
-needs. The rest carry sensible defaults. The rulings themselves live on their own page,
+Each is a **yes/no slider**, and all six rest on the ordinary journey, so a
+result comes back without any of them being touched. The fold names any that has
+been moved. Where the engine is handed no answer at all it still returns
+`UNDETERMINED` and asks rather than reading silence as "no" — the branch is kept
+for that, even though the sliders now always carry one. The rulings themselves live on their own page,
 one link away, rather than filling the page you came to use.
 
 ```

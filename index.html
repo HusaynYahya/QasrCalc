@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=20" />
-<link rel="stylesheet" href="qasr.css?v=20" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=21" />
+<link rel="stylesheet" href="qasr.css?v=21" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -159,7 +159,7 @@
           <span class="conds__state" id="condState">Standard journey — open to check</span>
         </summary>
 
-        <p class="hint">Each of these is a judgement of custom that the calculator will not make for you. Unanswered, it stops rather than guesses.</p>
+        <p class="hint">These are set for an ordinary journey. Each is a judgement of custom rather than of measurement, so change any that does not describe yours.</p>
 
       <fieldset class="qs">
         <legend class="sr-only">Questions about the journey</legend>
@@ -174,14 +174,14 @@
         <div class="q q--toggle">
           <span class="q__text"><b>The destination is one of my homelands (<i>waṭan</i>).</b><em>Birthplace, a place chosen for life, or one made your base for about eighteen months or more. <cite>1764</cite></em></span>
           <span class="toggle" role="radiogroup" aria-label="The destination is one of my homelands (<i>waṭan</i>).">
-            <label><input type="radio" name="qWatan" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qWatan" value="no" checked /><span>No</span></label>
             <label><input type="radio" name="qWatan" value="yes" /><span>Yes</span></label>
           </span>
         </div>
         <div class="q q--toggle">
           <span class="q__text"><b>I will stay ten continuous days at the destination.</b><em>This does not make the journey full — it stops the two legs being added together. <cite>1719</cite></em></span>
           <span class="toggle" role="radiogroup" aria-label="I will stay ten continuous days at the destination.">
-            <label><input type="radio" name="qTenDays" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qTenDays" value="no" checked /><span>No</span></label>
             <label><input type="radio" name="qTenDays" value="yes" /><span>Yes</span></label>
           </span>
         </div>
@@ -297,8 +297,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=20" defer></script>
-<script src="fiqh.js?v=20" defer></script>
-<script src="qasr.js?v=20" defer></script>
+<script src="lib/leaflet/leaflet.js?v=21" defer></script>
+<script src="fiqh.js?v=21" defer></script>
+<script src="qasr.js?v=21" defer></script>
 </body>
 </html>
