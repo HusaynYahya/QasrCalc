@@ -25,7 +25,7 @@ QasrCalc/
 ├── qasr.css            styles; the design tokens sit at the top
 ├── qasr.js             geocoding, routing, the map, the ruling engine, the interface
 ├── lib/leaflet/        Leaflet 1.9.4, vendored — no CDN to depend on (BSD-2-Clause)
-└── test/engine.test.js tests for the ruling engine — node test/engine.test.js
+└── test/engine.test.js tests for the ruling engine — node test/fiqh.test.js
 ```
 
 ## How the distance is measured
@@ -146,61 +146,45 @@ hidden and everything else works unchanged.
 
 ## The rules encoded
 
-Conditions follow the Brisc 12 Ahkam Workshop, *Prayers of a Traveller*
-(17 January 2025), on the rulings of Sayyid al-Sistani.
+Every ruling comes from `fiqh.js`, built to the fiqh specification against
+*Tawḍīḥ al-Masā'il Jāmiʿ* vol. 1, masāʾil 1695–1790 and 1803–1808. Nothing in
+the interface rules on anything; it gathers inputs, calls `Fiqh.evaluate(trip)`,
+and renders what comes back.
 
-The engine lives in `decide()` in `qasr.js` — a pure function, circumstances in,
-verdict out. In the order it applies them:
+- **One entry point.** No verdict is computed anywhere else.
+- **Nine conditions, every segment, no early return.** A failing condition
+  records `TAMAM` for itself and evaluation continues, so the trace says *why*
+  and not merely *that*.
+- **The lattice `QASR < JAMʿ < TAMAM`, combined by maximum.** Shortening is the
+  conclusion of nine agreements, never a default.
+- **`JAMʿ` only from *iḥtiyāṭ wājib*.** A recommended precaution becomes an
+  advisory note and never touches the verdict.
+- **No tolerance band.** 43.9 km is under the threshold [1698].
+- **Three verdicts, not one** — outbound, at the destination, return. A ten-day
+  stay removes *talfīq* rather than making the journey full, so 8 farsakh out
+  with ten days at the end is shortened on the road and full only at the stay
+  [1719 fn.2].
+- **Settlement identity is never a distance test** [1789–1790].
+- **A missing ʿurf judgement returns `UNDETERMINED`** with the question to ask.
+- **Every outcome cites its mas'ala**, and the page links each one.
 
-1. **The exemptions.** A journey for an unlawful purpose, and one whose
-   occupation is travel (driver, pilot, commuter, nomad) — full prayers, whatever
-   the distance.
-2. **Travel within your own city** is not travel, however far across it goes: the
-   count begins at the border, and such a journey never reaches it. The test is
-   put to the two addresses — are both inside the border? — and not to the road
-   between them, since a city border is a ragged thing and a road across a large
-   one dips outside and back without taking anyone out of town. Where no border
-   is published, two addresses resolving to the same city settle it instead.
-3. **The distance.** Eight *farsakh*, taken as 5.5 km each, so **44 km**. The
-   outward and return legs are added together when the traveller returns without
-   staying ten days, so 22 km each way is enough — but not when the journey ends
-   at its destination. Intending ten days there, or arriving in one's own
-   hometown, ends it: what follows is a fresh journey, and each leg must reach
-   the limit on its own. An optional deduction accounts
-   for the road from the door to the edge of town, since the count begins where
-   the town ends. Within 2 km of the limit the result carries a caution to pray
-   both and ask a scholar.
-4. **The intention.** The distance must have been intended at the outset;
-   otherwise the count restarts from wherever the intention forms.
-5. **The interruptions.** Stopping in a hometown en route (the verdict is then
-   marked provisional and the journey must be re-measured from that town), a
-   certain intention of ten continuous days, and thirty days of hesitation.
-6. **The destination.** A hometown or a ten-day stay means full prayers on
-   arrival while the road there is still travel; an undecided stay means
-   shortening for up to thirty days; a place newly adopted for a long stay,
-   not yet a hometown and with no ten-day intention, means praying **both** by
-   obligatory precaution.
-
-Two boundaries the law keeps apart, and the output keeps apart with it: the
-**city border** is where the distance starts being counted and where shortening
-stops on the way home; the **hadd al-tarakhkhus** is where shortening begins and
-where a fast may be broken. The count ends at the destination itself, not at its
-border. Which road you take decides the matter too, so every route the service
-offers is listed with the ruling it would produce.
-
-Output covers both the road and the destination: rak'ahs per prayer, the ruling
-on fasting, the reasoning, and the *hadd al-tarakhkhus* and four-places-of-choice
-notes.
+Three things commonly stated elsewhere are deliberately absent, being outside
+the sourced range: the four places of choice, the thirty days of hesitation, and
+the traveller's exemption from fasting.
 
 ## Tests
 
 ```sh
-node test/engine.test.js
+node test/fiqh.test.js
 ```
 
-54 cases over the distance thresholds, the destination rules, the exemptions,
-the intention, the cautions, and the geometry behind the city-border deduction
-(point-in-polygon with holes, multipolygons, and the border crossing along a route). They stub the browser and never touch the
+The 44 golden vectors of the specification, each asserting both the verdict and
+that the trace cites the mas'ala that decided it — the right answer for the wrong
+reason is a failure. 41 pass with three pipeline assertions; six are pending and
+named in the suite, needing multi-stop segmentation [1807] or a phased residence
+[1805].
+
+`node test/geo.test.js` covers the geometry behind the city-border deduction. They stub the browser and never touch the
 network.
 
 ## Caveat

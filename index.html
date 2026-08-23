@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=13" />
-<link rel="stylesheet" href="qasr.css?v=13" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=14" />
+<link rel="stylesheet" href="qasr.css?v=14" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -153,6 +153,7 @@
 
     <section class="block">
       <h2 class="block__title"><span class="num">3</span> The conditions</h2>
+      <p class="hint">Each of these is a judgement of custom that the calculator will not make for you. Unanswered, it stops rather than guesses.</p>
 
       <fieldset class="qs">
         <legend class="sr-only">Questions about the journey</legend>
@@ -160,64 +161,65 @@
         <label class="q">
           <input type="checkbox" id="qIntent" checked />
           <span>
-            <b>I intended to cover this whole distance from the start of the journey.</b>
-            <em>Otherwise the count restarts from where it did.</em>
+            <b>I intended the whole distance when I set out.</b>
+            <em>Deciding to go further after arriving starts a fresh journey. <cite>1706</cite></em>
           </span>
         </label>
 
         <label class="q">
           <input type="checkbox" id="qWatan" />
           <span>
-            <b>The destination is one of my hometowns (<i>watan</i>).</b>
-            <em>A birthplace, a place settled in for years, or one you return to each year.</em>
+            <b>The destination is one of my homelands (<i>waṭan</i>).</b>
+            <em>Birthplace, a place chosen for life, or one made your base for about eighteen months or more. <cite>1764</cite></em>
           </span>
         </label>
 
         <label class="q">
           <input type="checkbox" id="qTenDays" />
           <span>
-            <b>I intend to stay ten continuous days or more at the destination.</b>
-            <em>Certain from the start; hesitation does not count.</em>
+            <b>I will stay ten continuous days at the destination.</b>
+            <em>This does not make the journey full — it stops the two legs being added together. <cite>1719</cite></em>
+          </span>
+        </label>
+
+        <div class="q q--sub" id="tenDaysDetail" hidden>
+          <label for="qCertainty">How settled is that intention?</label>
+          <select id="qCertainty">
+            <option value="certain">Certain, or confident</option>
+            <option value="supposition">I suppose so, but I am not sure</option>
+            <option value="possibleObstacle">Something may well call me away</option>
+            <option value="unknownPeriod">Until a set day — I do not know if that is ten</option>
+          </select>
+          <p class="hint">Doubt or supposition means you pray shortened, even if you do in fact stay ten days. <cite>1782</cite>, <cite>1785</cite></p>
+
+          <label class="q q--plain">
+            <input type="checkbox" id="qOneSettlement" checked />
+            <span><b>All ten days in one named settlement.</b>
+            <em>Seven in Najaf and three in Kūfa does not count as ten — nor two neighbouring villages, however close. Districts of one city do count, however far apart. <cite>1789</cite>, <cite>1790</cite></em></span>
+          </label>
+        </div>
+
+        <label class="q">
+          <input type="checkbox" id="qBreakerPossible" />
+          <span>
+            <b>I might stop in a homeland of mine, or decide on a ten-day stay, before the distance is complete.</b>
+            <em>The possibility is enough on its own. <cite>1720</cite></em>
           </span>
         </label>
 
         <label class="q">
-          <input type="checkbox" id="qNewLongStay" />
+          <input type="checkbox" id="qKathir" />
           <span>
-            <b>I have just moved there for a long stay — study or work — and it is not yet my hometown.</b>
-            <em>By obligatory precaution, pray both — shortened and full.</em>
-          </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qHesitant" />
-          <span>
-            <b>I do not know how long I will stay.</b>
-            <em>Shorten for up to thirty days, then pray full.</em>
-          </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qPassWatan" />
-          <span>
-            <b>I pass through one of my hometowns on the way and stop there.</b>
-            <em>The distance restarts from that town.</em>
-          </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qFrequent" />
-          <span>
-            <b>Travel is part of my occupation.</b>
-            <em>A driver, pilot, commuter, or one with no fixed home.</em>
+            <b>Travel is my work, or I travel very often.</b>
+            <em>A driver or pilot; or ten or more travel days a month. Such a person prays full at any distance. Borderline cases belong with a scholar. <cite>1739</cite>, <cite>1741</cite></em>
           </span>
         </label>
 
         <label class="q">
           <input type="checkbox" id="qSin" />
           <span>
-            <b>The purpose of the journey is unlawful.</b>
-            <em>Undertaken to commit a sin, or itself a sin.</em>
+            <b>The purpose of the journey is unlawful, or the journey is customarily futile.</b>
+            <em>An unlawful purpose is prayed full; a journey with no rational purpose is prayed both. A holiday is neither. <cite>1722</cite>, <cite>1735</cite></em>
           </span>
         </label>
       </fieldset>
@@ -237,38 +239,36 @@
       <p class="verdict__sub" id="verdictSub"></p>
     </div>
 
+    <div class="card" id="undeterminedCard" hidden>
+      <h2 class="block__title">Not enough to rule on</h2>
+      <p class="hint">These turn on customary judgement, which a calculator must not make for you.</p>
+      <ul class="asks" id="undetermined"></ul>
+    </div>
+
+    <div class="card" id="segmentsCard">
+      <h2 class="block__title">Each part of the journey</h2>
+      <div class="segments" id="segments"></div>
+    </div>
+
     <div class="card">
       <h2 class="block__title">The distance</h2>
       <dl class="measure" id="measure"></dl>
       <div class="gauge" id="gauge" aria-hidden="true">
         <div class="gauge__track"><div class="gauge__fill" id="gaugeFill"></div></div>
         <div class="gauge__marks">
-          <span>0</span><span class="gauge__limit">legal limit — 8 farsakh</span>
+          <span>0</span><span class="gauge__limit">8 farsakh — 44 km</span>
         </div>
       </div>
       <p class="hint" id="measureNote"></p>
     </div>
 
-    <div class="card">
-      <h2 class="block__title">Your prayers</h2>
-      <table class="prayers" id="prayers">
-        <caption class="sr-only">Number of rak'ahs for each prayer on this journey</caption>
-        <thead><tr><th scope="col">Prayer</th><th scope="col">On the way</th><th scope="col">At the destination</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <div class="split" id="fasting"></div>
-    </div>
-
-    <div class="card">
-      <details class="why">
-        <summary>Why this ruling, and what to watch for</summary>
-        <ol class="reasons" id="reasons"></ol>
-        <div id="warnings"></div>
-      </details>
+    <div class="card" id="advisoryCard" hidden>
+      <h2 class="block__title">Recommended precautions</h2>
+      <p class="hint">These are <i>iḥtiyāṭ mustaḥabb</i>. They do not change the ruling above.</p>
+      <div id="advisories"></div>
     </div>
   </section>
 
-  <!-- ============================ THE RULES ============================ -->
   <p class="backlink"><a href="rules.html">The rulings in full &rarr;</a></p>
 
 </main>
@@ -279,7 +279,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=13" defer></script>
-<script src="qasr.js?v=13" defer></script>
+<script src="lib/leaflet/leaflet.js?v=14" defer></script>
+<script src="fiqh.js?v=14" defer></script>
+<script src="qasr.js?v=14" defer></script>
 </body>
 </html>
