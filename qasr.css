@@ -561,3 +561,12 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .notes .disclaim b { color: var(--ink-soft); }
 
 .backlink { max-width: 40rem; margin-inline: auto; }
+
+/* ---- inviting a correction --------------------------------------------- */
+.suggest-box { max-width: 40rem; margin-inline: auto; }
+.suggest-box p { color: var(--ink-soft); margin: 0 0 1.25rem; }
+.suggest-box__actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .85rem; margin: 0;
+}
+.suggest-box__actions .btn { text-decoration: none; }
+.suggest-box__actions .hint { margin: 0; }

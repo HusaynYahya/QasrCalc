@@ -100,6 +100,18 @@ test(6, "the same waṭan → a point 20 km away, return → TAMAM [1705]", func
   assert.strictEqual(seg(r, "outbound").verdict, F.TAMAM);
 });
 
+test("1a", "both ends within one city → nothing counted [1704, 1705]", function () {
+  var r = F.evaluate(trip({
+    legs: { outboundKm: 48, returnKm: 48, returning: true, staysInCity: true }
+  }));
+  assert.strictEqual(seg(r, "outbound").verdict, F.TAMAM);
+  assert.strictEqual(seg(r, "return").verdict, F.TAMAM);
+  cites(seg(r, "outbound"), 1704);
+  /* and the same road, once it does leave the city, is a journey */
+  var out = F.evaluate(trip({ legs: { outboundKm: 48, returning: false } }));
+  assert.strictEqual(seg(out, "outbound").verdict, F.QASR);
+});
+
 console.log("\nCondition 2 — the intention at the outset [1706–1711]");
 
 test(7, "decides to go further only after arriving → TAMAM [1706]", function () {

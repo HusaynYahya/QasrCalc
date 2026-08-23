@@ -71,6 +71,15 @@
         "At a place of residence the distance is not measured afresh; what matters is whether the journey there was itself a sharʿī distance.");
     }
 
+    /* Both ends within one settlement. Measuring starts at the city's edge
+       [1704] and ends at the destination [1705]; a road that never reaches
+       the edge has no length to give, however far it runs inside the town. */
+    if (seg.staysInCity === true) {
+      seg._counted = 0;
+      return outcome(TAMAM, [1704, 1705],
+        "Both ends of this road lie within one city. The measuring starts at the city's edge and ends at the destination, so a journey that never leaves the city has no distance to count, however far across it goes.");
+    }
+
     if (seg.distanceUncertain) {
       return outcome(TAMAM, [1698],
         "The distance is not known to reach 8 farsakh. Doubt about the distance resolves to full prayer, and investigation is not required.");
@@ -675,6 +684,7 @@
       km: num(legs.outboundKm),
       hesitantKm: num(legs.hesitantKm) || 0,
       distanceUncertain: legs.distanceUncertain === true,
+      staysInCity: legs.staysInCity === true,
       departingFromWatan: legs.departingFromWatan !== false,
       purpose: (trip.journey || {}).purpose
     });
@@ -689,6 +699,7 @@
         km: num(legs.returnKm != null ? legs.returnKm : legs.outboundKm),
         hesitantKm: 0,
         distanceUncertain: legs.distanceUncertain === true,
+        staysInCity: legs.staysInCity === true,
         departingFromWatan: false,
         purpose: (trip.journey || {}).returnPurpose || (trip.journey || {}).purpose
       });

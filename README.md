@@ -200,7 +200,16 @@ reason is a failure. 41 pass with three pipeline assertions; six are pending and
 named in the suite, needing multi-stop segmentation [1807] or a phased residence
 [1805].
 
-`node test/geo.test.js` covers the geometry behind the city-border deduction. They stub the browser and never touch the
+`node test/geo.test.js` covers the geometry behind the city-border deduction.
+
+`test/world.browser.js` drives the real page through twenty journeys on six
+continents — Watford to London, Qom to Tehran, Karbala to Najaf, Jeddah to Makkah
+with a ten-day stay, Istanbul side to side, Rovaniemi to Kemi, Nadi to Suva,
+Anchorage to Wasilla and the rest — with the services stubbed. It asserts that
+each result is *self-consistent*: road less deduction equals the counted leg, the
+legs sum to the total, the verdict follows the 44 km rule applied to that total,
+and the border check reports the state it should. Run it against a local server
+on port 8078. They stub the browser and never touch the
 network.
 
 ## Caveat

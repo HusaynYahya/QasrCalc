@@ -592,10 +592,11 @@
   function fromKm(v)    { return unit === "mi" ? v / KM_PER_MI : v; }
   function unitLabel()  { return unit === "mi" ? "miles" : "km"; }
 
+  /* Always one decimal. Rounding long distances to whole kilometres made the
+     rows stop adding up on the page — 220 less 37.6 shown as 182, then doubled
+     to 365 — and a reader checking the arithmetic by eye is the point.       */
   function fmtKm(km) {
-    var v = fromKm(km);
-    var s = v >= 100 ? v.toFixed(0) : v.toFixed(1);
-    return s.replace(/\.0$/, "") + " " + unitLabel();
+    return fromKm(km).toFixed(1) + " " + unitLabel();
   }
 
   /* ---- address autocomplete -------------------------------------------- */
@@ -1140,9 +1141,17 @@
       dl.appendChild(measureRow("Inside " + home + " — not counted", "− " + fmtKm(edge), false, "is-off"));
     }
 
-    dl.appendChild(measureRow(combined ? "Counts, on the way there" : "Counts on this journey", fmtKm(leg)));
+    /* A road that never leaves the city has nothing to count, and saying
+       "counts: 40 km" above a total of nought is a contradiction on its face. */
+    if (borderCheck.within) {
+      dl.appendChild(measureRow("Never leaves " + home + " — nothing counted", fmtKm(0), false, "is-off"));
+    } else {
+      dl.appendChild(measureRow(combined ? "Counts, on the way there" : "Counts on this journey", fmtKm(leg)));
+    }
 
-    if (combined && back) {
+    if (borderCheck.within) {
+      /* nothing more to add: the journey never began */
+    } else if (combined && back) {
       dl.appendChild(measureRow("Counts, on the way back", "+ " + fmtKm(leg)));
     } else if (back && out && out._talfiqRefused) {
       dl.appendChild(measureRow("The way back is not added",
