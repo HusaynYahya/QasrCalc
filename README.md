@@ -18,7 +18,13 @@ The page carries four things and nothing else: the addresses, the map, the
 conditions, and the ruling. The conditions are folded away by default — most
 journeys need none of them changed — and the fold names anything that has been
 set, so a condition can never quietly decide a verdict from behind a closed
-panel. It opens itself when the engine wants an answer. The rulings themselves live on their own page,
+panel. It opens itself when the engine wants an answer.
+
+Each is a **yes/no slider**. The two that decide the most — is the destination
+your waṭan, will you stay ten days — begin with **neither side taken**, because a
+slider resting on "No" is an answer nobody gave, and §15 forbids inferring these.
+Until both are answered the page rules on nothing and says which questions it
+needs. The rest carry sensible defaults. The rulings themselves live on their own page,
 one link away, rather than filling the page you came to use.
 
 ```
@@ -212,7 +218,7 @@ Anchorage to Wasilla and the rest — with the services stubbed. It asserts that
 each result is *self-consistent*: road less deduction equals the counted leg, the
 legs sum to the total, the verdict follows the 44 km rule applied to that total,
 and the border check reports the state it should. Run it against a local server
-on port 8078. They stub the browser and never touch the
+on port 8075. They stub the browser and never touch the
 network.
 
 ## Caveat

@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=19" />
-<link rel="stylesheet" href="qasr.css?v=19" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=20" />
+<link rel="stylesheet" href="qasr.css?v=20" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -164,31 +164,29 @@
       <fieldset class="qs">
         <legend class="sr-only">Questions about the journey</legend>
 
-        <label class="q">
-          <input type="checkbox" id="qIntent" checked />
-          <span>
-            <b>I intended the whole distance when I set out.</b>
-            <em>Deciding to go further after arriving starts a fresh journey. <cite>1706</cite></em>
+        <div class="q q--toggle">
+          <span class="q__text"><b>I intended the whole distance when I set out.</b><em>Deciding to go further after arriving starts a fresh journey. <cite>1706</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="I intended the whole distance when I set out.">
+            <label><input type="radio" name="qIntent" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qIntent" value="yes" checked /><span>Yes</span></label>
           </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qWatan" />
-          <span>
-            <b>The destination is one of my homelands (<i>waṭan</i>).</b>
-            <em>Birthplace, a place chosen for life, or one made your base for about eighteen months or more. <cite>1764</cite></em>
+        </div>
+        <div class="q q--toggle">
+          <span class="q__text"><b>The destination is one of my homelands (<i>waṭan</i>).</b><em>Birthplace, a place chosen for life, or one made your base for about eighteen months or more. <cite>1764</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="The destination is one of my homelands (<i>waṭan</i>).">
+            <label><input type="radio" name="qWatan" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qWatan" value="yes" /><span>Yes</span></label>
           </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qTenDays" />
-          <span>
-            <b>I will stay ten continuous days at the destination.</b>
-            <em>This does not make the journey full — it stops the two legs being added together. <cite>1719</cite></em>
+        </div>
+        <div class="q q--toggle">
+          <span class="q__text"><b>I will stay ten continuous days at the destination.</b><em>This does not make the journey full — it stops the two legs being added together. <cite>1719</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="I will stay ten continuous days at the destination.">
+            <label><input type="radio" name="qTenDays" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qTenDays" value="yes" /><span>Yes</span></label>
           </span>
-        </label>
+        </div>
 
-        <div class="q q--sub" id="tenDaysDetail" hidden>
+        <div class="q--sub" id="tenDaysDetail" hidden>
           <label for="qCertainty">How settled is that intention?</label>
           <select id="qCertainty">
             <option value="certain">Certain, or confident</option>
@@ -198,36 +196,36 @@
           </select>
           <p class="hint">Doubt or supposition means you pray shortened, even if you do in fact stay ten days. <cite>1782</cite>, <cite>1785</cite></p>
 
-          <label class="q q--plain">
-            <input type="checkbox" id="qOneSettlement" checked />
-            <span><b>All ten days in one named settlement.</b>
-            <em>Seven in Najaf and three in Kūfa does not count as ten — nor two neighbouring villages, however close. Districts of one city do count, however far apart. <cite>1789</cite>, <cite>1790</cite></em></span>
-          </label>
+        <div class="q q--toggle">
+          <span class="q__text"><b>All ten days in one named settlement.</b><em>Seven in Najaf and three in Kūfa does not count as ten — nor two neighbouring villages, however close. Districts of one city do count, however far apart. <cite>1789</cite>, <cite>1790</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="All ten days in one named settlement.">
+            <label><input type="radio" name="qOneSettlement" value="no" /><span>No</span></label>
+            <label><input type="radio" name="qOneSettlement" value="yes" checked /><span>Yes</span></label>
+          </span>
+        </div>
         </div>
 
-        <label class="q">
-          <input type="checkbox" id="qBreakerPossible" />
-          <span>
-            <b>I might stop in a homeland of mine, or decide on a ten-day stay, before the distance is complete.</b>
-            <em>The possibility is enough on its own. <cite>1720</cite></em>
+        <div class="q q--toggle">
+          <span class="q__text"><b>I might stop in a homeland of mine, or decide on a ten-day stay, before the distance is complete.</b><em>The possibility is enough on its own. <cite>1720</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="I might stop in a homeland of mine, or decide on a ten-day stay, before the distance is complete.">
+            <label><input type="radio" name="qBreakerPossible" value="no" checked /><span>No</span></label>
+            <label><input type="radio" name="qBreakerPossible" value="yes" /><span>Yes</span></label>
           </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qKathir" />
-          <span>
-            <b>Travel is my work, or I travel very often.</b>
-            <em>A driver or pilot; or ten or more travel days a month. Such a person prays full at any distance. Borderline cases belong with a scholar. <cite>1739</cite>, <cite>1741</cite></em>
+        </div>
+        <div class="q q--toggle">
+          <span class="q__text"><b>Travel is my work, or I travel very often.</b><em>A driver or pilot; or ten or more travel days a month. Such a person prays full at any distance. Borderline cases belong with a scholar. <cite>1739</cite>, <cite>1741</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="Travel is my work, or I travel very often.">
+            <label><input type="radio" name="qKathir" value="no" checked /><span>No</span></label>
+            <label><input type="radio" name="qKathir" value="yes" /><span>Yes</span></label>
           </span>
-        </label>
-
-        <label class="q">
-          <input type="checkbox" id="qSin" />
-          <span>
-            <b>The purpose of the journey is unlawful, or the journey is customarily futile.</b>
-            <em>An unlawful purpose is prayed full; a journey with no rational purpose is prayed both. A holiday is neither. <cite>1722</cite>, <cite>1735</cite></em>
+        </div>
+        <div class="q q--toggle">
+          <span class="q__text"><b>The purpose of the journey is unlawful, or the journey is customarily futile.</b><em>An unlawful purpose is prayed full; a journey with no rational purpose is prayed both. A holiday is neither. <cite>1722</cite>, <cite>1735</cite></em></span>
+          <span class="toggle" role="radiogroup" aria-label="The purpose of the journey is unlawful, or the journey is customarily futile.">
+            <label><input type="radio" name="qSin" value="no" checked /><span>No</span></label>
+            <label><input type="radio" name="qSin" value="yes" /><span>Yes</span></label>
           </span>
-        </label>
+        </div>
       </fieldset>
       </details>
     </section>
@@ -299,8 +297,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=19" defer></script>
-<script src="fiqh.js?v=19" defer></script>
-<script src="qasr.js?v=19" defer></script>
+<script src="lib/leaflet/leaflet.js?v=20" defer></script>
+<script src="fiqh.js?v=20" defer></script>
+<script src="qasr.js?v=20" defer></script>
 </body>
 </html>

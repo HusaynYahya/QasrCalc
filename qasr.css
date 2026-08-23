@@ -600,3 +600,50 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 }
 .conds[open] > summary { margin-bottom: 1.25rem; }
 .conds > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ---- yes / no sliders --------------------------------------------------- */
+.q--toggle {
+  display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;
+  padding: .85rem .9rem; border: 1px solid transparent; border-radius: var(--radius);
+}
+.q--toggle + .q--toggle { border-top: 1px solid var(--hair); border-radius: 0; }
+.q__text b { display: block; font-weight: 400; color: var(--ink); line-height: 1.5; }
+.q__text em {
+  display: block; font-style: normal; font-family: var(--font-label);
+  font-size: .8rem; color: var(--ink-mute); margin-top: .25rem; line-height: 1.5;
+}
+
+.toggle {
+  position: relative; display: inline-grid; grid-template-columns: 1fr 1fr;
+  background: var(--bg-sink); border: 1px solid var(--hair);
+  border-radius: 999px; padding: 3px; min-width: 8.5rem; flex: none;
+}
+.toggle label { margin: 0; cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle span {
+  position: relative; z-index: 1; display: block; text-align: center;
+  padding: .42rem .2rem; border-radius: 999px;
+  font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute);
+  transition: color .18s ease;
+}
+/* the knob */
+.toggle::before {
+  content: ""; position: absolute; z-index: 0; top: 3px; bottom: 3px;
+  left: 3px; width: calc(50% - 3px); border-radius: 999px;
+  background: transparent; transition: transform .18s var(--ease, cubic-bezier(.22,1,.36,1)), background .18s ease;
+}
+.toggle:has(input[value="no"]:checked)::before  { background: var(--ink-mute); transform: translateX(0); }
+.toggle:has(input[value="yes"]:checked)::before { background: var(--accent);   transform: translateX(100%); }
+.toggle:has(input[value="no"]:checked)  label:first-child span,
+.toggle:has(input[value="yes"]:checked) label:last-child  span { color: #fff; font-weight: 600; }
+
+/* unanswered: neither side taken, and the question says so */
+.toggle:not(:has(input:checked)) {
+  border-color: var(--amber); background: rgba(176, 116, 13, .08);
+}
+.toggle:not(:has(input:checked)) span { color: var(--amber-bright); }
+.q--toggle:has(.toggle:not(:has(input:checked))) { background: rgba(176, 116, 13, .05); }
+
+.toggle input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 999px; }
+
+.conds__state.is-asking { color: var(--amber-bright); font-weight: 600; }

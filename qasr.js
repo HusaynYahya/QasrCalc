@@ -685,32 +685,40 @@
 
   /* What the reader has told us, in the shape the engine expects. Anything not
      asked is left undefined, and the engine says so rather than guessing.    */
+  /* A slider has two positions, so an unanswered question is one with neither
+     chosen. Those come back undefined, and the engine asks for them rather
+     than reading silence as "no". §15                                        */
+  function ans(name) {
+    var el = document.querySelector("input[name='" + name + "']:checked");
+    return el ? el.value === "yes" : undefined;
+  }
+
   function buildTrip(oneWayKm) {
-    var tenDays = $("qTenDays").checked;
+    var tenDays = ans("qTenDays");
     var edge = toKm(Math.max(0, parseFloat($("edgeKm").value) || 0));
     var leg = Math.max(0, oneWayKm - edge);
-    var sinful = $("qSin").checked;
+    var sinful = ans("qSin") === true;
 
     return {
       person: {
-        kathirRulingApplies: $("qKathir").checked,
-        workIsTravel: $("qKathir").checked || undefined,
-        workDescriptionHolds: $("qKathir").checked ? true : undefined
+        kathirRulingApplies: ans("qKathir"),
+        workIsTravel: ans("qKathir") === true || undefined,
+        workDescriptionHolds: ans("qKathir") === true ? true : undefined
       },
       journey: {
-        intendedFromOutset: $("qIntent").checked,
+        intendedFromOutset: ans("qIntent"),
         purpose: { kind: sinful ? "sinful" : "lawful" }
       },
       breakers: {
-        destinationIsWatan: $("qWatan").checked,
-        mayPassAndStopInWatan: $("qBreakerPossible").checked || undefined,
+        destinationIsWatan: ans("qWatan"),
+        mayPassAndStopInWatan: ans("qBreakerPossible") === true || undefined,
         mayIntendTenDays: undefined
       },
       residence: {
         atDestination: true,
         intendsTenDays: tenDays,
-        certainty: tenDays ? $("qCertainty").value : undefined,
-        oneSettlement: tenDays ? $("qOneSettlement").checked : undefined
+        certainty: tenDays === true ? $("qCertainty").value : undefined,
+        oneSettlement: tenDays === true ? ans("qOneSettlement") : undefined
       },
       legs: {
         outboundKm: leg,
@@ -994,32 +1002,38 @@
      is not worth a word; one that has been changed must be visible without
      opening anything, or the fold hides the very thing that decided it.     */
   var CONDITION_LABELS = [
-    ["qIntent",          false, "no intention at the outset"],
-    ["qWatan",           true,  "destination is a homeland"],
-    ["qTenDays",         true,  "staying ten days"],
-    ["qBreakerPossible", true,  "a stop is possible on the way"],
-    ["qKathir",          true,  "travel is my work"],
-    ["qSin",             true,  "unlawful or futile purpose"]
+    ["qIntent",          false, "no intention at the outset", "was the distance intended at the outset?"],
+    ["qWatan",           true,  "destination is a homeland",  "is the destination your homeland?"],
+    ["qTenDays",         true,  "staying ten days",           "will you stay ten days?"],
+    ["qBreakerPossible", true,  "a stop is possible on the way", null],
+    ["qKathir",          true,  "travel is my work",          null],
+    ["qSin",             true,  "unlawful or futile purpose", null]
   ];
 
   function updateCondState() {
-    var set = CONDITION_LABELS
-      .filter(function (c) { return $(c[0]).checked === c[1]; })
-      .map(function (c) { return c[2]; });
+    var unanswered = [], set = [];
 
-    if ($("qTenDays").checked) {
-      var how = $("qCertainty").value;
-      if (how !== "certain") set.push("the ten days are not certain");
-      if (!$("qOneSettlement").checked) set.push("ten days across two settlements");
+    CONDITION_LABELS.forEach(function (c) {
+      var v = ans(c[0]);
+      if (v === undefined) { if (c[3]) unanswered.push(c[3]); return; }
+      if (v === c[1]) set.push(c[2]);
+    });
+
+    if (ans("qTenDays") === true) {
+      if ($("qCertainty").value !== "certain") set.push("the ten days are not certain");
+      if (ans("qOneSettlement") === false) set.push("ten days across two settlements");
     }
 
     var el = $("condState");
-    if (!set.length) {
-      el.textContent = "Standard journey — open to check";
-      el.className = "conds__state";
-    } else {
+    if (unanswered.length) {
+      el.textContent = "Needs an answer — " + unanswered.join("; ");
+      el.className = "conds__state is-asking";
+    } else if (set.length) {
       el.textContent = set.join(" · ");
       el.className = "conds__state is-set";
+    } else {
+      el.textContent = "Standard journey — open to check";
+      el.className = "conds__state";
     }
   }
 
@@ -1464,7 +1478,7 @@
     list.innerHTML = "";
     routes.forEach(function (r, i) {
       var edge = toKm(parseFloat($("edgeKm").value) || 0);
-      var bothLegs = isReturn() && !$("qWatan").checked && !$("qTenDays").checked;
+      var bothLegs = isReturn() && ans("qWatan") !== true && ans("qTenDays") !== true;
       var counted = Math.max(0, r.km - edge) * (bothLegs ? 2 : 1);
       var li = document.createElement("li");
       var btn = document.createElement("button");
@@ -1762,17 +1776,16 @@
     });
 
     /* Any change to the circumstances re-runs the ruling on the same distance. */
-    ["qIntent", "qWatan", "qTenDays", "qBreakerPossible", "qKathir", "qSin", "qOneSettlement"]
-      .forEach(function (id) {
-        $(id).addEventListener("change", function () { updateCondState(); recalc(); });
+    document.querySelectorAll(".toggle input[type='radio']").forEach(function (el) {
+      el.addEventListener("change", function () {
+        if (this.name === "qTenDays") $("tenDaysDetail").hidden = this.value !== "yes";
+        updateCondState();
+        recalc();
       });
+    });
     $("qCertainty").addEventListener("change", function () { updateCondState(); recalc(); });
     updateCondState();
 
-    /* The ten-day questions only matter once ten days are intended. */
-    $("qTenDays").addEventListener("change", function () {
-      $("tenDaysDetail").hidden = !this.checked;
-    });
 
     document.querySelectorAll("input[name='trip']").forEach(function (el) {
       el.addEventListener("change", recalc);

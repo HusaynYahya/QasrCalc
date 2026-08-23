@@ -54,7 +54,7 @@ const num = t => { const m=String(t).match(/-?[\d.]+/); return m?parseFloat(m[0]
 
     await page.route('**/*', rt => {
       const u = rt.request().url();
-      if (u.startsWith('http://127.0.0.1:8078')) return rt.continue();
+      if (u.startsWith('http://127.0.0.1:8075')) return rt.continue();
       if (u.includes('/api/interpreter')) return rt.fulfill({status:200,contentType:'application/json',body:JSON.stringify({elements:[]})});
       if (u.includes('photon')) return rt.fulfill({status:200,contentType:'application/json',body:JSON.stringify({features:[]})});
       if (u.includes('featureType=settlement')) {
@@ -91,11 +91,15 @@ const num = t => { const m=String(t).match(/-?[\d.]+/); return m?parseFloat(m[0]
       return rt.abort();
     });
 
-    await page.goto('http://127.0.0.1:8078/');
+    await page.goto('http://127.0.0.1:8075/');
     await page.fill('#fromInput', fromCity); await page.waitForTimeout(150);
     await page.fill('#toInput', opts.sameCity ? fromCity + ' east' : toCity);
     if (!returning) await page.click(".seg label:has(input[value='oneway'])");
-    if (opts.ten) { await page.check('#qTenDays'); }
+    const pick = (q,v) => page.click(`.toggle:has(input[name="${q}"]) label:has(input[value="${v}"])`);
+    await page.click('.conds > summary');
+    await pick('qWatan','no');
+    await pick('qTenDays', opts.ten ? 'yes' : 'no');
+    await page.waitForTimeout(200);
     await page.click('#calcBtn');
     let ok = true, note = '';
     try {
