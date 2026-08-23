@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
+<meta name="theme-color" content="#0d1117" />
+<title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+<link rel="stylesheet" href="qasr.css" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Ahkam of travel</p>
+    <h1>Qasr Calculator</h1>
+    <p class="lede">
+      Enter where the journey starts and where it ends. The calculator measures the
+      road distance, applies the eight-<i>farsakh</i> limit, and tells you whether your
+      prayers are shortened — according to the rulings of
+      <strong>Sayyid Ali al-Husayni al-Sistani</strong> (may Allah prolong his life).
+    </p>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+
+  <!-- ============================ THE FORM ============================ -->
+  <form id="qasrForm" class="card" novalidate>
+
+    <section class="block">
+      <h2 class="block__title"><span class="num">1</span> The journey</h2>
+
+      <div class="field">
+        <label for="fromInput">Travelling from</label>
+        <div class="combo">
+          <input id="fromInput" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="e.g. Manchester, United Kingdom"
+                 role="combobox" aria-expanded="false" aria-autocomplete="list"
+                 aria-controls="fromList" />
+          <ul id="fromList" class="suggest" role="listbox" aria-label="Address suggestions" hidden></ul>
+        </div>
+        <p class="hint" id="fromHint">Your hometown, or wherever the journey begins.</p>
+        <button type="button" class="btn btn--small" id="locateBtn">Use my location</button>
+      </div>
+
+      <div class="field">
+        <label for="toInput">Travelling to</label>
+        <div class="combo">
+          <input id="toInput" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="e.g. London, United Kingdom"
+                 role="combobox" aria-expanded="false" aria-autocomplete="list"
+                 aria-controls="toList" />
+          <ul id="toList" class="suggest" role="listbox" aria-label="Address suggestions" hidden></ul>
+        </div>
+        <p class="hint" id="toHint">The furthest point you intend to reach on this journey.</p>
+      </div>
+
+      <div class="field field--split">
+        <div>
+          <span class="label-ish" id="tripLabel">The journey</span>
+          <div class="seg" role="radiogroup" aria-labelledby="tripLabel">
+            <label><input type="radio" name="trip" value="return" checked /><span>There and back</span></label>
+            <label><input type="radio" name="trip" value="oneway" /><span>One way</span></label>
+          </div>
+          <p class="hint">Going and returning are added together, so 22&nbsp;km each way reaches the limit — provided you return without staying ten days.</p>
+        </div>
+        <div>
+          <span class="label-ish" id="measureLabel">How to measure</span>
+          <div class="seg" role="radiogroup" aria-labelledby="measureLabel">
+            <label><input type="radio" name="measure" value="road" checked /><span>By road</span></label>
+            <label><input type="radio" name="measure" value="crow" /><span>As the crow flies</span></label>
+          </div>
+          <p class="hint">The law counts the road actually travelled. The straight line is offered for comparison and is always shorter.</p>
+        </div>
+      </div>
+
+      <div class="field field--split">
+        <div>
+          <label for="edgeKm">From your door to your city border <span class="opt">(filled in for you)</span></label>
+          <input id="edgeKm" type="number" min="0" max="200" step="0.1" inputmode="decimal" placeholder="0" />
+          <p class="hint" id="edgeHint">The count starts at your city border, not your front door. Once the addresses are in, this is measured along the route for you — overwrite it if you know better.</p>
+        </div>
+        <div>
+          <label for="units">Units</label>
+          <select id="units">
+            <option value="km" selected>Kilometres</option>
+            <option value="mi">Miles</option>
+          </select>
+          <p class="hint">The threshold is 8 <i>farsakh</i> ≈ 44&nbsp;km ≈ 27.3&nbsp;miles.</p>
+        </div>
+      </div>
+
+      <details class="manual">
+        <summary>I already know the distance — let me type it in</summary>
+        <div class="field">
+          <label for="manualKm">One-way distance actually travelled</label>
+          <input id="manualKm" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 61.4" />
+          <p class="hint">Fill this in and the addresses above are ignored — useful if you take a different road, travel by rail or air, or the address lookup cannot be reached. Give the distance actually travelled, not the straight line on the map.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="block" id="mapCard">
+      <h2 class="block__title"><span class="num">2</span> <span id="mapTitle">The map</span></h2>
+
+      <div class="maptools">
+        <p class="maptools__hint" id="mapToolHint">Tap the map to set a location</p>
+        <div class="seg seg--small" role="radiogroup" aria-label="Which end the tap sets">
+          <label><input type="radio" name="target" value="from" checked /><span>From</span></label>
+          <label><input type="radio" name="target" value="to" /><span>To</span></label>
+        </div>
+      </div>
+
+      <div id="map" class="map" aria-label="Map of the route between the two places"></div>
+
+      <ul class="legend" id="mapLegend">
+        <li class="is-from"><span class="key key--from"></span>Start</li>
+        <li class="is-to"><span class="key key--to"></span>Destination</li>
+        <li class="is-route"><span class="key key--route"></span>The road measured</li>
+        <li class="is-border"><span class="key key--border"></span>City borders</li>
+        <li class="is-edge"><span class="key key--edge"></span>Edge of town — the count begins here</li>
+        <li class="is-limit"><span class="key key--limit"></span>Eight <i>farsakh</i> falls here</li>
+      </ul>
+      <p class="hint" id="mapNote"></p>
+
+      <div id="routePick" hidden>
+        <h3 class="routes__title">Which road will you take?</h3>
+        <p class="hint">The law counts the road actually travelled. A longer way round can carry a journey past the limit that the direct road falls short of — so pick the one you mean to drive.</p>
+        <ul class="routes" id="routes"></ul>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="block__title"><span class="num">3</span> The circumstances</h2>
+
+      <fieldset class="qs">
+        <legend class="sr-only">Questions about the journey</legend>
+
+        <label class="q">
+          <input type="checkbox" id="qIntent" checked />
+          <span>
+            <b>I intended to cover this whole distance from the start of the journey.</b>
+            <em>If the intention only formed later, the distance is counted from that point onwards.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qWatan" />
+          <span>
+            <b>The destination is one of my hometowns (<i>watan</i>).</b>
+            <em>A birthplace, a place adopted for a long stay — study or work — or a place you regularly stay for a significant period, such as a family village each summer.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qTenDays" />
+          <span>
+            <b>I intend to stay ten continuous days or more at the destination.</b>
+            <em>The intention must be certain from the start; ten days of hesitation do not count.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qNewLongStay" />
+          <span>
+            <b>I have just moved there for a long stay — study or work — and it is not yet my hometown.</b>
+            <em>Newly arrived, with no intention of ten continuous days. By obligatory precaution you pray both, shortened and full, until the place has become a hometown.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qHesitant" />
+          <span>
+            <b>I do not know how long I will stay.</b>
+            <em>Remain a traveller until thirty days have passed in that one place; after that you pray full.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qPassWatan" />
+          <span>
+            <b>I pass through one of my hometowns on the way and stop there.</b>
+            <em>This ends the journey — the distance must be measured afresh from that town.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qFrequent" />
+          <span>
+            <b>Travel is part of my occupation.</b>
+            <em>A driver, pilot, sailor, courier, or someone who commutes for work or study — as well as a nomad with no fixed home.</em>
+          </span>
+        </label>
+
+        <label class="q">
+          <input type="checkbox" id="qSin" />
+          <span>
+            <b>The purpose of the journey is unlawful.</b>
+            <em>A journey undertaken to commit a sin, or which is itself a sin.</em>
+          </span>
+        </label>
+      </fieldset>
+    </section>
+
+    <div class="actions">
+      <button type="submit" class="btn btn--solid" id="calcBtn">Calculate</button>
+      <button type="button" class="btn" id="resetBtn">Reset</button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+  </form>
+
+  <!-- ============================ THE RESULT ============================ -->
+  <section id="result" class="result" hidden aria-live="polite">
+    <div class="verdict" id="verdict">
+      <p class="verdict__label" id="verdictLabel">—</p>
+      <p class="verdict__sub" id="verdictSub"></p>
+    </div>
+
+    <div class="card">
+      <h2 class="block__title">The distance</h2>
+      <dl class="measure" id="measure"></dl>
+      <div class="gauge" id="gauge" aria-hidden="true">
+        <div class="gauge__track"><div class="gauge__fill" id="gaugeFill"></div></div>
+        <div class="gauge__marks">
+          <span>0</span><span class="gauge__limit">legal limit — 8 farsakh</span>
+        </div>
+      </div>
+      <p class="hint" id="measureNote"></p>
+    </div>
+
+    <div class="card">
+      <h2 class="block__title">Your prayers</h2>
+      <table class="prayers" id="prayers">
+        <caption class="sr-only">Number of rak'ahs for each prayer on this journey</caption>
+        <thead><tr><th scope="col">Prayer</th><th scope="col">On the way</th><th scope="col">At the destination</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="split" id="fasting"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="block__title">Why</h2>
+      <ol class="reasons" id="reasons"></ol>
+      <div id="warnings"></div>
+    </div>
+  </section>
+
+  <!-- ============================ THE RULES ============================ -->
+  <section class="card notes">
+    <h2 class="block__title">The rulings in brief</h2>
+
+    <h3>What counts as a journey</h3>
+    <p>Three conditions must be met before a person is a traveller in the eyes of the law:</p>
+    <ol>
+      <li><b>The legal distance.</b> Eight <i>farsakh</i> — 44&nbsp;km, near enough 27½ miles — counted along the path actually travelled, not as a straight line on the map. The outward and return legs are added together, so 22&nbsp;km each way is enough if you return without staying ten days; and it does not matter how the total divides between them. Twelve miles out and sixteen back is the same journey, in law, as fourteen and fourteen.</li>
+      <li><b>The intention from the outset.</b> One must intend to cover the distance when setting out. A person who leaves looking for a petrol station is no traveller, even if he ends up 200&nbsp;km away — though from the moment he decides to continue, the distance is counted afresh from there. One compelled to travel, such as onto a train that does not stop before the limit, <em>is</em> a traveller.</li>
+      <li><b>Nothing interrupting the journey.</b> See below.</li>
+    </ol>
+
+    <h3>What interrupts a journey</h3>
+    <ul>
+      <li>Reaching one of your hometowns and stopping in it — the distance then restarts from that town.</li>
+      <li>Intending to stay ten continuous days in one place — you then pray as a resident there.</li>
+      <li>Remaining undecided in one place for thirty days — after the thirtieth day you become a resident.</li>
+    </ul>
+
+    <h3>What a hometown is</h3>
+    <p>A <i>watan</i> in the language of the law is not simply where you own a house. Owning property is not the criterion; residing somewhere long enough that you are no longer counted a traveller is. A place is your hometown if it is where you belong (usually your birthplace and your parents' home), the place you have chosen to spend the rest of your life, a place adopted for a long residence — for study or work — or a place you return to regularly for a significant period, such as an ancestral village each summer. A person may have <b>more than one</b> hometown, and prays full in each.</p>
+
+    <h3>Which road you take</h3>
+    <p>The distance is the road you actually travel, so the choice of route can decide the matter. Where the direct road is 26 miles and the scenic one 30, the first journey is prayed in full and the second shortened — same two towns, different rulings. Choose the road you mean to drive, not the shortest one on the map.</p>
+
+    <h3>Two lines, not one</h3>
+    <p>It is easy to run together two boundaries which the law keeps apart.</p>
+    <ul>
+      <li><b>Where the distance is counted from: the city border.</b> The measurement starts once you have travelled far enough to be considered a traveller by common reckoning — in practice, the edge of your city. Not your front door.</li>
+      <li><b>Where the distance is counted to: the destination itself.</b> Not the destination's city border, and not its <i>hadd al-tarakhkhus</i> — the actual place you are going.</li>
+      <li><b>Where the shortening begins: the <i>hadd al-tarakhkhus</i>.</b> The point at which the people of the town can no longer see you, nor you them — a little beyond the border. Reach the city border at Dhuhr and you still pray in full; it is not yet a shortened prayer.</li>
+      <li><b>Where the shortening ends: the city border again.</b> Coming home, keep shortening until you are within your city border. Reaching the <i>hadd al-tarakhkhus</i> is not enough on the return.</li>
+    </ul>
+    <p>The same distinction governs the fast, in both directions. On the way out you may not break a fast at the city border — wait until you have crossed the <i>hadd al-tarakhkhus</i>. On the way home, to keep a fast you must be inside the city border before the adhan of Dhuhr; the <i>hadd al-tarakhkhus</i> will not do.</p>
+    <p>Leaving a place where you stayed ten days is different again: there the <i>hadd al-tarakhkhus</i> has no bearing, and you shorten as soon as you leave the town itself.</p>
+
+    <h3>A place you have only just moved to</h3>
+    <p>Somewhere adopted for a long stay — a student arriving for five years — is not yet a hometown on the first day, and a traveller who holds no intention of ten continuous days is not a resident either. By obligatory precaution, one prays <b>both</b>: the four-rak'ah prayers shortened, and again in full. Once you have lived there long enough that people no longer count you a traveller, it is your hometown and you pray in full — even if you are only there to study, and do not mean to stay for life.</p>
+
+    <h3>Prayer and fasting</h3>
+    <ul>
+      <li>The four-rak'ah prayers — <b>Dhuhr, Asr and Isha</b> — become two rak'ahs. <b>Maghrib</b> remains three and <b>Fajr</b> two.</li>
+      <li>The rulings begin at the <i>hadd al-tarakhkhus</i>, not at the city border. See <em>Two lines, not one</em> above.</li>
+      <li>A traveller does not fast. If one is fasting and sets out <em>after</em> the adhan of Dhuhr, that day's fast must be completed; if one sets out before it, the fast is not valid and is made up later.</li>
+    </ul>
+
+    <h3>Where the rulings do not apply</h3>
+    <p>A journey undertaken for a sinful purpose; a person whose occupation involves constant travel, such as a driver or a commuting student; a nomad who wanders; and one who has no permanent home and is always travelling — all of these pray in full.</p>
+
+    <h3>The four places of choice</h3>
+    <p>In Makkah, Madinah, the Masjid of Kufa and the sanctuary of Imam al-Husayn (peace be upon him), a traveller may choose between shortening and praying in full.</p>
+
+    <p class="disclaim">
+      The conditions above follow the Brisc 12 Ahkam Workshop, <em>Prayers of a Traveller</em> (17 January 2025),
+      on the rulings of Sayyid al-Sistani. This calculator is a tool for estimating distance and applying the
+      common cases; it is not a substitute for a qualified scholar. Distances come from public routing data and may differ from the road you actually take.
+      For an unusual case — a journey close to the limit, an uncertain hometown, repeated travel for work — refer to
+      <a href="https://www.sistani.org/english/" rel="noopener">sistani.org</a> or to your local representative.
+    </p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Geocoding by <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap / Nominatim</a>. Routing by <a href="https://project-osrm.org/" rel="noopener">OSRM</a>. Map by <a href="https://leafletjs.com/" rel="noopener">Leaflet</a>, tiles by <a href="https://carto.com/attributions" rel="noopener">CARTO</a>. Rulings per <a href="https://www.sistani.org/english/book/48/" rel="noopener">Islamic Laws</a> of Sayyid al-Sistani.</p>
+  </div>
+</footer>
+
+<script src="lib/leaflet/leaflet.js" defer></script>
+<script src="qasr.js" defer></script>
+</body>
+</html>
