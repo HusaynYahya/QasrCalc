@@ -1185,37 +1185,36 @@
     var dl = $("measure");
     dl.innerHTML = "";
 
-    dl.appendChild(measureRow("Road measured, your door to the destination",
-      fmtKm(lastRoute.km) + (lastRoute.minutes ? " · " + fmtDuration(lastRoute.minutes) + " by car" : "")));
+    dl.appendChild(measureRow("Road to the destination",
+      fmtKm(lastRoute.km) + (lastRoute.minutes ? " · " + fmtDuration(lastRoute.minutes) : "")));
 
     if (edge > 0) {
-      dl.appendChild(measureRow("Inside " + home + " — not counted", "− " + fmtKm(edge), false, "is-off"));
+      dl.appendChild(measureRow("Not counted — inside " + home, "− " + fmtKm(edge), false, "is-off"));
     }
 
     /* A road that never leaves the city has nothing to count, and saying
        "counts: 40 km" above a total of nought is a contradiction on its face. */
     if (borderCheck.within) {
-      dl.appendChild(measureRow("Never leaves " + home + " — nothing counted", fmtKm(0), false, "is-off"));
+      dl.appendChild(measureRow("Never leaves " + home, "nothing to count", false, "is-off"));
     } else {
-      dl.appendChild(measureRow(combined ? "Counts, on the way there" : "Counts on this journey", fmtKm(leg)));
+      dl.appendChild(measureRow(combined ? "Counted going" : "Counted", fmtKm(leg)));
     }
 
     if (borderCheck.within) {
       /* nothing more to add: the journey never began */
     } else if (combined && back) {
-      dl.appendChild(measureRow("Counts, on the way back", "+ " + fmtKm(leg)));
+      dl.appendChild(measureRow("Counted returning", "+ " + fmtKm(leg)));
     } else if (back && out && out._talfiqRefused) {
-      dl.appendChild(measureRow("The way back is not added",
-        "because " + out._talfiqRefused, false, "is-off"));
+      dl.appendChild(measureRow("Return not counted", out._talfiqRefused, false, "is-off"));
     }
 
     dl.appendChild(measureRow("Total counted", fmtKm(counted), true));
 
-    var short = Fiqh.THRESHOLD_KM - counted;
-    dl.appendChild(measureRow("8 farsakh — the legal distance",
+    var gap = Fiqh.THRESHOLD_KM - counted;
+    dl.appendChild(measureRow("Needed to shorten — 8 farsakh",
       fmtKm(Fiqh.THRESHOLD_KM) + (counted >= Fiqh.THRESHOLD_KM
-        ? " · reached, with " + fmtKm(counted - Fiqh.THRESHOLD_KM) + " over"
-        : " · " + fmtKm(short) + " short")));
+        ? " · met, " + fmtKm(-gap) + " over"
+        : " · " + fmtKm(gap) + " short")));
 
     var pct = Math.max(2, Math.min(100, (counted / Fiqh.THRESHOLD_KM) * 100));
     $("gaugeFill").style.width = pct + "%";
