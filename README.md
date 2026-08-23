@@ -58,6 +58,15 @@ it finds is labelled a suggestion, alternatives are offered from the town and
 city levels around the same point, and any other city can be named outright and
 its published border used instead.
 
+The **largest city within 75 km is always offered**, whether or not you stand in
+it — no lookup asking what administrative area you are in will ever suggest London
+to someone in Watford. Both `place=city` and `place=town` are asked for, since
+which tier a large settlement carries varies by country, and size is then measured
+rather than assumed: bounding boxes are compared in square kilometres, not degrees,
+because a degree of longitude is 111 km at the equator and 48 km at Helsinki.
+Boxes spanning the antimeridian are handled. Nothing is forced — the distance is
+shown beside each and you choose.
+
 The border is always a **settlement's** — a city, town or village. A lookup that
 answers with a district, a borough or a county is taken only for the settlement
 name it carries, and that settlement's own boundary is fetched instead. Leaving a
@@ -149,7 +158,7 @@ notes.
 node test/engine.test.js
 ```
 
-45 cases over the distance thresholds, the destination rules, the exemptions,
+50 cases over the distance thresholds, the destination rules, the exemptions,
 the intention, the cautions, and the geometry behind the city-border deduction
 (point-in-polygon with holes, multipolygons, and the border crossing along a route). They stub the browser and never touch the
 network.

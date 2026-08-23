@@ -32,6 +32,7 @@
      spelling, and no one-a-second limit. It answers the suggestions;
      Nominatim keeps the boundary work, which it does better.                 */
   var PHOTON = "https://photon.komoot.io/api/";
+  var PHOTON_NEAR = "https://photon.komoot.io/reverse";
   var OSRM      = "https://router.project-osrm.org/route/v1/driving/";
 
   /* ==========================================================================
@@ -205,7 +206,70 @@
             .catch(function () { found.push({ name: city.name, area: city.area, shape: null }); });
         });
       });
-    }, Promise.resolve()).then(function () { return found; });
+    }, Promise.resolve())
+      .then(function () { return biggestCityNear(place); })
+      .then(function (big) {
+        if (!big) return found;
+        if (found.some(function (c) { return c.name === big.name; })) return found;
+        return cityByName(big.name)
+          .then(function (settlement) {
+            settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
+            found.push(settlement);
+            return found;
+          })
+          .catch(function () { return found; });
+      });
+  }
+
+  /* The largest city within reach, whether or not the reader lives in it.
+     Someone in Watford is unlikely to be offered London by any lookup that
+     asks what administrative area they stand in — but London's edge may well
+     be the one they would call leaving town, so it is always on the list.
+
+     Both place=city and place=town are asked for, because which tier a large
+     settlement carries varies by country, and size is then measured rather
+     than assumed. Bounding boxes are compared in square kilometres, not in
+     degrees: a degree of longitude is 111 km at the equator and 48 km at
+     Helsinki, so degrees alone would call northern cities the larger.        */
+  /* Wide enough for a metropolitan commuter belt anywhere — London's is about
+     40 km, Tokyo's 60, Los Angeles' 70 — without offering a city nobody would
+     claim. Nothing is forced: the distance is shown and the reader chooses.  */
+  var NEAR_CITY_KM = 75;
+
+  /* Photon's extent is [west, north, east, south], in degrees. */
+  function extentKm2(e, lat) {
+    if (!e || e.length < 4) return 0;
+    var dLon = Math.abs(e[2] - e[0]);
+    if (dLon > 180) dLon = 360 - dLon;          /* across the antimeridian */
+    var dLat = Math.abs(e[1] - e[3]);
+    return (dLat * 111.32) * (dLon * 111.32 * Math.cos(lat * Math.PI / 180));
+  }
+
+  function biggestCityNear(place) {
+    var url = PHOTON_NEAR + "?lat=" + place.lat + "&lon=" + place.lon +
+              "&limit=20&lang=en&osm_tag=place:city&osm_tag=place:town";
+
+    return fetch(url, { headers: { Accept: "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Nearby search returned " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        var best = null;
+        (data.features || []).forEach(function (f) {
+          var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+          if (!p.name || !c) return;
+          var away = haversineKm(place, { lat: c[1], lon: c[0] });
+          if (away > NEAR_CITY_KM) return;
+          var size = extentKm2(p.extent, c[1]);
+          if (!best || size > best.size || (size === best.size && away < best.away)) {
+            best = { name: p.name, area: p.state || p.county || p.country || null,
+                     size: size, away: away };
+          }
+        });
+        return best;
+      })
+      .catch(function () { return null; });
   }
 
   /* A city named by the reader — Londoners in all but postcode may want
@@ -1022,6 +1086,7 @@
     btn.innerHTML = "<b>" + city.name + "</b><span>" +
       (city.area && city.area !== city.name ? city.area + " · " : "") +
       (city.shape ? "border published" : "no border published — nothing to deduct") +
+      (city.note ? " · " + city.note : "") +
       "</span>";
     btn.addEventListener("click", function () { useCity(city, true); });
     li.appendChild(btn);
@@ -1383,7 +1448,8 @@
      test/engine.test.js. Nothing in the interface reads it back.             */
   window.QasrEngine = {
     decide: decide, LIMIT_KM: LIMIT_KM, FARSAKH_KM: FARSAKH_KM,
-    inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm
+    inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm,
+    extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM
   };
 
   if (document.readyState === "loading") {

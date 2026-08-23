@@ -362,5 +362,36 @@ test("no shape at all is handled", function () {
   assert.strictEqual(G.inShape(0, 0, null), false);
 });
 
+/* --- sizing a city, anywhere on earth ------------------------------------ */
+console.log("\nMeasuring a city's extent");
+
+test("the same span of degrees is a smaller city further north", function () {
+  var span = [-0.5, 0.2, 0.5, -0.2];            /* one degree by 0.4 */
+  var equator = G.extentKm2(span, 0);
+  var helsinki = G.extentKm2(span, 60);
+  assert.ok(helsinki < equator * 0.55,
+    "60N should be about half: " + helsinki.toFixed(0) + " vs " + equator.toFixed(0));
+});
+
+test("London's box outsizes Watford's", function () {
+  var london  = G.extentKm2([-0.51, 51.69, 0.33, 51.28], 51.5);
+  var watford = G.extentKm2([-0.44, 51.69, -0.36, 51.63], 51.66);
+  assert.ok(london > watford * 20, "London " + london.toFixed(0) + " vs Watford " + watford.toFixed(0));
+});
+
+test("a box across the antimeridian is not counted as the whole globe", function () {
+  var fiji = G.extentKm2([179.7, -17.6, -179.8, -18.2], -18);
+  assert.ok(fiji > 0 && fiji < 5000, "expected a small island city, got " + fiji.toFixed(0));
+});
+
+test("a missing or malformed extent is zero, not an error", function () {
+  assert.strictEqual(G.extentKm2(null, 50), 0);
+  assert.strictEqual(G.extentKm2([1, 2], 50), 0);
+});
+
+test("the search radius is a sane distance", function () {
+  assert.ok(G.NEAR_CITY_KM >= 40 && G.NEAR_CITY_KM <= 100);
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);
