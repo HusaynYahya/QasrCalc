@@ -50,8 +50,9 @@ labelled fallback.
 - **By road / straight line** — the road is the default and what the law counts;
   the straight line is offered for comparison and labelled every time it is used,
   since it is always shorter and can understate a journey.
-- **Which road** — where the routing service offers alternatives, each is listed
-  with its distance and the ruling it would produce.
+- **Which road** — up to three routes are asked for, and each is listed with its
+  distance and the ruling it would produce, since the law counts the road
+  actually taken.
 - **A distance typed by hand**, which overrides all of the above and needs no
   network.
 
@@ -85,6 +86,16 @@ The border is always a **settlement's** — a city, town or village. A lookup th
 answers with a district, a borough or a county is taken only for the settlement
 name it carries, and that settlement's own boundary is fetched instead. Leaving a
 county is not what the law means by leaving town.
+
+The distance counted always runs **from the city border to the destination**.
+The road from the door to that border is measured along the route and taken off;
+every case where that cannot be done says which — no city identified, no border
+published, a route that never leaves town, or a start outside the city named —
+instead of quietly measuring from the doorstep.
+
+A boundary that does not contain the reader is the wrong town's: there is a
+Watford in Northamptonshire as well as Hertfordshire. Where the reader's position
+is known, the boundary they stand inside is the one taken.
 
 The crossing is taken as the **last** moment the route is inside the chosen city,
 not the first, so a road that dips out and back has not taken you out of town —

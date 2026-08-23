@@ -156,7 +156,7 @@
       if (!city.name) return city;
       if (SETTLEMENT.test(city.kind || "") && city.shape) return city;
       /* Named, but the shape belongs to something larger or smaller. */
-      return cityByName(city.name).catch(function () {
+      return cityByName(city.name, place).catch(function () {
         return { name: city.name, area: city.area, shape: null };
       });
     });
@@ -205,7 +205,7 @@
           if (found.some(function (c) { return c.name === city.name; })) return;
           if (SETTLEMENT.test(city.kind || "") && city.shape) { found.push(city); return; }
           /* Named by a district or a county — take the settlement itself. */
-          return cityByName(city.name)
+          return cityByName(city.name, place)
             .then(function (settlement) {
               /* Keep whichever knows the border. A named lookup that comes
                  back without one must not displace a shape already found.    */
@@ -327,7 +327,7 @@
 
   /* A city named by the reader — Londoners in all but postcode may want
      London's border rather than their own town's.                            */
-  function cityByName(name) {
+  function cityByName(name, mustContain) {
     /* featureType=settlement confines the answer to cities, towns, villages
        and hamlets — never a county, a district or a region. The spelling is
        case-sensitive; "featuretype" is quietly ignored.
@@ -347,6 +347,15 @@
         var withShape = rows.filter(function (r) {
           return r.geojson && /Polygon/.test(r.geojson.type);
         });
+        /* There is a Watford in Northamptonshire as well as Hertfordshire,
+           and a Cambridge on two continents. When we know where the reader
+           is, the right boundary is the one they stand inside.               */
+        if (mustContain) {
+          var holds = withShape.filter(function (r) {
+            return inShape(mustContain.lat, mustContain.lon, r.geojson);
+          });
+          if (holds.length) withShape = holds;
+        }
         var row = withShape[0] || rows[0], a = row.address || {};
         return {
           name: a.city || a.town || a.village || a.municipality ||
@@ -426,7 +435,7 @@
      Falls back to the straight line, flagged so the interface can say so.    */
   function routeKm(a, b) {
     var coords = a.lon + "," + a.lat + ";" + b.lon + "," + b.lat;
-    return fetch(OSRM + coords + "?overview=full&geometries=geojson&alternatives=true")
+    return fetch(OSRM + coords + "?overview=full&geometries=geojson&alternatives=3")
       .then(function (r) {
         if (!r.ok) throw new Error("Routing service returned " + r.status);
         return r.json();
@@ -965,13 +974,14 @@
     $("verdictSub").textContent = verdict.sub;
 
     /* the numbers */
+    var home = (cities.from && cities.from.name) || "your city";
     var rows = [
-      [(src === "crow" ? "Straight-line distance, one way" : "Road distance, one way"), fmtKm(m.oneWayKm) +
+      [(src === "crow" ? "Straight line, door to destination" : "Road, door to destination"), fmtKm(m.oneWayKm) +
         (lastRoute && lastRoute.minutes ? " · about " + fmtDuration(lastRoute.minutes) + " by car" : "")]
     ];
     if (m.edgeKm > 0) {
-      rows.push(["Deducted to the edge of town", "− " + fmtKm(m.edgeKm) + " per leg"]);
-      rows.push(["Counted, one way", fmtKm(m.legKm)]);
+      rows.push(["Less door to the " + home + " border", "− " + fmtKm(m.edgeKm)]);
+      rows.push([home + " border to destination", fmtKm(m.legKm)]);
     }
     if (m.roundTrip) rows.push(["Return leg", "+ " + fmtKm(m.legKm)]);
     rows.push(["Legal distance — 8 farsakh", fmtKm(m.limitKm)]);
@@ -1218,20 +1228,49 @@
 
   /* The distance from the start to the point where the route leaves the home
      city. Written into the deduction field unless the reader has set it. */
+  /* The legal distance runs from the city border to the destination, so the
+     road from the door to that border is measured and taken off. Every case
+     where it cannot be done says which, rather than quietly measuring from
+     the doorstep.                                                            */
   function applyBorderDeduction() {
     var city = cities.from;
-    if (!lastRoute || !lastRoute.line || !city || !city.shape) return;
+    var hint = $("edgeHint");
+
+    function say(text, kind) {
+      hint.innerHTML = text;
+      hint.className = "hint" + (kind ? " " + kind : "");
+    }
+
+    if (!lastRoute || !lastRoute.line) return;          /* nothing measured yet */
+
+    if (!city || !city.name) {
+      say("No city identified for the start, so the count runs from the address itself.", "hint--warn");
+      return;
+    }
+    if (!city.shape) {
+      say("No published border for <b>" + city.name + "</b>, so the count runs from the address itself. " +
+          "Name another city above, or type the distance to your city's edge here.", "hint--warn");
+      return;
+    }
 
     var polyKm = polylineKm(lastRoute.line);
     var exit = borderExitKm(lastRoute.line, city.shape,
                             polyKm > 0 ? lastRoute.km / polyKm : 1);
-    if (exit === null) return;
+
+    if (exit === null) {
+      var inside = inShape(lastRoute.line[0][0], lastRoute.line[0][1], city.shape);
+      say(inside
+        ? "This route never leaves <b>" + city.name + "</b>, so no journey is counted at all."
+        : "The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
+          "Choose the city you would call leaving town, above.", "hint--warn");
+      if (!edgeTouched) $("edgeKm").value = "";
+      return;
+    }
 
     if (!edgeTouched) $("edgeKm").value = fromKm(exit).toFixed(1);
-    $("edgeHint").innerHTML = "Measured along the route: <b>" + fmtKm(exit) +
-      "</b> from the start to the border of " + (city.name || "your city") +
-      ". Counting begins there. Overwrite it if you know better.";
-    $("edgeHint").className = "hint hint--ok";
+    say("Counting from the border of <b>" + city.name + "</b> to the destination. " +
+        "The road from your door to that border is <b>" + fmtKm(exit) + "</b>, and is not counted. " +
+        "Overwrite it if you know better.", "hint--ok");
   }
 
   function renderRoutes() {
