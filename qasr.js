@@ -151,10 +151,18 @@
      the settlement's own boundary is fetched instead.                        */
   var SETTLEMENT = /^(city|town|village|municipality)$/;
 
+  /* Nominatim's place_rank puts a country at 4, a state at 8, a county at 12,
+     a city at 16 and a village at 19. "Greater London" is an administrative
+     county wearing a city's name, and the rank is what gives it away.        */
+  function isSettlement(city) {
+    if (!SETTLEMENT.test(city.kind || "")) return false;
+    return city.rank == null || (city.rank >= 16 && city.rank <= 20);
+  }
+
   function cityOf(place) {
     return cityAt(place, 10).then(function (city) {
       if (!city.name) return city;
-      if (SETTLEMENT.test(city.kind || "") && city.shape) return city;
+      if (isSettlement(city) && city.shape) return city;
       /* Named, but the shape belongs to something larger or smaller. */
       return cityByName(city.name, place).catch(function () {
         return { name: city.name, area: city.area, shape: null };
@@ -184,6 +192,7 @@
           name: a.city || a.town || a.village || a.municipality || null,
           area: a.county || a.state || a.country || null,
           kind: row.addresstype || null,
+          rank: typeof row.place_rank === "number" ? row.place_rank : null,
           /* Only an area has a border to draw; a point result has none. */
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
@@ -203,7 +212,7 @@
         return cityAt(place, zoom).then(function (city) {
           if (!city || !city.name) return;
           if (found.some(function (c) { return c.name === city.name; })) return;
-          if (SETTLEMENT.test(city.kind || "") && city.shape) { found.push(city); return; }
+          if (isSettlement(city) && city.shape) { found.push(city); return; }
           /* Named by a district or a county — take the settlement itself. */
           return cityByName(city.name, place)
             .then(function (settlement) {
@@ -395,6 +404,10 @@
         var withShape = rows.filter(function (r) {
           return r.geojson && /Polygon/.test(r.geojson.type);
         });
+        var settled = withShape.filter(function (r) {
+          return typeof r.place_rank !== "number" || (r.place_rank >= 16 && r.place_rank <= 20);
+        });
+        if (settled.length) withShape = settled;
         /* There is a Watford in Northamptonshire as well as Hertfordshire,
            and a Cambridge on two continents. When we know where the reader
            is, the right boundary is the one they stand inside.               */
@@ -528,6 +541,7 @@
        hesitant          no idea how long the stay will be
        newLongStay       newly arrived somewhere adopted for a long stay — study or
                          work — which is not yet a hometown, with no ten-day intention
+       staysInCity       the whole road lies within the traveller's own city
        passesWatan       the route passes through, and stops in, a hometown
        frequentTraveller travel is part of the occupation, or the person is a nomad
        sinful            the journey is for an unlawful purpose
@@ -581,6 +595,16 @@
       warnings.push({ kind: "info", text: "The exemption applies to the travel of the occupation itself. A journey of a different kind — a holiday, a pilgrimage — is judged on its own terms, and the first journey after a long break from the work is treated as ordinary travel." });
       return out("full", "full", "Pray in full",
         "One whose work is travel is not a traveller in the eyes of the law.");
+    }
+
+    /* -- a road that never leaves town ------------------------------------- */
+    if (o.staysInCity) {
+      metrics.countedKm = 0;
+      metrics.legKm = 0;
+      metrics.meets = false;
+      reasons.push("The whole of this road lies inside your own city. <b>Nothing is counted</b>: the legal distance begins at the city border, and this journey never reaches it. Travel within your own town is not travel in the eyes of the law, however far across it you go.");
+      return out("full", "full", "Pray in full",
+        "You do not leave your own city, so there is no journey to measure.");
     }
 
     /* -- the distance ------------------------------------------------------ */
@@ -679,6 +703,7 @@
   var lastRoute = null;               /* whichever is being ruled on */
   var edgeTouched = false;            /* the reader overrode the measured border */
   var cityConfirmed = false;          /* the reader settled which city counts */
+  var staysInCity = false;            /* the road never leaves the home city */
 
   function isReturn()  { return document.querySelector("input[name='trip']:checked").value === "return"; }
   function byCrow()    { return document.querySelector("input[name='measure']:checked").value === "crow"; }
@@ -794,6 +819,7 @@
       tenDays:           $("qTenDays").checked,
       hesitant:          $("qHesitant").checked,
       newLongStay:       $("qNewLongStay").checked,
+      staysInCity:       staysInCity,
       passesWatan:       $("qPassWatan").checked,
       frequentTraveller: $("qFrequent").checked,
       sinful:            $("qSin").checked
@@ -1337,6 +1363,7 @@
       hint.className = "hint" + (kind ? " " + kind : "");
     }
 
+    staysInCity = false;
     if (!lastRoute || !lastRoute.line) return;          /* nothing measured yet */
 
     if (!city || !city.name) {
@@ -1355,8 +1382,9 @@
 
     if (exit === null) {
       var inside = inShape(lastRoute.line[0][0], lastRoute.line[0][1], city.shape);
+      staysInCity = inside;            /* both ends within your own city */
       say(inside
-        ? "This route never leaves <b>" + city.name + "</b>, so no journey is counted at all."
+        ? "Both ends of this road lie inside <b>" + city.name + "</b>. Nothing is counted: you never leave town."
         : "The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
           "Choose the city you would call leaving town, above.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";

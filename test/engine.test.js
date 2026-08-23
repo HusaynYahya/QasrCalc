@@ -41,6 +41,7 @@ function journey(over) {
     tenDays: false,
     hesitant: false,
     newLongStay: false,
+    staysInCity: false,
     passesWatan: false,
     frequentTraveller: false,
     sinful: false
@@ -211,6 +212,33 @@ test("an undecided stay does not sever the journey", function () {
 test("the reason says why the return was left out", function () {
   var v = decide(journey({ oneWayKm: 25, tenDays: true }));
   assert.ok(v.reasons.some(function (r) { return /not<\/b> added|ends the journey there/.test(r); }));
+});
+
+/* --- a road that never leaves town --------------------------------------- */
+console.log("\nWhen both ends lie in the same city");
+
+test("nothing is counted, however far across the city", function () {
+  var v = decide(journey({ oneWayKm: 48, staysInCity: true }));
+  assert.strictEqual(v.metrics.countedKm, 0);
+  assert.strictEqual(v.enRoute, "full");
+  assert.strictEqual(v.atDest, "full");
+});
+
+test("it outranks the distance, which would otherwise qualify", function () {
+  var far = decide(journey({ oneWayKm: 48 }));
+  assert.strictEqual(far.enRoute, "qasr");       /* 48 km each way, returning */
+  var same = decide(journey({ oneWayKm: 48, staysInCity: true }));
+  assert.strictEqual(same.enRoute, "full");
+});
+
+test("but a sinful purpose is still judged first", function () {
+  var v = decide(journey({ oneWayKm: 48, staysInCity: true, sinful: true }));
+  assert.ok(/unlawful/.test(v.reasons[0]));
+});
+
+test("the reason explains why nothing was counted", function () {
+  var v = decide(journey({ oneWayKm: 48, staysInCity: true }));
+  assert.ok(/never reaches it|inside your own city/.test(v.reasons[0]));
 });
 
 /* --- the exemptions ------------------------------------------------------- */
