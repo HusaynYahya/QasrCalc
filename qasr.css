@@ -429,3 +429,6 @@ input::placeholder { color: var(--ink-faint); }
 }
 .backlink a { text-decoration: none; }
 .backlink a:hover { text-decoration: underline; }
+
+.citypick__row .combo { flex: 1; }
+.citypick__row .suggest { z-index: 30; }

@@ -278,13 +278,12 @@
 
     nearbyReason = null;
 
+    /* A GET rather than a POST: browsers refuse cross-origin POSTs for more
+       reasons than they refuse GETs, and an error response without the
+       permissive header reads only as "Failed to fetch".                     */
     function ask(hosts) {
       if (!hosts.length) return Promise.reject(new Error("no host answered"));
-      return fetch(hosts[0], {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: "data=" + encodeURIComponent(query)
-      })
+      return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
         .then(function (r) {
           if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
           return r.json();
@@ -350,6 +349,32 @@
 
   /* A city named by the reader — Londoners in all but postcode may want
      London's border rather than their own town's.                            */
+  /* Suggestions for the "name the city yourself" box: settlements only, near
+     the reader first. This path needs nothing but Photon, so it keeps working
+     when the nearby-city search cannot be reached at all.                    */
+  function suggestCities(query, near, signal) {
+    var url = PHOTON + "?limit=6&lang=en&osm_tag=place:city&osm_tag=place:town" +
+              "&q=" + encodeURIComponent(query) +
+              (near ? "&lat=" + near.lat + "&lon=" + near.lon : "");
+
+    return fetch(url, { signal: signal, headers: { Accept: "application/json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Search returned " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        return (data.features || []).map(function (f) {
+          var p = f.properties || {};
+          return {
+            name: p.name,
+            area: [p.county, p.state, p.country].filter(Boolean).join(", "),
+            lat: f.geometry.coordinates[1],
+            lon: f.geometry.coordinates[0]
+          };
+        }).filter(function (c) { return c.name; });
+      });
+  }
+
   function cityByName(name, mustContain) {
     /* featureType=settlement confines the answer to cities, towns, villages
        and hamlets — never a county, a district or a region. The spelling is
@@ -1478,6 +1503,44 @@
 
     $("citySearch").addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); $("cityGo").click(); }
+      if (e.key === "Escape") { $("cityFound").hidden = true; }
+    });
+
+    /* Suggestions for the box, so the city need not be typed exactly nor its
+       spelling guessed. Independent of the nearby-city search entirely.      */
+    var cityTimer = null, cityAbort = null;
+    $("citySearch").addEventListener("input", function () {
+      var q = this.value.trim(), list = $("cityFound");
+      if (cityTimer) clearTimeout(cityTimer);
+      if (cityAbort) cityAbort.abort();
+      if (q.length < 2) { list.hidden = true; return; }
+
+      cityTimer = setTimeout(function () {
+        cityAbort = new AbortController();
+        suggestCities(q, places.from, cityAbort.signal)
+          .then(function (found) {
+            list.innerHTML = "";
+            found.forEach(function (c) {
+              var li = document.createElement("li");
+              li.setAttribute("role", "option");
+              li.textContent = c.name + (c.area ? " — " + c.area : "");
+              li.addEventListener("mousedown", function (e) {
+                e.preventDefault();
+                list.hidden = true;
+                $("citySearch").value = c.name;
+                $("cityGo").click();
+              });
+              list.appendChild(li);
+            });
+            list.hidden = !found.length;
+            $("citySearch").setAttribute("aria-expanded", String(!list.hidden));
+          })
+          .catch(function () { list.hidden = true; });
+      }, 250);
+    });
+
+    $("citySearch").addEventListener("blur", function () {
+      setTimeout(function () { $("cityFound").hidden = true; }, 120);
     });
 
     $("locateBtn").addEventListener("click", function () {

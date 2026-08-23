@@ -71,7 +71,10 @@ to someone in Watford. It is fetched as soon as an address is set, not when the
 panel is opened, and named on the button ("Not Watford? London is also an option"),
 because an option nobody can see is no option at all.
 
-When nothing can be found, the panel says so rather than showing one lonely row.
+When nothing can be found the panel says so, with the reason, and the box beside
+it suggests cities as you type — settlements only, nearest first. That path needs
+only Photon, so naming London by hand takes four keystrokes and a click even when
+the automatic search cannot be reached at all.
 
 It comes from Overpass — three hosts tried in turn, since one being busy should
 not cost the reader the option, and the panel names the reason when none answer — every `place=city` and `place=town` within the radius,
