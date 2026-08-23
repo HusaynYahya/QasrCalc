@@ -86,10 +86,20 @@ longitude is 111 km at the equator and 48 km at Helsinki, so degrees alone would
 call northern cities the larger. Boxes spanning the antimeridian are handled.
 Nothing is forced — the distance is shown beside each and you choose.
 
+A **Refresh** button empties every cache — addresses, cities, borders, roads —
+and asks the services again. Everything is cached to spare them, which is the
+right default and the wrong one when a lookup has just failed or a border looks
+wrong.
+
 The border is always a **settlement's** — a city, town or village. A lookup that
 answers with a district, a borough or a county is taken only for the settlement
-name it carries, and that settlement's own boundary is fetched instead. Leaving a
-county is not what the law means by leaving town.
+name it carries, and that settlement's own boundary is fetched instead.
+
+Where a city has **no** settlement-level boundary — London's only published polygon
+is the Greater London relation, which ranks as a county — that boundary is used
+rather than leaving the city with none, since the text measures from the end of
+the whole city and not of a quarter [1704 fn.2]. It carries the settlement's own
+name, and the border check says where it came from.
 
 The distance counted always runs **from the city border to the destination**, and
 the page says on every calculation whether that actually happened. A green line

@@ -408,16 +408,22 @@
         var withShape = rows.filter(function (r) {
           return r.geojson && /Polygon/.test(r.geojson.type);
         });
-        /* A settlement ranks 16 to 20; a county ranks 12. "Greater London" is a
-           county wearing a city's name, and taking its border would measure
-           from the edge of the conurbation rather than of the town. If nothing
-           of settlement rank is found, this lookup has failed — it must not
-           quietly hand back the county. */
+        /* A settlement ranks 16 to 20; a county ranks 12. A settlement's own
+           boundary is preferred where one exists.
+
+           But some cities have none: the only polygon published for London is
+           the Greater London relation, which ranks as a county. Refusing it
+           leaves London with no border at all, and the text wants the edge of
+           the whole city anyway — Tehran is measured from the end of the city,
+           not of a quarter [1704 fn.2]. So an aggregate boundary is accepted
+           when nothing finer exists, and carries the settlement's own name
+           rather than the administrative one. */
         var settled = withShape.filter(function (r) {
           return typeof r.place_rank !== "number" || (r.place_rank >= 16 && r.place_rank <= 20);
         });
-        if (!settled.length) throw new Error("No town or city of that name has a published border.");
-        withShape = settled;
+        var fromAggregate = false;
+        if (settled.length) withShape = settled;
+        else if (withShape.length) fromAggregate = true;
         /* There is a Watford in Northamptonshire as well as Hertfordshire,
            and a Cambridge on two continents. When we know where the reader
            is, the right boundary is the one they stand inside.               */
@@ -428,10 +434,15 @@
           if (holds.length) withShape = holds;
         }
         var row = withShape[0] || rows[0], a = row.address || {};
+        var settlementName = String(name).replace(/^Greater\s+/i, "");
         return {
-          name: a.city || a.town || a.village || a.municipality ||
-                (row.display_name || "").split(",")[0],
+          /* The name the reader asked for, not the administrative label the
+             boundary happens to carry. */
+          name: fromAggregate ? settlementName
+              : (a.city || a.town || a.village || a.municipality ||
+                 (row.display_name || "").split(",")[0]),
           area: a.state || a.county || a.country || null,
+          fromAggregate: fromAggregate,
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
       });
@@ -1249,8 +1260,12 @@
     if (borderCheck.ok) {
       el.className = "bordercheck is-ok";
       el.innerHTML = "<b>Counting from the " + borderCheck.city + " border.</b> " +
-        "The " + fmtKm(borderCheck.km) + " from your door to it is drawn faint and is not counted. " +
-        "<span class='cite'>1704</span>";
+        "The " + fmtKm(borderCheck.km) + " from your door to it is drawn faint and is not counted." +
+        (cities.from && cities.from.fromAggregate
+          ? " No town-level boundary is published for " + borderCheck.city +
+            ", so this is the edge of the whole built-up area — which is what the text measures from."
+          : "") +
+        " <span class='cite'>1704</span>";
       return;
     }
     el.className = "bordercheck is-off";
@@ -1648,6 +1663,28 @@
     });
 
     $("qasrForm").addEventListener("submit", calculate);
+
+    /* Everything is cached to spare the services; a refresh empties the caches
+       and asks again, which is what to reach for when a border or a road looks
+       wrong or a lookup failed a moment ago. */
+    $("refreshBtn").addEventListener("click", function () {
+      if (!places.from && !$("fromInput").value.trim()) { $("fromInput").focus(); return; }
+      Object.keys(geocodeCache).forEach(function (k) { delete geocodeCache[k]; });
+      Object.keys(cityCache).forEach(function (k) { delete cityCache[k]; });
+      cities = { from: null, to: null };
+      cityOptions = null;
+      routes = [];
+      roadRoute = crowRoute = lastRoute = null;
+      edgeTouched = false;
+      if (!$("manualKm").value.trim()) $("edgeKm").value = "";
+      mapState.fitted = null;
+      this.disabled = true;
+      this.textContent = "Refreshing…";
+      var btn = this;
+      say("Looking everything up again…");
+      calculate();
+      setTimeout(function () { btn.disabled = false; btn.textContent = "Refresh"; }, 1200);
+    });
 
     $("resetBtn").addEventListener("click", function () {
       $("qasrForm").reset();
