@@ -548,7 +548,10 @@
   var lastResult = null;
   var edgeTouched = false;            /* the reader overrode the measured border */
   var cityConfirmed = false;          /* the reader settled which city counts */
-  var staysInCity = false;            /* the road never leaves the home city */
+  var staysInCity = false;
+  /* Whether the count actually began at a city border, and if not, why not.
+     [1704] requires it; the reader is shown whether it happened.            */
+  var borderCheck = { ok: false, reason: "Nothing measured yet.", km: 0, city: null };            /* the road never leaves the home city */
 
   function isReturn()  { return document.querySelector("input[name='trip']:checked").value === "return"; }
   function byCrow()    { return document.querySelector("input[name='measure']:checked").value === "crow"; }
@@ -881,9 +884,11 @@
         /* Where the counting begins. */
         if (head && head.length > 1) {
           L.circleMarker(counted[0], {
-            radius: 6, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
-          }).addTo(mapState.drawn).bindTooltip("The count starts here — the " +
-            ((cities.from && cities.from.name) || "city") + " border");
+            radius: 7, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
+          }).addTo(mapState.drawn)
+            .bindTooltip("Counting starts here — the " +
+              ((cities.from && cities.from.name) || "city") + " border",
+              { permanent: true, direction: "right", className: "tip-start" });
         }
       }
       seen.push(L.latLngBounds(line));
@@ -918,6 +923,7 @@
     $("mapLegend").querySelector(".is-border").hidden = !drewBorder;
     $("mapLegend").querySelector(".is-edge").hidden = !hasEdge;
     $("mapLegend").querySelector(".is-limit").hidden = !at;
+    renderBorderCheck();
 
     $("mapNote").innerHTML =
       !line && !places.from && !places.to
@@ -1201,6 +1207,29 @@
     return li;
   }
 
+  /* The check, said plainly under the map. [1704] */
+  function renderBorderCheck() {
+    var el = $("borderCheck");
+    if (!lastRoute) { el.hidden = true; return; }
+    el.hidden = false;
+
+    if (borderCheck.ok && borderCheck.within) {
+      el.className = "bordercheck is-within";
+      el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason;
+      return;
+    }
+    if (borderCheck.ok) {
+      el.className = "bordercheck is-ok";
+      el.innerHTML = "<b>Counting from the " + borderCheck.city + " border.</b> " +
+        "The " + fmtKm(borderCheck.km) + " from your door to it is drawn faint and is not counted. " +
+        "<span class='cite'>1704</span>";
+      return;
+    }
+    el.className = "bordercheck is-off";
+    el.innerHTML = "<b>Not counting from a city border.</b> " + borderCheck.reason +
+      " <span class='cite'>1704</span>";
+  }
+
   function renderCityChoices() {
     var list = $("cityList");
     list.innerHTML = "";
@@ -1277,12 +1306,17 @@
       hint.innerHTML = text;
       hint.className = "hint" + (kind ? " " + kind : "");
     }
+    function fail(reason) {
+      borderCheck = { ok: false, reason: reason, km: 0, city: city && city.name };
+      renderBorderCheck();
+    }
 
     staysInCity = false;
     if (!lastRoute || !lastRoute.line) return;          /* nothing measured yet */
 
     if (!city || !city.name) {
       say("No city identified for the start, so the count runs from the address itself.", "hint--warn");
+      fail("No city was identified for the start, so the distance is counted from the address itself — which overstates it.");
       return;
     }
 
@@ -1304,12 +1338,15 @@
     if (staysInCity) {
       say("Both ends lie inside <b>" + city.name + "</b>, so nothing is counted: you never leave town.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";
+      borderCheck = { ok: true, within: true, reason: "Both ends lie inside " + city.name + ", so the border is never crossed and nothing is counted.", km: 0, city: city.name };
+      renderBorderCheck();
       return;
     }
 
     if (!city.shape) {
       say("No published border for <b>" + city.name + "</b>, so the count runs from the address itself. " +
           "Name another city above, or type the distance to your city's edge here.", "hint--warn");
+      fail("No border is published for " + city.name + ", so the distance is counted from the address itself — which overstates it. Name another city, or enter the distance to your city's edge by hand.");
       return;
     }
 
@@ -1321,8 +1358,12 @@
       say("The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
           "Choose the city you would call leaving town, above.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";
+      fail("The start lies outside " + city.name + " and the route never crosses its border, so nothing is deducted. Choose the city whose edge you would call leaving town.");
       return;
     }
+
+    borderCheck = { ok: true, reason: null, km: exit, city: city.name };
+    renderBorderCheck();
 
     if (!edgeTouched) $("edgeKm").value = fromKm(exit).toFixed(1);
     say("Counting from the border of <b>" + city.name + "</b> to the destination. " +

@@ -486,3 +486,30 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .q--sub { display: block; margin-left: 2.6rem; padding: .9rem 1rem; background: var(--bg-sink);
           border: 1px solid var(--hair); border-radius: var(--radius); }
 .q--plain { margin-top: .8rem; padding: 0; border: 0; }
+
+/* ---- the border check, stated under the map ---------------------------- */
+.bordercheck {
+  margin: .9rem 0 0; padding: .7rem .9rem; border-radius: var(--radius);
+  font-family: var(--font-label); font-size: .84rem; line-height: 1.55;
+  border: 1px solid var(--hair); border-left-width: 4px;
+}
+.bordercheck b { font-weight: 600; }
+.bordercheck.is-ok {
+  background: rgba(15, 138, 118, .07); border-color: var(--accent-line);
+  border-left-color: var(--accent); color: var(--ink-soft);
+}
+.bordercheck.is-ok b { color: var(--accent-bright); }
+.bordercheck.is-off {
+  background: rgba(176, 116, 13, .08); border-color: var(--amber-line);
+  border-left-color: var(--amber); color: var(--ink-soft);
+}
+.bordercheck.is-off b { color: var(--amber-bright); }
+.bordercheck.is-within {
+  background: var(--bg-sink); border-left-color: var(--ink-mute); color: var(--ink-soft);
+}
+
+.leaflet-tooltip.tip-start {
+  background: var(--accent); color: #fff; border: 0; font-weight: 600;
+  box-shadow: var(--shadow); font-size: .74rem; padding: .25rem .5rem;
+}
+.leaflet-tooltip.tip-start::before { border-right-color: var(--accent); }

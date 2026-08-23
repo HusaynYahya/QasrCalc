@@ -91,7 +91,13 @@ answers with a district, a borough or a county is taken only for the settlement
 name it carries, and that settlement's own boundary is fetched instead. Leaving a
 county is not what the law means by leaving town.
 
-The distance counted always runs **from the city border to the destination**.
+The distance counted always runs **from the city border to the destination**, and
+the page says on every calculation whether that actually happened. A green line
+under the map names the border and the distance deducted; an amber one names the
+reason it could not be done — no city identified, no border published, or a start
+outside the city chosen — so a measurement from the doorstep can never pass itself
+off as a measurement from the border. On the map the crossing carries a standing
+label rather than a hover tooltip.
 The road from the door to that border is measured along the route and taken off;
 every case where that cannot be done says which — no city identified, no border
 published, a route that never leaves town, or a start outside the city named —
