@@ -15,7 +15,10 @@ verbatim, which matters because Jekyll would otherwise drop directories it
 treats as its own.
 
 The page carries four things and nothing else: the addresses, the map, the
-conditions, and the ruling. The rulings themselves live on their own page,
+conditions, and the ruling. The conditions are folded away by default — most
+journeys need none of them changed — and the fold names anything that has been
+set, so a condition can never quietly decide a verdict from behind a closed
+panel. It opens itself when the engine wants an answer. The rulings themselves live on their own page,
 one link away, rather than filling the page you came to use.
 
 ```

@@ -570,3 +570,33 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 }
 .suggest-box__actions .btn { text-decoration: none; }
 .suggest-box__actions .hint { margin: 0; }
+
+/* ---- the conditions, folded away until wanted --------------------------- */
+.conds > summary {
+  cursor: pointer; list-style: none;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem;
+  padding: .15rem 0;
+}
+.conds > summary::-webkit-details-marker { display: none; }
+.conds > summary::after {
+  content: "Open"; margin-left: auto;
+  font-family: var(--font-label); font-size: .74rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent-bright);
+  border: 1px solid var(--accent-line); border-radius: 999px; padding: .2rem .7rem;
+}
+.conds[open] > summary::after { content: "Close"; }
+.conds > summary:hover::after { background: rgba(15, 138, 118, .08); }
+
+.conds__head {
+  font-family: var(--font-label); text-transform: uppercase; letter-spacing: .18em;
+  font-size: .78rem; color: var(--ink-mute); font-weight: 600;
+  display: flex; align-items: center; gap: .7rem;
+}
+.conds__state {
+  font-family: var(--font-label); font-size: .82rem; color: var(--ink-faint);
+}
+.conds__state.is-set {
+  color: var(--accent-bright); font-weight: 600;
+}
+.conds[open] > summary { margin-bottom: 1.25rem; }
+.conds > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }

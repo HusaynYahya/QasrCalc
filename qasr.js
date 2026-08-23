@@ -990,6 +990,39 @@
     { name: "Isha",    full: 4, short: 2 }
   ];
 
+  /* What the folded panel says about itself. A condition left at its default
+     is not worth a word; one that has been changed must be visible without
+     opening anything, or the fold hides the very thing that decided it.     */
+  var CONDITION_LABELS = [
+    ["qIntent",          false, "no intention at the outset"],
+    ["qWatan",           true,  "destination is a homeland"],
+    ["qTenDays",         true,  "staying ten days"],
+    ["qBreakerPossible", true,  "a stop is possible on the way"],
+    ["qKathir",          true,  "travel is my work"],
+    ["qSin",             true,  "unlawful or futile purpose"]
+  ];
+
+  function updateCondState() {
+    var set = CONDITION_LABELS
+      .filter(function (c) { return $(c[0]).checked === c[1]; })
+      .map(function (c) { return c[2]; });
+
+    if ($("qTenDays").checked) {
+      var how = $("qCertainty").value;
+      if (how !== "certain") set.push("the ten days are not certain");
+      if (!$("qOneSettlement").checked) set.push("ten days across two settlements");
+    }
+
+    var el = $("condState");
+    if (!set.length) {
+      el.textContent = "Standard journey — open to check";
+      el.className = "conds__state";
+    } else {
+      el.textContent = set.join(" · ");
+      el.className = "conds__state is-set";
+    }
+  }
+
   function rule() {
     if (!lastRoute) return;
     render(Fiqh.evaluate(buildTrip(lastRoute.km)));
@@ -1006,6 +1039,7 @@
       $("verdict").className = "verdict verdict--ask";
       $("verdictLabel").textContent = "Not enough to rule on";
       $("verdictSub").textContent = "Answer the questions below and the ruling follows.";
+      $("condPanel").open = true;      /* the answers it wants are in there */
       var asks = $("undetermined");
       asks.innerHTML = "";
       result.undetermined.forEach(function (u) {
@@ -1709,6 +1743,8 @@
       $("cityBtn").textContent = "Change which city";
       $("cityList").innerHTML = "";
       $("tenDaysDetail").hidden = true;
+      $("condPanel").open = false;
+      updateCondState();
       $("undeterminedCard").hidden = true;
       $("cityMsg").textContent = "";
       $("routePick").hidden = true;
@@ -1727,8 +1763,11 @@
 
     /* Any change to the circumstances re-runs the ruling on the same distance. */
     ["qIntent", "qWatan", "qTenDays", "qBreakerPossible", "qKathir", "qSin", "qOneSettlement"]
-      .forEach(function (id) { $(id).addEventListener("change", recalc); });
-    $("qCertainty").addEventListener("change", recalc);
+      .forEach(function (id) {
+        $(id).addEventListener("change", function () { updateCondState(); recalc(); });
+      });
+    $("qCertainty").addEventListener("change", function () { updateCondState(); recalc(); });
+    updateCondState();
 
     /* The ten-day questions only matter once ten days are intended. */
     $("qTenDays").addEventListener("change", function () {
