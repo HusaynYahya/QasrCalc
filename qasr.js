@@ -859,6 +859,25 @@
     return lo;
   }
 
+  /* Cut a route in two at a distance along it, the cut point belonging to
+     both halves so the drawn line has no gap.                                */
+  function splitLine(line, targetKm, scale) {
+    var run = 0, before = [line[0]];
+    for (var i = 1; i < line.length; i++) {
+      var a = line[i - 1], b = line[i];
+      var seg = haversineKm({ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] }) * scale;
+      if (run + seg >= targetKm) {
+        var t = seg > 0 ? (targetKm - run) / seg : 0;
+        var cut = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        before.push(cut);
+        return [before, [cut].concat(line.slice(i))];
+      }
+      before.push(b);
+      run += seg;
+    }
+    return [line, []];               /* the whole road is inside the city */
+  }
+
   function polylineKm(line) {
     var total = 0;
     for (var i = 1; i < line.length; i++) {
@@ -940,19 +959,45 @@
 
     if (line) {
       straight = lastRoute.source === "straight" || lastRoute.source === "crow";
-      L.polyline(line, {
-        color: "#0f8a76", weight: 5, opacity: .9,
-        dashArray: straight ? "6 8" : null
-      }).addTo(mapState.drawn);
+      var polyKmAll = polylineKm(line);
+      var scaleAll = polyKmAll > 0 ? lastRoute.km / polyKmAll : 1;
+
+      /* The road inside your own city is not part of the legal distance, so
+         it is drawn as what it is: faint, and not the journey.               */
+      var head = null, counted = line;
+      if (m && m.edgeKm > 0) {
+        var parts = splitLine(line, m.edgeKm, scaleAll);
+        head = parts[0];
+        counted = parts[1].length > 1 ? parts[1] : null;
+      }
+
+      if (head && head.length > 1) {
+        L.polyline(head, {
+          color: "#93a1ac", weight: 3, opacity: .85, dashArray: "3 7"
+        }).addTo(mapState.drawn).bindTooltip("Not counted — inside " +
+          ((cities.from && cities.from.name) || "your city"));
+      }
+      if (counted) {
+        L.polyline(counted, {
+          color: "#0f8a76", weight: 5, opacity: .9,
+          dashArray: straight ? "6 8" : null
+        }).addTo(mapState.drawn);
+
+        /* Where the counting begins. */
+        if (head && head.length > 1) {
+          L.circleMarker(counted[0], {
+            radius: 6, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
+          }).addTo(mapState.drawn).bindTooltip("The count starts here — the " +
+            ((cities.from && cities.from.name) || "city") + " border");
+        }
+      }
       seen.push(L.latLngBounds(line));
 
       /* Where the eight farsakh falls along this road. It marks the distance
          only: once a journey qualifies, the shortening runs from the town
          limit onwards, not from this point.                                  */
       var oneWayNeeded = m.roundTrip ? m.limitKm / 2 : m.limitKm;
-      var polyKm = polylineKm(line);
-      var scale = polyKm > 0 ? lastRoute.km / polyKm : 1;
-      at = m.meets ? walkTo(line, m.edgeKm + oneWayNeeded, scale) : null;
+      at = m.meets ? walkTo(line, m.edgeKm + oneWayNeeded, scaleAll) : null;
       if (at) {
         L.circleMarker(at, {
           radius: 6, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
@@ -972,6 +1017,7 @@
 
     $("mapTitle").textContent = line ? "The route" : "The map";
     $("mapLegend").querySelector(".is-route").hidden = !line;
+    $("mapLegend").querySelector(".is-head").hidden = !(line && m && m.edgeKm > 0);
     $("mapLegend").querySelector(".is-from").hidden = !places.from;
     $("mapLegend").querySelector(".is-to").hidden = !places.to;
     $("mapLegend").querySelector(".is-border").hidden = !drewBorder;

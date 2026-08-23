@@ -125,6 +125,11 @@ once a start is placed), or press **Use my location** to take the start from the
 device. Both go through the same path as a typed address, so the city, the border
 and the deduction follow either way.
 
+The drawn road is cut where the count begins: the part inside your own city is
+faint and dashed and labelled as not counted, a ring marks the border crossing,
+and the counted road runs solid from there to the destination — so the map says
+the same thing as the numbers.
+
 Once a route is drawn it shows the start, the destination, the road itself, a
 dashed circle for the edge of town when a deduction is given, and a mark where
 the eight *farsakh* falls along the route. That last mark shows

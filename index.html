@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=10" />
-<link rel="stylesheet" href="qasr.css?v=10" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=11" />
+<link rel="stylesheet" href="qasr.css?v=11" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -136,7 +136,8 @@
       <ul class="legend" id="mapLegend">
         <li class="is-from"><span class="key key--from"></span>Start</li>
         <li class="is-to"><span class="key key--to"></span>Destination</li>
-        <li class="is-route"><span class="key key--route"></span>The road measured</li>
+        <li class="is-head" hidden><span class="key key--head"></span>Inside your city — not counted</li>
+        <li class="is-route"><span class="key key--route"></span>The road counted</li>
         <li class="is-border"><span class="key key--border"></span>City borders</li>
         <li class="is-edge"><span class="key key--edge"></span>Edge of town — the count begins here</li>
         <li class="is-limit"><span class="key key--limit"></span>Eight <i>farsakh</i> falls here</li>
@@ -278,7 +279,7 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=10" defer></script>
-<script src="qasr.js?v=10" defer></script>
+<script src="lib/leaflet/leaflet.js?v=11" defer></script>
+<script src="qasr.js?v=11" defer></script>
 </body>
 </html>

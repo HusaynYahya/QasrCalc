@@ -432,3 +432,5 @@ input::placeholder { color: var(--ink-faint); }
 
 .citypick__row .combo { flex: 1; }
 .citypick__row .suggest { z-index: 30; }
+
+.key--head { height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--ink-faint) 0 3px, transparent 3px 7px); }
