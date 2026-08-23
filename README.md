@@ -65,6 +65,8 @@ to someone in Watford. It is fetched as soon as an address is set, not when the
 panel is opened, and named on the button ("Not Watford? London is also an option"),
 because an option nobody can see is no option at all.
 
+When nothing can be found, the panel says so rather than showing one lonely row.
+
 It comes from Overpass — every `place=city` and `place=town` within the radius,
 ranked by the `population` tag where it exists, since that is the question being
 asked and population answers it directly. Where population is missing, a city

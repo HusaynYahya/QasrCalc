@@ -206,8 +206,12 @@
           if (SETTLEMENT.test(city.kind || "") && city.shape) { found.push(city); return; }
           /* Named by a district or a county — take the settlement itself. */
           return cityByName(city.name)
-            .then(function (settlement) { found.push(settlement); })
-            .catch(function () { found.push({ name: city.name, area: city.area, shape: null }); });
+            .then(function (settlement) {
+              /* Keep whichever knows the border. A named lookup that comes
+                 back without one must not displace a shape already found.    */
+              found.push(settlement.shape ? settlement : (city.shape ? city : settlement));
+            })
+            .catch(function () { found.push(city); });
         });
       });
     }, Promise.resolve())
@@ -257,9 +261,11 @@
      city and town within the radius, with the population tag where it exists.
      Population beats any guess from the size of a bounding box.              */
   function biggestCityNear(place) {
-    var query = "[out:json][timeout:20];(" +
-      'node(around:' + (NEAR_CITY_KM * 1000) + ',' + place.lat + ',' + place.lon + ')["place"~"^(city|town)$"];' +
-      ');out tags center 60;';
+    var round = NEAR_CITY_KM * 1000 + "," + place.lat + "," + place.lon;
+    var query = "[out:json][timeout:25];(" +
+      "node(around:" + round + ")[place=city];" +
+      "node(around:" + round + ")[place=town];" +
+      ");out tags 60;";
 
     return fetch(OVERPASS, {
       method: "POST",
@@ -322,10 +328,15 @@
   /* A city named by the reader — Londoners in all but postcode may want
      London's border rather than their own town's.                            */
   function cityByName(name) {
-    /* featuretype=settlement confines the answer to cities, towns, villages
-       and hamlets — never a county, a district or a region.                   */
-    var url = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=1" +
-              "&featuretype=settlement&q=" + encodeURIComponent(name);
+    /* featureType=settlement confines the answer to cities, towns, villages
+       and hamlets — never a county, a district or a region. The spelling is
+       case-sensitive; "featuretype" is quietly ignored.
+
+       Several results are asked for, not one: the top hit for a town's name is
+       usually the place node, which is a point and carries no boundary. The
+       first result that actually has a polygon is the one worth having.       */
+    var url = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=10" +
+              "&featureType=settlement&q=" + encodeURIComponent(name);
     return nominatim(url, { headers: { Accept: "application/json" } })
       .then(function (r) {
         if (!r.ok) throw nominatimError(r.status);
@@ -333,7 +344,10 @@
       })
       .then(function (rows) {
         if (!rows || !rows.length) throw new Error("No city of that name was found.");
-        var row = rows[0], a = row.address || {};
+        var withShape = rows.filter(function (r) {
+          return r.geojson && /Polygon/.test(r.geojson.type);
+        });
+        var row = withShape[0] || rows[0], a = row.address || {};
         return {
           name: a.city || a.town || a.village || a.municipality ||
                 (row.display_name || "").split(",")[0],
@@ -1175,7 +1189,11 @@
     $("cityMsg").className = "hint";
     cityChoices(places.from).then(function (found) {
       cityOptions = found;
-      $("cityMsg").textContent = "";
+      var lonely = found.length < 2;
+      $("cityMsg").textContent = lonely
+        ? "No larger city could be found nearby just now — name one below if you have another in mind."
+        : "";
+      $("cityMsg").className = "hint" + (lonely ? " hint--warn" : "");
       renderCityChoices();
 
       labelCityBtn();
