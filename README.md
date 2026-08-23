@@ -108,7 +108,10 @@ verdict out. In the order it applies them:
    the distance.
 2. **The distance.** Eight *farsakh*, taken as 5.5 km each, so **44 km**. The
    outward and return legs are added together when the traveller returns without
-   staying ten days, so 22 km each way is enough. An optional deduction accounts
+   staying ten days, so 22 km each way is enough — but not when the journey ends
+   at its destination. Intending ten days there, or arriving in one's own
+   hometown, ends it: what follows is a fresh journey, and each leg must reach
+   the limit on its own. An optional deduction accounts
    for the road from the door to the edge of town, since the count begins where
    the town ends. Within 2 km of the limit the result carries a caution to pray
    both and ask a scholar.
@@ -140,7 +143,7 @@ notes.
 node test/engine.test.js
 ```
 
-39 cases over the distance thresholds, the destination rules, the exemptions,
+45 cases over the distance thresholds, the destination rules, the exemptions,
 the intention, the cautions, and the geometry behind the city-border deduction
 (point-in-polygon with holes, multipolygons, and the border crossing along a route). They stub the browser and never touch the
 network.

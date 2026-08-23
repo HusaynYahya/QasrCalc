@@ -174,6 +174,45 @@ console.log("\nHow the total divides between the legs");
   });
 });
 
+/* --- a journey that ends at its destination ------------------------------- */
+console.log("\nWhen the return does not count");
+
+test("25 km each way, but staying ten days — the legs are not added", function () {
+  var v = decide(journey({ oneWayKm: 25, tenDays: true }));
+  assert.strictEqual(v.metrics.countedKm, 25);   /* not 50 */
+  assert.strictEqual(v.metrics.severed, true);
+  assert.strictEqual(v.enRoute, "full");
+});
+
+test("25 km each way to a hometown — the legs are not added", function () {
+  var v = decide(journey({ oneWayKm: 25, destIsWatan: true }));
+  assert.strictEqual(v.metrics.countedKm, 25);
+  assert.strictEqual(v.enRoute, "full");
+});
+
+test("50 km one way still qualifies even when staying ten days", function () {
+  var v = decide(journey({ oneWayKm: 50, tenDays: true }));
+  assert.strictEqual(v.enRoute, "qasr");
+  assert.strictEqual(v.atDest, "full");
+});
+
+test("without a ten-day stay the same 25 km each way does qualify", function () {
+  var v = decide(journey({ oneWayKm: 25 }));
+  assert.strictEqual(v.metrics.countedKm, 50);
+  assert.strictEqual(v.enRoute, "qasr");
+});
+
+test("an undecided stay does not sever the journey", function () {
+  var v = decide(journey({ oneWayKm: 25, hesitant: true }));
+  assert.strictEqual(v.metrics.countedKm, 50);
+  assert.strictEqual(v.enRoute, "qasr");
+});
+
+test("the reason says why the return was left out", function () {
+  var v = decide(journey({ oneWayKm: 25, tenDays: true }));
+  assert.ok(v.reasons.some(function (r) { return /not<\/b> added|ends the journey there/.test(r); }));
+});
+
 /* --- the exemptions ------------------------------------------------------- */
 console.log("\nWhere the rulings of travel do not apply");
 

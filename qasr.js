@@ -291,8 +291,15 @@
     var reasons  = [];
     var warnings = [];
 
-    var legKm     = Math.max(0, o.oneWayKm - o.edgeKm);
-    var countedKm = o.roundTrip ? legKm * 2 : legKm;
+    var legKm = Math.max(0, o.oneWayKm - o.edgeKm);
+
+    /* The two legs are added together only when the return belongs to the
+       same journey. Reaching a hometown, or intending ten days, ends the
+       journey there — what follows is a fresh one, and must reach the limit
+       on its own.                                                            */
+    var severed   = o.destIsWatan || o.tenDays;
+    var bothLegs  = o.roundTrip && !severed;
+    var countedKm = bothLegs ? legKm * 2 : legKm;
     var meets     = countedKm >= LIMIT_KM;
 
     var metrics = {
@@ -301,7 +308,8 @@
       legKm: legKm,
       countedKm: countedKm,
       limitKm: LIMIT_KM,
-      roundTrip: o.roundTrip,
+      roundTrip: bothLegs,
+      severed: severed,
       meets: meets
     };
 
@@ -330,8 +338,12 @@
     reasons.push(
       "The outward leg measures <b>" + fmtKm(o.oneWayKm) + "</b>" +
       (o.edgeKm > 0 ? ", less " + fmtKm(o.edgeKm) + " counted from your door to the edge of town, leaving <b>" + fmtKm(legKm) + "</b>" : "") +
-      (o.roundTrip
+      (bothLegs
         ? ". Since you return without staying ten days, the outward and return legs are added: <b>" + fmtKm(countedKm) + "</b>."
+        : severed && o.roundTrip
+        ? ". The return is <b>not</b> added to it: " +
+          (o.destIsWatan ? "arriving in your own hometown" : "intending to stay ten days") +
+          " ends the journey there, so each leg must reach the limit on its own."
         : ". You are not counting a return, so this leg alone must reach the limit.")
     );
 
@@ -1013,7 +1025,8 @@
     list.innerHTML = "";
     routes.forEach(function (r, i) {
       var edge = toKm(parseFloat($("edgeKm").value) || 0);
-      var counted = Math.max(0, r.km - edge) * (isReturn() ? 2 : 1);
+      var bothLegs = isReturn() && !$("qWatan").checked && !$("qTenDays").checked;
+      var counted = Math.max(0, r.km - edge) * (bothLegs ? 2 : 1);
       var li = document.createElement("li");
       var btn = document.createElement("button");
       btn.type = "button";
