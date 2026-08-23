@@ -255,34 +255,54 @@
     return (dLat * 111.32) * (dLon * 111.32 * Math.cos(lat * Math.PI / 180));
   }
 
-  var OVERPASS = "https://overpass-api.de/api/interpreter";
+  /* Overpass is often busy, and a single host answering slowly should not cost
+     the reader the option. Each is tried in turn.                            */
+  var OVERPASS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter"
+  ];
+  var nearbyReason = null;          /* why the last search found nothing */
 
   /* Overpass is asked first, because it answers the question directly — every
      city and town within the radius, with the population tag where it exists.
      Population beats any guess from the size of a bounding box.              */
   function biggestCityNear(place) {
     var round = NEAR_CITY_KM * 1000 + "," + place.lat + "," + place.lon;
+    /* "out body" and not "out tags": the tags mode returns the tags without
+       the coordinates, and a city with no position cannot be measured.       */
     var query = "[out:json][timeout:25];(" +
       "node(around:" + round + ")[place=city];" +
       "node(around:" + round + ")[place=town];" +
-      ");out tags 60;";
+      ");out body 60;";
 
-    return fetch(OVERPASS, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "data=" + encodeURIComponent(query)
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error("Overpass returned " + r.status);
-        return r.json();
+    nearbyReason = null;
+
+    function ask(hosts) {
+      if (!hosts.length) return Promise.reject(new Error("no host answered"));
+      return fetch(hosts[0], {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "data=" + encodeURIComponent(query)
       })
+        .then(function (r) {
+          if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
+          return r.json();
+        })
+        .catch(function (err) {
+          nearbyReason = err.message;
+          return ask(hosts.slice(1));
+        });
+    }
+
+    return ask(OVERPASS)
       .then(function (data) {
         var best = null;
         (data.elements || []).forEach(function (el) {
           var t = el.tags || {};
-          if (!t.name) return;
+          if (!t.name || typeof el.lat !== "number" || typeof el.lon !== "number") return;
           var away = haversineKm(place, { lat: el.lat, lon: el.lon });
-          if (away > NEAR_CITY_KM) return;
+          if (!isFinite(away) || away > NEAR_CITY_KM) return;
           /* Population where it is recorded; the place tier otherwise, so a
              city outranks a town even when neither carries a figure.         */
           var pop = parseInt((t.population || "").replace(/[^0-9]/g, ""), 10);
@@ -291,10 +311,13 @@
             best = { name: t["name:en"] || t.name, area: null, rank: rank, away: away };
           }
         });
-        if (!best) throw new Error("Nothing nearby");
+        if (!best) throw new Error("no city or town within " + NEAR_CITY_KM + " km");
         return best;
       })
-      .catch(function () { return biggestCityNearByExtent(place); });
+      .catch(function (err) {
+        nearbyReason = nearbyReason || (err && err.message);
+        return biggestCityNearByExtent(place);
+      });
   }
 
   /* If Overpass is unreachable, fall back to sizing bounding boxes. */
@@ -1201,7 +1224,9 @@
       cityOptions = found;
       var lonely = found.length < 2;
       $("cityMsg").textContent = lonely
-        ? "No larger city could be found nearby just now — name one below if you have another in mind."
+        ? "No larger city could be found nearby" +
+          (nearbyReason ? " (" + nearbyReason + ")" : "") +
+          " — name one below if you have another in mind."
         : "";
       $("cityMsg").className = "hint" + (lonely ? " hint--warn" : "");
       renderCityChoices();

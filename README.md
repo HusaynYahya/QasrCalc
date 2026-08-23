@@ -73,7 +73,8 @@ because an option nobody can see is no option at all.
 
 When nothing can be found, the panel says so rather than showing one lonely row.
 
-It comes from Overpass — every `place=city` and `place=town` within the radius,
+It comes from Overpass — three hosts tried in turn, since one being busy should
+not cost the reader the option, and the panel names the reason when none answer — every `place=city` and `place=town` within the radius,
 ranked by the `population` tag where it exists, since that is the question being
 asked and population answers it directly. Where population is missing, a city
 outranks a town, and distance settles ties. If Overpass is unreachable the fallback
