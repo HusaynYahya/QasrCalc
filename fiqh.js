@@ -82,6 +82,7 @@
 
     if (trip._talfiqAvailable && seg.talfiqWith != null && trip._legKm[seg.talfiqWith] != null) {
       counted = seg.km + trip._legKm[seg.talfiqWith];
+      seg._combined = true;
       cites.push(1696);
       how = "Outward and return are added together — " + fmt(seg.km) + " and " +
             fmt(trip._legKm[seg.talfiqWith]) + " — giving " + fmt(counted) +
@@ -250,6 +251,7 @@
 
     /* Talfīq is gated here, not in the arithmetic. [1696 fn.1], [1719] */
     if (!trip._talfiqAvailable && seg.talfiqWith != null) {
+      seg._talfiqRefused = talfiqRefusedBecause(trip);
       return outcome(QASR, [1719],
         "A breaker stands between the legs, so they are not added together; this leg is judged on its own length. See condition 1.");
     }
@@ -701,6 +703,15 @@
   }
 
   /* ---- stage 5 — is talfīq available? [1696 fn.1], [1719] ---------------- */
+
+  function talfiqRefusedBecause(trip) {
+    var b = trip.breakers || {}, r = trip.residence || {};
+    if (r.intendsTenDays === true) return "a ten-day stay ends the journey there";
+    if (b.destinationIsWatan === true) return "arriving in your own waṭan ends the journey there";
+    if (b.passesThroughWatan === "stops") return "stopping in your waṭan on the way ends the journey";
+    if (b.shuttlingUnderFourFarsakh === true) return "repeated trips under 4 farsakh never add up";
+    return "a journey-breaker stands between the legs";
+  }
 
   function talfiqAvailable(trip) {
     var b = trip.breakers || {}, r = trip.residence || {};

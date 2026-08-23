@@ -513,3 +513,51 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   box-shadow: var(--shadow); font-size: .74rem; padding: .25rem .5rem;
 }
 .leaflet-tooltip.tip-start::before { border-right-color: var(--accent); }
+
+.measure .is-off dt, .measure .is-off dd { color: var(--ink-mute); }
+.measure .is-off dd { font-style: italic; }
+.measure .is-total { border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+
+/* ---- the rulings page: room to read ------------------------------------ */
+.notes { max-width: 40rem; margin-inline: auto; padding: clamp(1.5rem, 4vw, 2.75rem); }
+
+.notes__lead {
+  margin: 0 0 2.5rem; padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--hair);
+  font-size: 1.02rem; color: var(--ink-mute); line-height: 1.65;
+}
+
+.notes h3 {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 1.2vw + 1.05rem, 1.55rem);
+  color: var(--ink); font-weight: 500; line-height: 1.25;
+  margin: 3rem 0 1rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--hair);
+}
+.notes h3:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+
+.notes ul, .notes ol { padding-left: 1.15rem; margin: 0; }
+.notes li {
+  margin-bottom: 1rem; color: var(--ink-soft);
+  font-size: 1.02rem; line-height: 1.72;
+}
+.notes li::marker { color: var(--ink-faint); }
+.notes li:last-child { margin-bottom: 0; }
+.notes p { font-size: 1.02rem; line-height: 1.72; color: var(--ink-soft); }
+.notes b { color: var(--ink); font-weight: 600; }
+
+/* citations sit quietly at the end of a line, and do not break it */
+.notes cite {
+  font-family: var(--font-label); font-size: .74rem; letter-spacing: .04em;
+  color: var(--ink-faint); white-space: nowrap; margin-left: .15rem;
+}
+.notes cite::before { content: "["; }
+.notes cite::after  { content: "]"; }
+
+.notes .disclaim {
+  margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--hair);
+  font-family: var(--font-label); font-size: .88rem; line-height: 1.7; color: var(--ink-mute);
+}
+.notes .disclaim b { color: var(--ink-soft); }
+
+.backlink { max-width: 40rem; margin-inline: auto; }

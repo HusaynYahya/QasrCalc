@@ -159,10 +159,18 @@
     return cityAt(place, 10).then(function (city) {
       if (!city.name) return city;
       if (isSettlement(city) && city.shape) return city;
-      /* Named, but the shape belongs to something larger or smaller. */
-      return cityByName(city.name, place).catch(function () {
-        return { name: city.name, area: city.area, shape: null };
-      });
+
+      /* Named, but the shape belongs to something larger or smaller. Look the
+         settlement up by name; and where the name is itself an aggregate —
+         "Greater London", "Greater Manchester" — try the town inside it. */
+      var plain = city.name.replace(/^Greater\s+/i, "");
+      return cityByName(city.name, place)
+        .catch(function () {
+          return plain !== city.name ? cityByName(plain, place) : Promise.reject();
+        })
+        .catch(function () {
+          return { name: plain, area: city.area, shape: null };
+        });
     });
   }
 
@@ -400,10 +408,16 @@
         var withShape = rows.filter(function (r) {
           return r.geojson && /Polygon/.test(r.geojson.type);
         });
+        /* A settlement ranks 16 to 20; a county ranks 12. "Greater London" is a
+           county wearing a city's name, and taking its border would measure
+           from the edge of the conurbation rather than of the town. If nothing
+           of settlement rank is found, this lookup has failed — it must not
+           quietly hand back the county. */
         var settled = withShape.filter(function (r) {
           return typeof r.place_rank !== "number" || (r.place_rank >= 16 && r.place_rank <= 20);
         });
-        if (settled.length) withShape = settled;
+        if (!settled.length) throw new Error("No town or city of that name has a published border.");
+        withShape = settled;
         /* There is a Watford in Northamptonshire as well as Hertfordshire,
            and a Cambridge on two continents. When we know where the reader
            is, the right boundary is the one they stand inside.               */
@@ -1097,27 +1111,40 @@
   }
 
   function renderMeasure(result) {
-    var out = result.segments.filter(function (s) { return s.kind === "outbound"; })[0];
+    var out  = result.segments.filter(function (s) { return s.kind === "outbound"; })[0];
+    var back = result.segments.filter(function (s) { return s.kind === "return"; })[0];
     var edge = toKm(Math.max(0, parseFloat($("edgeKm").value) || 0));
     var home = (cities.from && cities.from.name) || "your city";
-    var leg = Math.max(0, lastRoute.km - edge);
-    var counted = out && out._counted != null ? out._counted : leg;
-
-    var rows = [
-      ["Road, door to destination", fmtKm(lastRoute.km) +
-        (lastRoute.minutes ? " · about " + fmtDuration(lastRoute.minutes) + " by car" : "")]
-    ];
-    if (edge > 0) {
-      rows.push(["Less door to the " + home + " border", "− " + fmtKm(edge)]);
-      rows.push([home + " border to destination", fmtKm(leg)]);
-    }
-    rows.push(["8 farsakh", fmtKm(Fiqh.THRESHOLD_KM)]);
+    var leg  = Math.max(0, lastRoute.km - edge);
+    var combined = out && out._combined === true;
+    var counted  = out && out._counted != null ? out._counted : leg;
 
     var dl = $("measure");
     dl.innerHTML = "";
-    rows.forEach(function (r) { dl.appendChild(measureRow(r[0], r[1], false)); });
-    dl.appendChild(measureRow("Counted for the outward leg",
-      fmtKm(counted) + (counted >= Fiqh.THRESHOLD_KM ? " — reaches 8 farsakh" : " — under 8 farsakh"), true));
+
+    dl.appendChild(measureRow("Road measured, your door to the destination",
+      fmtKm(lastRoute.km) + (lastRoute.minutes ? " · " + fmtDuration(lastRoute.minutes) + " by car" : "")));
+
+    if (edge > 0) {
+      dl.appendChild(measureRow("Inside " + home + " — not counted", "− " + fmtKm(edge), false, "is-off"));
+    }
+
+    dl.appendChild(measureRow(combined ? "Counts, on the way there" : "Counts on this journey", fmtKm(leg)));
+
+    if (combined && back) {
+      dl.appendChild(measureRow("Counts, on the way back", "+ " + fmtKm(leg)));
+    } else if (back && out && out._talfiqRefused) {
+      dl.appendChild(measureRow("The way back is not added",
+        "because " + out._talfiqRefused, false, "is-off"));
+    }
+
+    dl.appendChild(measureRow("Total counted", fmtKm(counted), true));
+
+    var short = Fiqh.THRESHOLD_KM - counted;
+    dl.appendChild(measureRow("8 farsakh — the legal distance",
+      fmtKm(Fiqh.THRESHOLD_KM) + (counted >= Fiqh.THRESHOLD_KM
+        ? " · reached, with " + fmtKm(counted - Fiqh.THRESHOLD_KM) + " over"
+        : " · " + fmtKm(short) + " short")));
 
     var pct = Math.max(2, Math.min(100, (counted / Fiqh.THRESHOLD_KM) * 100));
     $("gaugeFill").style.width = pct + "%";
@@ -1128,12 +1155,13 @@
       src === "straight" ? "The routing service could not be reached, so this is the straight line — always shorter than the road." :
       src === "crow"     ? "As the crow flies, at your request. The law counts the road travelled." :
       src === "manual"   ? "From the distance you entered by hand." :
-      "Measured from your city border to the destination itself, along the road travelled. <span class='cite'>1704 · 1705</span>";
+      "Counted from your city border to the destination itself, along the road travelled. " +
+      "<span class='cite'>1704 · 1705</span>";
   }
 
-  function measureRow(term, value, total) {
+  function measureRow(term, value, total, extra) {
     var div = document.createElement("div");
-    if (total) div.className = "is-total";
+    div.className = (total ? "is-total " : "") + (extra || "");
     var dt = document.createElement("dt"); dt.textContent = term;
     var dd = document.createElement("dd"); dd.textContent = value;
     div.appendChild(dt); div.appendChild(dd);
