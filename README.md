@@ -5,6 +5,11 @@ says whether the traveller shortens his prayers, according to the rulings of
 **Sayyid Ali al-Husayni al-Sistani**.
 
 Open `index.html` — there is no build step, no framework and no API key.
+
+**When you change `qasr.js` or `qasr.css`, bump the `?v=` stamp on their tags in
+`index.html` and `rules.html`.** GitHub Pages tells browsers to hold onto those
+files, so without a new stamp a returning reader keeps running the old ones and
+nothing appears to have changed.
 Published with GitHub Pages from `main`; `.nojekyll` keeps the files served
 verbatim, which matters because Jekyll would otherwise drop directories it
 treats as its own.
