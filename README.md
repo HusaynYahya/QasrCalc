@@ -156,7 +156,11 @@ verdict out. In the order it applies them:
    occupation is travel (driver, pilot, commuter, nomad) — full prayers, whatever
    the distance.
 2. **Travel within your own city** is not travel, however far across it goes: the
-   count begins at the border, and such a journey never reaches it.
+   count begins at the border, and such a journey never reaches it. The test is
+   put to the two addresses — are both inside the border? — and not to the road
+   between them, since a city border is a ragged thing and a road across a large
+   one dips outside and back without taking anyone out of town. Where no border
+   is published, two addresses resolving to the same city settle it instead.
 3. **The distance.** Eight *farsakh*, taken as 5.5 km each, so **44 km**. The
    outward and return legs are added together when the traveller returns without
    staying ten days, so 22 km each way is enough — but not when the journey ends

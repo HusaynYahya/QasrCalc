@@ -1370,6 +1370,28 @@
       say("No city identified for the start, so the count runs from the address itself.", "hint--warn");
       return;
     }
+
+    /* Does the journey end inside the same city? Asked of the two addresses
+       themselves, not of the road between them: a city border is a ragged
+       thing, and a road across a large one dips outside and back without
+       taking anyone out of town.
+
+       Where a border is published, the test is whether both ends fall within
+       it. Where none is, two addresses that resolve to the same city are in
+       the same city, which is the question being asked.                      */
+    if (city.shape && places.from && places.to) {
+      staysInCity = inShape(places.from.lat, places.from.lon, city.shape) &&
+                    inShape(places.to.lat, places.to.lon, city.shape);
+    } else if (cities.to && cities.to.name && city.name) {
+      staysInCity = cities.to.name.toLowerCase() === city.name.toLowerCase();
+    }
+
+    if (staysInCity) {
+      say("Both ends lie inside <b>" + city.name + "</b>, so nothing is counted: you never leave town.", "hint--warn");
+      if (!edgeTouched) $("edgeKm").value = "";
+      return;
+    }
+
     if (!city.shape) {
       say("No published border for <b>" + city.name + "</b>, so the count runs from the address itself. " +
           "Name another city above, or type the distance to your city's edge here.", "hint--warn");
@@ -1381,11 +1403,7 @@
                             polyKm > 0 ? lastRoute.km / polyKm : 1);
 
     if (exit === null) {
-      var inside = inShape(lastRoute.line[0][0], lastRoute.line[0][1], city.shape);
-      staysInCity = inside;            /* both ends within your own city */
-      say(inside
-        ? "Both ends of this road lie inside <b>" + city.name + "</b>. Nothing is counted: you never leave town."
-        : "The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
+      say("The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
           "Choose the city you would call leaving town, above.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";
       return;
