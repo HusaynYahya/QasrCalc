@@ -104,7 +104,11 @@
           };
         }).filter(function (p) { return p.label; });
       })
-      /* If it is unreachable, the older search still answers. */
+      .then(function (found) {
+        /* Type-ahead is weak on postcodes and plot numbers; the older search
+           is better at them, so an empty answer is worth a second opinion.   */
+        return found.length ? found : geocode(query, 6, signal);
+      })
       .catch(function (err) {
         if (err.name === "AbortError") throw err;
         return geocode(query, 6, signal);
@@ -214,7 +218,9 @@
         return cityByName(big.name)
           .then(function (settlement) {
             settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
-            found.push(settlement);
+            /* Ahead of the smaller alternatives: it is the one a reader is
+               least likely to think of, and most likely to want.             */
+            found.unshift(settlement);
             return found;
           })
           .catch(function () { return found; });
@@ -245,7 +251,48 @@
     return (dLat * 111.32) * (dLon * 111.32 * Math.cos(lat * Math.PI / 180));
   }
 
+  var OVERPASS = "https://overpass-api.de/api/interpreter";
+
+  /* Overpass is asked first, because it answers the question directly — every
+     city and town within the radius, with the population tag where it exists.
+     Population beats any guess from the size of a bounding box.              */
   function biggestCityNear(place) {
+    var query = "[out:json][timeout:20];(" +
+      'node(around:' + (NEAR_CITY_KM * 1000) + ',' + place.lat + ',' + place.lon + ')["place"~"^(city|town)$"];' +
+      ');out tags center 60;';
+
+    return fetch(OVERPASS, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "data=" + encodeURIComponent(query)
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Overpass returned " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        var best = null;
+        (data.elements || []).forEach(function (el) {
+          var t = el.tags || {};
+          if (!t.name) return;
+          var away = haversineKm(place, { lat: el.lat, lon: el.lon });
+          if (away > NEAR_CITY_KM) return;
+          /* Population where it is recorded; the place tier otherwise, so a
+             city outranks a town even when neither carries a figure.         */
+          var pop = parseInt((t.population || "").replace(/[^0-9]/g, ""), 10);
+          var rank = isNaN(pop) ? (t.place === "city" ? 1 : 0) : pop;
+          if (!best || rank > best.rank || (rank === best.rank && away < best.away)) {
+            best = { name: t["name:en"] || t.name, area: null, rank: rank, away: away };
+          }
+        });
+        if (!best) throw new Error("Nothing nearby");
+        return best;
+      })
+      .catch(function () { return biggestCityNearByExtent(place); });
+  }
+
+  /* If Overpass is unreachable, fall back to sizing bounding boxes. */
+  function biggestCityNearByExtent(place) {
     var url = PHOTON_NEAR + "?lat=" + place.lat + "&lon=" + place.lon +
               "&limit=20&lang=en&osm_tag=place:city&osm_tag=place:town";
 
@@ -1061,6 +1108,7 @@
       if (slot === "from") {
         $("cityBtn").hidden = false;        /* a suggestion, open to correction */
         renderCityChoices();
+        loadCityChoices();                  /* so the alternatives are known, unasked */
       }
       renderMap(null);
     });
@@ -1074,6 +1122,7 @@
     showCity("from", "fromHint", "Your city is");
     applyBorderDeduction();
     renderCityChoices();
+    labelCityBtn();
     if (lastRoute) recalc(); else renderMap(null);
   }
 
@@ -1107,6 +1156,19 @@
 
   var cityOptions = null;
 
+  /* The button names what else is on offer. A reader who never opens the
+     panel would otherwise never learn that London was among the choices.     */
+  function labelCityBtn() {
+    var btn = $("cityBtn");
+    if (!$("cityPick").hidden) { btn.textContent = "Done choosing"; return; }
+    var other = (cityOptions || []).filter(function (c) {
+      return !cities.from || c.name !== cities.from.name;
+    });
+    btn.textContent = other.length
+      ? "Not " + ((cities.from && cities.from.name) || "this") + "? " + other[0].name + " is also an option"
+      : "Change which city";
+  }
+
   function loadCityChoices() {
     if (!places.from) return;
     $("cityMsg").textContent = "Looking for the alternatives…";
@@ -1115,6 +1177,8 @@
       cityOptions = found;
       $("cityMsg").textContent = "";
       renderCityChoices();
+
+      labelCityBtn();
     });
   }
 
@@ -1306,8 +1370,8 @@
     $("cityBtn").addEventListener("click", function () {
       var pick = $("cityPick");
       pick.hidden = !pick.hidden;
-      this.textContent = pick.hidden ? "Change which city" : "Done choosing";
       if (!pick.hidden && !cityOptions) loadCityChoices();
+      labelCityBtn();
     });
 
     $("cityGo").addEventListener("click", function () {

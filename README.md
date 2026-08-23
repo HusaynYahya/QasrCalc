@@ -27,7 +27,8 @@ QasrCalc/
 
 | Step | Source |
 | --- | --- |
-| Typing an address | [Photon](https://photon.komoot.io/) — the same OpenStreetMap data, indexed for type-ahead: partial words, fuzzy spelling, no one-a-second limit, and biased towards the other address once one is set. Falls back to Nominatim if unreachable |
+| Typing an address | [Photon](https://photon.komoot.io/) — the same OpenStreetMap data, indexed for type-ahead: partial words, fuzzy spelling, no one-a-second limit, and biased towards the other address once one is set. Falls back to Nominatim when it errors **or comes back empty**, which is what postcodes and plot numbers tend to do |
+| Cities nearby | [Overpass](https://overpass-api.de/), for the largest city within 75 km |
 | Address → coordinates, and boundaries | [Nominatim](https://nominatim.openstreetmap.org), through a queue that spaces requests to respect its one-a-second policy |
 | Coordinates → road distance | [OSRM](https://project-osrm.org/) driving route |
 | If routing is unreachable | great-circle distance, clearly labelled as the straight line |
@@ -60,12 +61,18 @@ its published border used instead.
 
 The **largest city within 75 km is always offered**, whether or not you stand in
 it — no lookup asking what administrative area you are in will ever suggest London
-to someone in Watford. Both `place=city` and `place=town` are asked for, since
-which tier a large settlement carries varies by country, and size is then measured
-rather than assumed: bounding boxes are compared in square kilometres, not degrees,
-because a degree of longitude is 111 km at the equator and 48 km at Helsinki.
-Boxes spanning the antimeridian are handled. Nothing is forced — the distance is
-shown beside each and you choose.
+to someone in Watford. It is fetched as soon as an address is set, not when the
+panel is opened, and named on the button ("Not Watford? London is also an option"),
+because an option nobody can see is no option at all.
+
+It comes from Overpass — every `place=city` and `place=town` within the radius,
+ranked by the `population` tag where it exists, since that is the question being
+asked and population answers it directly. Where population is missing, a city
+outranks a town, and distance settles ties. If Overpass is unreachable the fallback
+sizes bounding boxes instead, in square kilometres rather than degrees: a degree of
+longitude is 111 km at the equator and 48 km at Helsinki, so degrees alone would
+call northern cities the larger. Boxes spanning the antimeridian are handled.
+Nothing is forced — the distance is shown beside each and you choose.
 
 The border is always a **settlement's** — a city, town or village. A lookup that
 answers with a district, a borough or a county is taken only for the settlement
