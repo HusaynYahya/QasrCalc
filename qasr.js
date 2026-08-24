@@ -396,14 +396,117 @@
      the motorway's own geometry is fetched and the area it encloses stands in
      for the published boundary.
 
-     The enclosed area is the convex hull of the road's points. A ring road is
-     very nearly convex already, so the hull follows it closely; where it does
-     bulge it bulges outward, which lengthens the uncounted stretch from the
-     door rather than shortening it, and so never turns a full prayer into a
-     shortened one.                                                           */
-  var RING_ROAD = { london: "M25" };
+     The road is traced, not approximated. Overpass returns the route relation
+     as a heap of member ways, in no particular order and pointing in no
+     particular direction; they are stitched end to end into the loop the road
+     actually makes. A convex hull was tried first and thrown away: it cut
+     straight across every concave stretch, swallowing tens of square miles of
+     Hertfordshire and Surrey the road plainly runs inside of.
 
-  /* Monotone chain. Points are [lon, lat], as GeoJSON keeps them. */
+     A ring road is only a ring if the whole of it carries the number. The M25
+     does not: its eastern side across the Thames is the A282, so that is
+     asked for too. Where a gap remains, the ends are joined and the fact is
+     reported rather than hidden.                                             */
+  var RING_ROAD = { london: ["M25", "A282"] };
+
+  /* As many points as the border may keep. Every one of them is walked for
+     each point of a route tested against it, and a few thousand costs
+     milliseconds — so this is set by what stays honest to the road, not by
+     what the browser can bear.                                              */
+  var RING_MAX_POINTS = 2500;
+
+  /* How close two way-ends must be to count as the same place. OSM leaves
+     small gaps where ways meet; 80 m closes them without ever joining the two
+     carriageways of a dual carriageway, which run further apart than that.   */
+  var JOIN_KM = 0.08;
+
+  function ptsMeet(a, b) {
+    return haversineKm({ lat: a[1], lon: a[0] }, { lat: b[1], lon: b[0] }) <= JOIN_KM;
+  }
+
+  /* Stitch a heap of polylines into as few chains as they will make. Each way
+     may need reversing, and which end joins which is not known in advance, so
+     all four pairings are tried.                                             */
+  function stitchLines(lines) {
+    var pool = lines.filter(function (l) { return l && l.length > 1; });
+    var chains = [];
+
+    while (pool.length) {
+      var chain = pool.pop(), grew = true;
+      while (grew) {
+        grew = false;
+        for (var i = 0; i < pool.length; i++) {
+          var w = pool[i], head = chain[0], tail = chain[chain.length - 1];
+          if (ptsMeet(tail, w[0]))                    chain = chain.concat(w.slice(1));
+          else if (ptsMeet(tail, w[w.length - 1]))    chain = chain.concat(w.slice(0, -1).reverse());
+          else if (ptsMeet(head, w[w.length - 1]))    chain = w.slice(0, -1).concat(chain);
+          else if (ptsMeet(head, w[0]))               chain = w.slice(1).reverse().concat(chain);
+          else continue;
+          pool.splice(i, 1);
+          grew = true;
+          break;
+        }
+      }
+      chains.push(chain);
+    }
+    return chains;
+  }
+
+  /* The shoelace area, in square kilometres. Used only to compare one chain
+     against another, so the flat-earth approximation costs nothing.          */
+  function ringAreaKm2(ring) {
+    if (!ring || ring.length < 3) return 0;
+    var sum = 0, latSum = 0, i, j;
+    for (i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      sum += ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+      latSum += ring[i][1];
+    }
+    var lat = latSum / ring.length;
+    return Math.abs(sum / 2) * 111.32 * 111.32 * Math.cos(lat * Math.PI / 180);
+  }
+
+  /* Douglas–Peucker. The traced road arrives with tens of thousands of
+     points, and every one of them is walked for each point tested against the
+     border. Fifty metres of slack is far below anything that could move a
+     verdict, and takes the count down by more than an order of magnitude.
+     Iterative rather than recursive: the recursion is as deep as the line is
+     long in the worst case.                                                  */
+  function simplifyLine(points, toleranceKm) {
+    if (points.length < 3) return points.slice();
+    var keep = new Array(points.length), stack = [[0, points.length - 1]], i;
+    for (i = 0; i < keep.length; i++) keep[i] = false;
+    keep[0] = keep[points.length - 1] = true;
+
+    var scale = Math.cos(points[0][1] * Math.PI / 180) * 111.32;
+
+    while (stack.length) {
+      var span = stack.pop(), lo = span[0], hi = span[1];
+      if (hi - lo < 2) continue;
+      var ax = points[lo][0] * scale, ay = points[lo][1] * 111.32;
+      var bx = points[hi][0] * scale, by = points[hi][1] * 111.32;
+      var dx = bx - ax, dy = by - ay;
+      var len = Math.sqrt(dx * dx + dy * dy);
+      var far = -1, farAt = -1;
+      for (i = lo + 1; i < hi; i++) {
+        var px = points[i][0] * scale, py = points[i][1] * 111.32;
+        var away = len === 0
+          ? Math.sqrt((px - ax) * (px - ax) + (py - ay) * (py - ay))
+          : Math.abs(dy * px - dx * py + bx * ay - by * ax) / len;
+        if (away > far) { far = away; farAt = i; }
+      }
+      if (far > toleranceKm && farAt > 0) {
+        keep[farAt] = true;
+        stack.push([lo, farAt], [farAt, hi]);
+      }
+    }
+
+    var out = [];
+    for (i = 0; i < points.length; i++) if (keep[i]) out.push(points[i]);
+    return out;
+  }
+
+  /* Monotone chain — kept as the fallback for a road too broken to stitch.
+     Points are [lon, lat], as GeoJSON keeps them.                            */
   function convexHull(points) {
     if (points.length < 3) return points.slice();
     var pts = points.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
@@ -425,36 +528,95 @@
     return lower.concat(upper);
   }
 
-  /* The hull of everything Overpass returned. Kept apart from the fetch so it
-     can be exercised without a network.                                      */
-  function ringShape(data, ref) {
-    var pts = [];
-    function take(g) {
-      if (g && typeof g.lat === "number" && typeof g.lon === "number") pts.push([g.lon, g.lat]);
+  /* Every member way of everything Overpass returned, as its own polyline.
+     Kept apart from the fetch so it can be exercised without a network.      */
+  function ringLines(data) {
+    var lines = [];
+    function line(geometry) {
+      var pts = [];
+      (geometry || []).forEach(function (g) {
+        if (g && typeof g.lat === "number" && typeof g.lon === "number") pts.push([g.lon, g.lat]);
+      });
+      if (pts.length > 1) lines.push(pts);
     }
     ((data && data.elements) || []).forEach(function (el) {
-      (el.members || []).forEach(function (m) { (m.geometry || []).forEach(take); });
-      (el.geometry || []).forEach(take);
+      (el.members || []).forEach(function (m) { line(m.geometry); });
+      if (el.geometry) line(el.geometry);
     });
-    if (pts.length < 3) throw new Error("No road numbered " + ref + " was found near here.");
-    var hull = convexHull(pts);
+    return lines;
+  }
+
+  /* The loop the road makes, as a GeoJSON polygon.
+
+     Both carriageways of a dual carriageway are in the answer, and they do
+     not join each other, so stitching yields two near-identical loops. The
+     larger is taken: the outer carriageway is the outer edge of the road, and
+     of two lines either of which a reader would call the city's edge, the one
+     that counts less distance against them is the safer.                     */
+  function ringShape(data, ref) {
+    var lines = ringLines(data);
+    if (!lines.length) throw new Error("No road numbered " + ref + " was found near here.");
+
+    var chains = stitchLines(lines);
+    var best = null;
+    chains.forEach(function (chain) {
+      if (chain.length < 4) return;
+      var closed = ptsMeet(chain[0], chain[chain.length - 1]);
+      var area = ringAreaKm2(chain);
+      /* A loop that closes on itself beats one that has to be closed by hand,
+         whatever their areas; among equals, the larger.                      */
+      if (!best || (closed && !best.closed) ||
+          (closed === best.closed && area > best.area)) {
+        best = { ring: chain, closed: closed, area: area };
+      }
+    });
+
+    if (best && best.area > 0) {
+      /* Thinned only as far as it must be. Slackening the tolerance in one
+         jump is how the road lost its curves the first time: 50 m left 4,000
+         points, 150 m left 24 — the twenty corners and nothing between them.
+         So it is loosened a step at a time and stops the moment it fits.     */
+      var tol = 0.05, ring = simplifyLine(best.ring, tol);
+      while (ring.length > RING_MAX_POINTS && tol < 0.4) {
+        tol *= 1.6;
+        ring = simplifyLine(best.ring, tol);
+      }
+      if (!ptsMeet(ring[0], ring[ring.length - 1])) ring.push(ring[0].slice());
+      else ring[ring.length - 1] = ring[0].slice();     /* exactly closed */
+      if (ring.length >= 4) {
+        return { shape: { type: "Polygon", coordinates: [ring] },
+                 traced: true, closedByHand: !best.closed, points: ring.length };
+      }
+    }
+
+    /* Nothing stitched into a loop. Rather than refuse, fall back to the hull
+       of every point — a cruder line, and said to be one.                    */
+    var all = [];
+    lines.forEach(function (l) { all = all.concat(l); });
+    var hull = convexHull(all);
     if (hull.length < 3) throw new Error("The " + ref + " does not enclose an area.");
-    hull.push(hull[0].slice());              /* a GeoJSON ring closes on itself */
-    return { type: "Polygon", coordinates: [hull] };
+    hull.push(hull[0].slice());
+    return { shape: { type: "Polygon", coordinates: [hull] },
+             traced: false, closedByHand: false, points: hull.length };
   }
 
   /* "out geom" and not a bare "out": without it the relation comes back as a
      list of member ids, with no coordinates to draw or measure.              */
-  function ringBoundary(ref, near) {
-    var clean = String(ref || "").trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, "");
-    if (!clean) return Promise.reject(new Error("Name a road first."));
+  function ringBoundary(refs, near) {
+    var wanted = (Array.isArray(refs) ? refs : String(refs || "").split(","))
+      .map(function (r) { return String(r).trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, ""); })
+      .filter(Boolean);
+    if (!wanted.length) return Promise.reject(new Error("Name a road first."));
+
     /* Narrowed to the reader's part of the world where we know it: "M25" is
        not a number unique to England.                                        */
     var round = near && typeof near.lat === "number" && typeof near.lon === "number"
               ? "(around:150000," + near.lat + "," + near.lon + ")" : "";
-    var query = "[out:json][timeout:30];" +
-      "relation" + round + "[\"ref\"=\"" + clean + "\"][\"type\"=\"route\"][\"route\"=\"road\"];" +
-      "out geom;";
+    var query = "[out:json][timeout:60];(" +
+      wanted.map(function (r) {
+        return "relation" + round + "[\"ref\"=\"" + r + "\"][\"type\"=\"route\"][\"route\"=\"road\"];";
+      }).join("") +
+      ");out geom;";
 
     function ask(hosts, why) {
       if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
@@ -466,7 +628,11 @@
         .catch(function (err) { return ask(hosts.slice(1), err && err.message); });
     }
 
-    return ask(OVERPASS).then(function (data) { return ringShape(data, clean); });
+    return ask(OVERPASS).then(function (data) {
+      var out = ringShape(data, wanted.join(" and "));
+      out.ref = wanted.join(" and ");
+      return out;
+    });
   }
 
   function cityByName(name, mustContain) {
@@ -953,7 +1119,8 @@
         var layer = L.geoJSON(city.shape, {
           style: { color: spec[1], weight: 1.5, opacity: .75, dashArray: "5 5",
                    fill: true, fillOpacity: .06, fillColor: spec[1] }
-        }).addTo(mapState.drawn).bindTooltip(spec[2] + ": " + (city.name || "border"));
+        }).addTo(mapState.drawn).bindTooltip(spec[2] + ": " + (city.name || "border") +
+          (city.fromRing ? " — traced along the " + city.fromRing : ""));
         seen.push(layer.getBounds());
         drewBorder = true;
       });
@@ -1378,13 +1545,15 @@
      named under it, and any other border can still be chosen by hand.        */
   function maybeRing(city) {
     if (!city || !city.name || city.fromRing || city.ringTried) return;
-    var ref = RING_ROAD[city.name.toLowerCase()];
-    if (!ref) return;
+    var refs = RING_ROAD[city.name.toLowerCase()];
+    if (!refs) return;
     city.ringTried = true;
-    ringBoundary(ref, places.from || city).then(function (shape) {
+    ringBoundary(refs, places.from || city).then(function (ring) {
       if (cities.from !== city) return;              /* the reader moved on */
-      city.shape = shape;
-      city.fromRing = ref;
+      city.shape = ring.shape;
+      city.fromRing = ring.ref;
+      city.ringTraced = ring.traced;
+      city.ringClosedByHand = ring.closedByHand;
       city.fromAggregate = false;
       showCity("from", "fromHint", "Your city is");
       applyBorderDeduction();
@@ -1420,7 +1589,12 @@
     if (!city || !city.name) return "";
     if (city.fromRing) {
       return " The line used is the " + city.fromRing + ", not the council boundary — " +
-             "the edge most people would call leaving " + city.name + ".";
+             "the edge most people would call leaving " + city.name + "." +
+             (city.ringTraced === false
+               ? " It could not be traced into a loop, so the outline is a rough one and runs wide."
+               : city.ringClosedByHand
+                 ? " The road does not quite close, so its two ends are joined straight across."
+                 : "");
     }
     if (city.fromAggregate) {
       return " No town-level boundary is published for " + city.name +
@@ -1787,15 +1961,19 @@
       if (!ref) return;
       $("ringMsg").textContent = "Tracing the " + ref.toUpperCase() + "…";
       $("ringMsg").className = "hint";
-      ringBoundary(ref, places.from).then(function (shape) {
+      ringBoundary(ref, places.from).then(function (ring) {
         var was = cities.from;
-        $("ringMsg").textContent = "";
+        $("ringMsg").textContent = ring.traced ? "" :
+          "The " + ring.ref + " could not be traced into a loop, so its outline is a rough one.";
+        $("ringMsg").className = "hint" + (ring.traced ? "" : " hint--warn");
         $("ringInput").value = "";
         useCity({
-          name: (was && was.name) || ref.toUpperCase(),
+          name: (was && was.name) || ring.ref,
           area: was ? was.area : null,
-          shape: shape,
-          fromRing: ref.toUpperCase(),
+          shape: ring.shape,
+          fromRing: ring.ref,
+          ringTraced: ring.traced,
+          ringClosedByHand: ring.closedByHand,
           ringTried: true
         }, true);
       }).catch(function (err) {
@@ -1986,7 +2164,9 @@
     /* The geography only. Rulings belong to Fiqh.evaluate and nowhere else. */
     inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm,
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
-    convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD
+    convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
+    stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
+    ringAreaKm2: ringAreaKm2
   };
 
   if (document.readyState === "loading") {

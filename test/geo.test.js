@@ -145,10 +145,9 @@ test("the search radius is a sane distance", function () {
 console.log("\nRing roads");
 
 /* The M25, coarsely: one point near each of twenty junctions, clockwise from
-   South Mimms. Coarse is enough — the hull of a nearly convex ring is the
-   ring, and what is under test is the parsing and the containment, not the
-   surveying. Given as Overpass gives it: a relation whose members carry
-   geometry, in [lat, lon].                                                  */
+   South Mimms, with the eastern side across the Thames included — that stretch
+   is signed A282, not M25. Coarse is enough; what is under test is the
+   stitching, the tracing and the containment, not the surveying.            */
 var M25 = [
   [51.700, -0.230], [51.660, -0.060], [51.665,  0.100], [51.615,  0.270],
   [51.505,  0.270], [51.465,  0.260], [51.400,  0.240], [51.375,  0.170],
@@ -157,49 +156,188 @@ var M25 = [
   [51.570, -0.545], [51.660, -0.500], [51.700, -0.430], [51.720, -0.290]
 ];
 
-function overpassRelation(points) {
-  /* Split across two members, as a real route relation is split across ways. */
-  function member(part) {
-    return { type: "way", role: "", geometry: part.map(function (p) {
-      return { lat: p[0], lon: p[1] };
-    })};
+/* Densified, so that simplification has something to remove and the ways have
+   interior points to be reversed about. */
+function densify(loop, per) {
+  var out = [];
+  for (var i = 0; i < loop.length; i++) {
+    var a = loop[i], b = loop[(i + 1) % loop.length];
+    for (var k = 0; k < per; k++) {
+      out.push([a[0] + (b[0] - a[0]) * (k / per), a[1] + (b[1] - a[1]) * (k / per)]);
+    }
   }
-  var half = Math.ceil(points.length / 2);
-  return { elements: [{ type: "relation", tags: { ref: "M25" },
-    members: [member(points.slice(0, half)), member(points.slice(half))] }] };
+  return out;
 }
 
-test("the ring road's members are read into a closed polygon", function () {
-  var shape = G.ringShape(overpassRelation(M25), "M25");
-  assert.strictEqual(shape.type, "Polygon");
-  var ring = shape.coordinates[0];
-  assert.ok(ring.length >= 4, "too few points: " + ring.length);
-  assert.deepStrictEqual(ring[0], ring[ring.length - 1], "the ring must close");
-  /* GeoJSON order: longitude first. */
-  assert.ok(ring.every(function (p) { return p[0] > -1 && p[0] < 1 && p[1] > 50 && p[1] < 53; }),
-            "points are not [lon, lat] around London");
+/* Cut a closed loop into ways, reverse every other one and shuffle them: this
+   is how Overpass hands a route relation over — unordered, and each way
+   pointing whichever way it was drawn.                                       */
+function asWays(loopLatLon, pieces, offset) {
+  var ways = [], n = loopLatLon.length, size = Math.ceil(n / pieces);
+  for (var i = 0; i < n; i += size) {
+    var part = loopLatLon.slice(i, i + size + 1);
+    if (part.length < 2) continue;
+    if (i + size >= n) part = part.concat([loopLatLon[0]]);   /* close the loop */
+    if ((i / size) % 2 === 1) part = part.slice().reverse();
+    ways.push(part);
+  }
+  /* A fixed shuffle — no randomness, so a failure is always reproducible. */
+  var shuffled = [];
+  for (var j = 0; j < ways.length; j++) shuffled.push(ways[(j * 7 + (offset || 0)) % ways.length]);
+  return shuffled.filter(function (w, k) { return shuffled.indexOf(w) === k; });
+}
+
+function relationOf(ways, ref) {
+  return { type: "relation", tags: { ref: ref }, members: ways.map(function (w) {
+    return { type: "way", role: "", geometry: w.map(function (p) {
+      return { lat: p[0], lon: p[1] };
+    })};
+  })};
+}
+
+var ringLoop = densify(M25, 6);
+
+function overpassM25() {
+  return { elements: [relationOf(asWays(ringLoop, 9, 0), "M25")] };
+}
+
+test("the scattered, reversed ways are stitched back into one loop", function () {
+  var ring = G.ringShape(overpassM25(), "M25");
+  assert.strictEqual(ring.traced, true, "the road should trace, not fall back to a hull");
+  assert.strictEqual(ring.closedByHand, false, "a complete loop needs no joining");
+  var coords = ring.shape.coordinates[0];
+  assert.deepStrictEqual(coords[0], coords[coords.length - 1], "the ring must close");
+  assert.ok(coords.every(function (p) {
+    return p[0] > -1 && p[0] < 1 && p[1] > 50 && p[1] < 53;
+  }), "points are not [lon, lat] around London");
 });
 
 test("both ends of the Oxhey to Cricklewood journey lie inside the M25", function () {
-  var shape = G.ringShape(overpassRelation(M25), "M25");
+  var shape = G.ringShape(overpassM25(), "M25").shape;
   assert.strictEqual(G.inShape(51.6238, -0.3892, shape), true, "WD19 4QP, South Oxhey");
   assert.strictEqual(G.inShape(51.5556, -0.2136, shape), true, "Anson Road, Cricklewood");
 });
 
 test("places beyond the ring are outside it", function () {
-  var shape = G.ringShape(overpassRelation(M25), "M25");
+  var shape = G.ringShape(overpassM25(), "M25").shape;
   assert.strictEqual(G.inShape(52.0406, -0.7594, shape), false, "Milton Keynes");
   assert.strictEqual(G.inShape(50.8225, -0.1372, shape), false, "Brighton");
   assert.strictEqual(G.inShape(51.4543, -2.5879, shape), false, "Bristol");
 });
 
-test("the hull wraps every point of the road", function () {
-  var shape = G.ringShape(overpassRelation(M25), "M25");
-  M25.forEach(function (p) {
-    /* A point nudged a little inward from each junction must be inside. */
-    var lat = 51.5 + (p[0] - 51.5) * 0.97, lon = -0.15 + (p[1] + 0.15) * 0.97;
-    assert.strictEqual(G.inShape(lat, lon, shape), true, "just inside " + p);
+/* The reason the hull was thrown away. A road that bends sharply inward
+   leaves a notch that is outside the road but inside its hull.               */
+test("a concave stretch is excluded, where the hull would have swallowed it", function () {
+  var notched = [
+    [51.70, -0.30], [51.70,  0.20], [51.30,  0.20], [51.30, -0.30],
+    [51.45, -0.30], [51.45, -0.05], [51.55, -0.05], [51.55, -0.30]   /* the notch */
+  ];
+  var data = { elements: [relationOf(asWays(densify(notched, 4), 5, 1), "TEST")] };
+  var ring = G.ringShape(data, "TEST");
+  assert.strictEqual(ring.traced, true);
+
+  var inNotch = [51.50, -0.20];       /* deep inside the notch, outside the road */
+  assert.strictEqual(G.inShape(inNotch[0], inNotch[1], ring.shape), false,
+    "the notch is outside the road and must be outside the border");
+
+  var hull = { type: "Polygon", coordinates: [(function () {
+    var pts = densify(notched, 4).map(function (p) { return [p[1], p[0]]; });
+    var h = G.convexHull(pts); h.push(h[0]); return h;
+  })()] };
+  assert.strictEqual(G.inShape(inNotch[0], inNotch[1], hull), true,
+    "the hull would have included it — which is why it was dropped");
+});
+
+test("the larger of two carriageways is the one taken", function () {
+  /* An outer loop and an inner one, neither joining the other. */
+  var inner = M25.map(function (p) {
+    return [51.5 + (p[0] - 51.5) * 0.98, -0.15 + (p[1] + 0.15) * 0.98];
   });
+  var data = { elements: [
+    relationOf(asWays(densify(inner, 4), 6, 0), "M25"),
+    relationOf(asWays(ringLoop, 9, 0), "M25")
+  ]};
+  var ring = G.ringShape(data, "M25");
+  var area = G.ringAreaKm2(ring.shape.coordinates[0]);
+  var outerArea = G.ringAreaKm2(G.ringShape(overpassM25(), "M25").shape.coordinates[0]);
+  assert.ok(Math.abs(area - outerArea) / outerArea < 0.02,
+    "expected the outer loop, got an area of " + area.toFixed(0) + " against " + outerArea.toFixed(0));
+});
+
+test("a road that does not quite close is joined, and says so", function () {
+  var open = ringLoop.slice(0, ringLoop.length - 8);      /* a gap left in it */
+  var data = { elements: [relationOf(asWays(open, 7, 0).filter(function (w, i) {
+    return i < 6;                                        /* drop a piece outright */
+  }), "M25")]};
+  var ring = G.ringShape(data, "M25");
+  assert.strictEqual(ring.traced, true, "an open road still traces");
+  assert.strictEqual(ring.closedByHand, true, "the gap must be reported, not hidden");
+  var coords = ring.shape.coordinates[0];
+  assert.deepStrictEqual(coords[0], coords[coords.length - 1]);
+});
+
+test("simplification keeps the line where it was", function () {
+  var dense = densify(M25, 40);
+  var thin = G.simplifyLine(dense.map(function (p) { return [p[1], p[0]]; }), 0.05);
+  assert.ok(thin.length < dense.length / 3,
+    "expected far fewer points, got " + thin.length + " of " + dense.length);
+  assert.ok(thin.length >= 4, "too few points left: " + thin.length);
+  /* Every junction of the original must survive within the tolerance. */
+  M25.forEach(function (p) {
+    var closest = Infinity;
+    thin.forEach(function (q) {
+      closest = Math.min(closest, G.haversineKm({ lat: p[0], lon: p[1] }, { lat: q[1], lon: q[0] }));
+    });
+    assert.ok(closest < 0.2, "a junction moved " + (closest * 1000).toFixed(0) + " m");
+  });
+});
+
+/* A dense road, wiggling by about 60 m — the scale of a real motorway's
+   curves. Thinning must fit the budget without flattening the curves away.  */
+function wigglyRing(perLeg) {
+  var loop = [];
+  for (var i = 0; i < M25.length; i++) {
+    var a = M25[i], b = M25[(i + 1) % M25.length];
+    for (var k = 0; k < perLeg; k++) {
+      var t = k / perLeg;
+      loop.push([a[0] + (b[0] - a[0]) * t + Math.sin(k * 0.7) * 0.0006,
+                 a[1] + (b[1] - a[1]) * t + Math.cos(k * 0.9) * 0.0006]);
+    }
+  }
+  return loop;
+}
+
+test("the traced ring is small enough to measure a route against", function () {
+  var ring = G.ringShape({ elements: [relationOf(asWays(wigglyRing(750), 17, 0), "M25")] }, "M25");
+  assert.ok(ring.shape.coordinates[0].length <= 2501,
+    "too many points to walk a route against: " + ring.shape.coordinates[0].length);
+});
+
+/* The bug this is here for: thinning used to jump straight from a 50 m
+   tolerance to 150 m the moment the count ran over, which took a fifteen
+   thousand point road down to twenty-four — its corners, and no curve
+   between them. A ring that coarse is not the M25.                          */
+test("thinning a dense road does not flatten it to its corners", function () {
+  var ring = G.ringShape({ elements: [relationOf(asWays(wigglyRing(750), 17, 0), "M25")] }, "M25");
+  var kept = ring.shape.coordinates[0].length;
+  assert.ok(kept > M25.length * 10,
+    "the road collapsed to " + kept + " points — barely more than its " +
+    M25.length + " corners");
+});
+
+test("a thinned road still holds the places it enclosed", function () {
+  var ring = G.ringShape({ elements: [relationOf(asWays(wigglyRing(750), 17, 0), "M25")] }, "M25");
+  assert.strictEqual(G.inShape(51.6238, -0.3892, ring.shape), true, "WD19 4QP");
+  assert.strictEqual(G.inShape(51.5556, -0.2136, ring.shape), true, "Cricklewood");
+  assert.strictEqual(G.inShape(52.0406, -0.7594, ring.shape), false, "Milton Keynes");
+});
+
+test("stitching never joins two lines that do not meet", function () {
+  var apart = G.stitchLines([
+    [[0, 51], [0.1, 51]],
+    [[5, 51], [5.1, 51]]
+  ]);
+  assert.strictEqual(apart.length, 2, "two distant lines are two chains");
 });
 
 test("a relation with no geometry is refused, not silently empty", function () {
@@ -213,8 +351,10 @@ test("the hull of collinear points does not pretend to enclose an area", functio
   assert.ok(G.convexHull(line).length < 3, "a straight line encloses nothing");
 });
 
-test("London is the city measured from its ring road", function () {
-  assert.strictEqual(G.RING_ROAD.london, "M25");
+test("London is measured from the M25, and from the A282 across the Thames", function () {
+  /* Compared as text: the array is built inside the sandbox realm, so it is
+     not reference-equal to one built out here. */
+  assert.strictEqual(G.RING_ROAD.london.join(","), "M25,A282");
 });
 
 console.log("\n" + passed + " passed, " + failed + " failed\n");
