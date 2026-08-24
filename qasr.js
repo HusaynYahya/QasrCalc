@@ -1613,7 +1613,10 @@
       btn.innerHTML =
         "<b>" + r.label + "</b>" +
         "<span>" + fmtKm(r.km) + (r.minutes ? " · " + fmtDuration(r.minutes) : "") + "</span>" +
-        "<em>" + (counted >= LIMIT_KM ? "qualifies — " : "falls short — ") + fmtKm(counted) + " counted</em>";
+        /* The distance condition only, and named as such: whether the prayer
+           is shortened is Fiqh.evaluate's to say, not the picker's. */
+        "<em>" + (counted >= Fiqh.THRESHOLD_KM ? "reaches 8 farsakh — " : "under 8 farsakh — ") +
+        fmtKm(counted) + " counted</em>";
       btn.addEventListener("click", function () {
         roadRoute = r;
         chooseRoute();
