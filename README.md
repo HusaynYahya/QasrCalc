@@ -46,7 +46,7 @@ QasrCalc/
 | Address → coordinates, and boundaries | [Nominatim](https://nominatim.openstreetmap.org), through a queue that spaces requests to respect its one-a-second policy |
 | Coordinates → road distance | [OSRM](https://project-osrm.org/) driving route |
 | If routing is unreachable | great-circle distance, clearly labelled as the straight line |
-| If neither can be reached | the "I already know the distance" panel in the form takes a figure by hand and needs no network at all |
+| If neither can be reached | nothing is ruled: the page says so and offers Refresh, rather than showing a stale or invented distance |
 
 The law counts the path actually travelled, not the straight line on the map,
 which is why the driving route is used and the straight line is only ever a
@@ -64,8 +64,6 @@ labelled fallback.
 - **Which road** — up to three routes are asked for, and each is listed with its
   distance and the ruling it would produce, since the law counts the road
   actually taken.
-- **A distance typed by hand**, which overrides all of the above and needs no
-  network.
 
 ## Cities and borders
 

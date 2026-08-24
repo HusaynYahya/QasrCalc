@@ -666,3 +666,10 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .adjust > summary:hover { color: var(--accent-bright); }
 .adjust[open] > summary { margin-bottom: 1.25rem; }
 .adjust .field:last-child { margin-bottom: 0; }
+
+/* the border deduction sits with the distance it changes, not behind a fold */
+.field--edge {
+  margin-top: 1.25rem; padding-top: 1.1rem; border-top: 1px solid var(--hair);
+  margin-bottom: 0;
+}
+.field--edge input { max-width: 12rem; }

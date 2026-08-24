@@ -1187,9 +1187,8 @@
 
     var src0 = lastRoute.source;
     dl.appendChild(measureRow(
-      src0 === "crow"   ? "Straight line to the destination" :
-      src0 === "manual" ? "Distance you set" :
-                          "Road to the destination",
+      src0 === "crow" ? "Straight line to the destination"
+                      : "Road to the destination",
       fmtKm(lastRoute.km) + (lastRoute.minutes ? " · " + fmtDuration(lastRoute.minutes) : "")));
 
     if (edge > 0) {
@@ -1228,7 +1227,6 @@
     $("measureNote").innerHTML =
       src === "straight" ? "The routing service could not be reached, so this is the straight line — always shorter than the road." :
       src === "crow"     ? "As the crow flies, at your request. The law counts the road travelled." :
-      src === "manual"   ? "From the distance you entered by hand." :
       "Counted from your city border to the destination itself, along the road travelled. " +
       "<span class='cite'>1704 · 1705</span>";
   }
@@ -1533,16 +1531,6 @@
     if (e) e.preventDefault();
     var btn = $("calcBtn");
 
-    /* A distance typed by hand wins, and needs neither service. */
-    var typed = parseFloat($("manualKm").value);
-    if (!isNaN(typed) && typed >= 0) {
-      lastRoute = { km: toKm(typed), minutes: null, source: "manual" };
-      rule();
-      say("Calculated from the distance you entered.");
-      $("result").scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-
     btn.disabled = true;
     say("Finding the addresses…");
 
@@ -1590,29 +1578,26 @@
         var base = err.message || "Something went wrong. Check the addresses and try again.";
         var offline = /failed to fetch|networkerror|load failed|returned \d+/i.test(base);
         say(offline
-          ? "Could not reach the address lookup. Set the distance yourself below, then press Calculate."
+          ? "Could not reach the address lookup. Try Refresh in a moment."
           : base, true);
-        if (offline) offerManualEscape();
+        if (offline) reportNoMeasurement();
       })
       .then(function () { btn.disabled = false; });
   }
 
-  /* The distance field lives with the results, which appear only after a
-     successful lookup — so a failed lookup would hide the one way round it.
-     Show the panel on its own, with nothing ruled, so it can still be used. */
-  function offerManualEscape() {
+  /* Nothing can be ruled without a distance, and there is no longer a way to
+     supply one by hand. Say what happened rather than showing a stale result. */
+  function reportNoMeasurement() {
     $("undeterminedCard").hidden = true;
     $("segmentsCard").hidden = true;
     $("advisoryCard").hidden = true;
     $("verdict").className = "verdict verdict--ask";
-    $("verdictLabel").textContent = "Nothing measured yet";
-    $("verdictSub").textContent = "The addresses could not be looked up. Set the distance yourself below and press Calculate.";
+    $("verdictLabel").textContent = "Nothing measured";
+    $("verdictSub").textContent = "The addresses could not be looked up, so there is no distance to rule on. Try Refresh, or check the addresses.";
     $("measure").innerHTML = "";
     $("measureNote").textContent = "";
     $("gaugeFill").style.width = "0";
-    document.querySelector(".adjust").open = true;
     $("result").hidden = false;
-    $("manualKm").focus();
   }
 
   /* Recalculate from the numbers already held, without touching the network. */
@@ -1757,7 +1742,7 @@
       routes = [];
       roadRoute = crowRoute = lastRoute = null;
       edgeTouched = false;
-      if (!$("manualKm").value.trim()) $("edgeKm").value = "";
+      $("edgeKm").value = "";
       mapState.fitted = null;
       this.disabled = true;
       this.textContent = "Refreshing…";
@@ -1827,13 +1812,6 @@
       if (mapState.map && !$("mapCard").hidden) mapState.map.invalidateSize();
     });
 
-    $("manualKm").addEventListener("input", function () {
-      var v = parseFloat(this.value);
-      if (!isNaN(v) && v >= 0) {
-        lastRoute = roadRoute = { km: toKm(v), minutes: null, source: "manual" };
-      }
-      recalc();
-    });
 
     /* Ten days and hesitation are contraries — one excludes the other. */
 
@@ -1842,7 +1820,7 @@
       var was = unit;
       unit = this.value;
       if (was !== unit) {
-        ["edgeKm", "manualKm"].forEach(function (id) {
+        ["edgeKm"].forEach(function (id) {
           var el = $(id), v = parseFloat(el.value);
           if (!isNaN(v)) el.value = (unit === "mi" ? v / KM_PER_MI : v * KM_PER_MI).toFixed(1);
         });
