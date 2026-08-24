@@ -141,5 +141,81 @@ test("the search radius is a sane distance", function () {
   assert.ok(G.NEAR_CITY_KM >= 40 && G.NEAR_CITY_KM <= 100);
 });
 
+/* --- a ring road standing in for the city border ------------------------- */
+console.log("\nRing roads");
+
+/* The M25, coarsely: one point near each of twenty junctions, clockwise from
+   South Mimms. Coarse is enough — the hull of a nearly convex ring is the
+   ring, and what is under test is the parsing and the containment, not the
+   surveying. Given as Overpass gives it: a relation whose members carry
+   geometry, in [lat, lon].                                                  */
+var M25 = [
+  [51.700, -0.230], [51.660, -0.060], [51.665,  0.100], [51.615,  0.270],
+  [51.505,  0.270], [51.465,  0.260], [51.400,  0.240], [51.375,  0.170],
+  [51.300,  0.130], [51.270, -0.050], [51.290, -0.150], [51.265, -0.200],
+  [51.320, -0.470], [51.375, -0.510], [51.440, -0.520], [51.500, -0.520],
+  [51.570, -0.545], [51.660, -0.500], [51.700, -0.430], [51.720, -0.290]
+];
+
+function overpassRelation(points) {
+  /* Split across two members, as a real route relation is split across ways. */
+  function member(part) {
+    return { type: "way", role: "", geometry: part.map(function (p) {
+      return { lat: p[0], lon: p[1] };
+    })};
+  }
+  var half = Math.ceil(points.length / 2);
+  return { elements: [{ type: "relation", tags: { ref: "M25" },
+    members: [member(points.slice(0, half)), member(points.slice(half))] }] };
+}
+
+test("the ring road's members are read into a closed polygon", function () {
+  var shape = G.ringShape(overpassRelation(M25), "M25");
+  assert.strictEqual(shape.type, "Polygon");
+  var ring = shape.coordinates[0];
+  assert.ok(ring.length >= 4, "too few points: " + ring.length);
+  assert.deepStrictEqual(ring[0], ring[ring.length - 1], "the ring must close");
+  /* GeoJSON order: longitude first. */
+  assert.ok(ring.every(function (p) { return p[0] > -1 && p[0] < 1 && p[1] > 50 && p[1] < 53; }),
+            "points are not [lon, lat] around London");
+});
+
+test("both ends of the Oxhey to Cricklewood journey lie inside the M25", function () {
+  var shape = G.ringShape(overpassRelation(M25), "M25");
+  assert.strictEqual(G.inShape(51.6238, -0.3892, shape), true, "WD19 4QP, South Oxhey");
+  assert.strictEqual(G.inShape(51.5556, -0.2136, shape), true, "Anson Road, Cricklewood");
+});
+
+test("places beyond the ring are outside it", function () {
+  var shape = G.ringShape(overpassRelation(M25), "M25");
+  assert.strictEqual(G.inShape(52.0406, -0.7594, shape), false, "Milton Keynes");
+  assert.strictEqual(G.inShape(50.8225, -0.1372, shape), false, "Brighton");
+  assert.strictEqual(G.inShape(51.4543, -2.5879, shape), false, "Bristol");
+});
+
+test("the hull wraps every point of the road", function () {
+  var shape = G.ringShape(overpassRelation(M25), "M25");
+  M25.forEach(function (p) {
+    /* A point nudged a little inward from each junction must be inside. */
+    var lat = 51.5 + (p[0] - 51.5) * 0.97, lon = -0.15 + (p[1] + 0.15) * 0.97;
+    assert.strictEqual(G.inShape(lat, lon, shape), true, "just inside " + p);
+  });
+});
+
+test("a relation with no geometry is refused, not silently empty", function () {
+  assert.throws(function () { G.ringShape({ elements: [{ type: "relation" }] }, "M25"); },
+                /No road numbered M25/);
+  assert.throws(function () { G.ringShape({}, "M25"); }, /No road numbered M25/);
+});
+
+test("the hull of collinear points does not pretend to enclose an area", function () {
+  var line = [[0, 0], [1, 1], [2, 2], [3, 3]];
+  assert.ok(G.convexHull(line).length < 3, "a straight line encloses nothing");
+});
+
+test("London is the city measured from its ring road", function () {
+  assert.strictEqual(G.RING_ROAD.london, "M25");
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);

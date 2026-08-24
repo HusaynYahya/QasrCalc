@@ -388,6 +388,87 @@
       });
   }
 
+  /* ---- a ring road as the city's edge ----------------------------------- */
+
+  /* Where a city has outgrown its council boundary, common usage draws the
+     line somewhere else — and around London that line is the M25. Which edge
+     counts is a judgement of common usage, not of administration [1704], so
+     the motorway's own geometry is fetched and the area it encloses stands in
+     for the published boundary.
+
+     The enclosed area is the convex hull of the road's points. A ring road is
+     very nearly convex already, so the hull follows it closely; where it does
+     bulge it bulges outward, which lengthens the uncounted stretch from the
+     door rather than shortening it, and so never turns a full prayer into a
+     shortened one.                                                           */
+  var RING_ROAD = { london: "M25" };
+
+  /* Monotone chain. Points are [lon, lat], as GeoJSON keeps them. */
+  function convexHull(points) {
+    if (points.length < 3) return points.slice();
+    var pts = points.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cross(o, a, b) {
+      return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    }
+    var lower = [], upper = [], i;
+    for (i = 0; i < pts.length; i++) {
+      while (lower.length >= 2 &&
+             cross(lower[lower.length - 2], lower[lower.length - 1], pts[i]) <= 0) lower.pop();
+      lower.push(pts[i]);
+    }
+    for (i = pts.length - 1; i >= 0; i--) {
+      while (upper.length >= 2 &&
+             cross(upper[upper.length - 2], upper[upper.length - 1], pts[i]) <= 0) upper.pop();
+      upper.push(pts[i]);
+    }
+    lower.pop(); upper.pop();
+    return lower.concat(upper);
+  }
+
+  /* The hull of everything Overpass returned. Kept apart from the fetch so it
+     can be exercised without a network.                                      */
+  function ringShape(data, ref) {
+    var pts = [];
+    function take(g) {
+      if (g && typeof g.lat === "number" && typeof g.lon === "number") pts.push([g.lon, g.lat]);
+    }
+    ((data && data.elements) || []).forEach(function (el) {
+      (el.members || []).forEach(function (m) { (m.geometry || []).forEach(take); });
+      (el.geometry || []).forEach(take);
+    });
+    if (pts.length < 3) throw new Error("No road numbered " + ref + " was found near here.");
+    var hull = convexHull(pts);
+    if (hull.length < 3) throw new Error("The " + ref + " does not enclose an area.");
+    hull.push(hull[0].slice());              /* a GeoJSON ring closes on itself */
+    return { type: "Polygon", coordinates: [hull] };
+  }
+
+  /* "out geom" and not a bare "out": without it the relation comes back as a
+     list of member ids, with no coordinates to draw or measure.              */
+  function ringBoundary(ref, near) {
+    var clean = String(ref || "").trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, "");
+    if (!clean) return Promise.reject(new Error("Name a road first."));
+    /* Narrowed to the reader's part of the world where we know it: "M25" is
+       not a number unique to England.                                        */
+    var round = near && typeof near.lat === "number" && typeof near.lon === "number"
+              ? "(around:150000," + near.lat + "," + near.lon + ")" : "";
+    var query = "[out:json][timeout:30];" +
+      "relation" + round + "[\"ref\"=\"" + clean + "\"][\"type\"=\"route\"][\"route\"=\"road\"];" +
+      "out geom;";
+
+    function ask(hosts, why) {
+      if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
+      return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
+        .then(function (r) {
+          if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
+          return r.json();
+        })
+        .catch(function (err) { return ask(hosts.slice(1), err && err.message); });
+    }
+
+    return ask(OVERPASS).then(function (data) { return ringShape(data, clean); });
+  }
+
   function cityByName(name, mustContain) {
     /* featureType=settlement confines the answer to cities, towns, villages
        and hamlets — never a county, a district or a region. The spelling is
@@ -1289,6 +1370,29 @@
     renderCityChoices();
     labelCityBtn();
     if (lastRoute) recalc(); else renderMap(null);
+    maybeRing(city);
+  }
+
+  /* A city with a ring road named for it gets that road as its edge, without
+     being asked. The swap is visible: the road is outlined on the map and
+     named under it, and any other border can still be chosen by hand.        */
+  function maybeRing(city) {
+    if (!city || !city.name || city.fromRing || city.ringTried) return;
+    var ref = RING_ROAD[city.name.toLowerCase()];
+    if (!ref) return;
+    city.ringTried = true;
+    ringBoundary(ref, places.from || city).then(function (shape) {
+      if (cities.from !== city) return;              /* the reader moved on */
+      city.shape = shape;
+      city.fromRing = ref;
+      city.fromAggregate = false;
+      showCity("from", "fromHint", "Your city is");
+      applyBorderDeduction();
+      renderCityChoices();
+      if (lastRoute) recalc(); else renderMap(null);
+    }).catch(function () {
+      /* The published boundary was there before and stays. */
+    });
   }
 
   function cityRow(city, isOn) {
@@ -1299,12 +1403,30 @@
     btn.setAttribute("aria-pressed", isOn ? "true" : "false");
     btn.innerHTML = "<b>" + city.name + "</b><span>" +
       (city.area && city.area !== city.name ? city.area + " · " : "") +
-      (city.shape ? "border published" : "no border published — nothing to deduct") +
+      (city.fromRing ? "edge taken from the " + city.fromRing
+        : city.shape ? "border published" : "no border published — nothing to deduct") +
       (city.note ? " · " + city.note : "") +
       "</span>";
     btn.addEventListener("click", function () { useCity(city, true); });
     li.appendChild(btn);
     return li;
+  }
+
+  /* Where the line drawn is not the town's own published boundary, say which
+     line it is instead. A reader can only judge the choice if they know it
+     was made.                                                                */
+  function borderNote() {
+    var city = cities.from;
+    if (!city || !city.name) return "";
+    if (city.fromRing) {
+      return " The line used is the " + city.fromRing + ", not the council boundary — " +
+             "the edge most people would call leaving " + city.name + ".";
+    }
+    if (city.fromAggregate) {
+      return " No town-level boundary is published for " + city.name +
+             ", so this is the edge of the whole built-up area — which is what the text measures from.";
+    }
+    return "";
   }
 
   /* The check, said plainly under the map. [1704] */
@@ -1315,17 +1437,14 @@
 
     if (borderCheck.ok && borderCheck.within) {
       el.className = "bordercheck is-within";
-      el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason;
+      el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason + borderNote();
       return;
     }
     if (borderCheck.ok) {
       el.className = "bordercheck is-ok";
       el.innerHTML = "<b>Counting from the " + borderCheck.city + " border.</b> " +
         "The " + fmtKm(borderCheck.km) + " from your door to it is drawn faint and is not counted." +
-        (cities.from && cities.from.fromAggregate
-          ? " No town-level boundary is published for " + borderCheck.city +
-            ", so this is the edge of the whole built-up area — which is what the text measures from."
-          : "") +
+        borderNote() +
         " <span class='cite'>1704</span>";
       return;
     }
@@ -1385,7 +1504,9 @@
     if (city && city.name) {
       hint.innerHTML = lead + " <b>" + city.name + "</b>" +
         (city.area && city.area !== city.name ? ", " + city.area : "") +
-        (city.shape ? " — its border is outlined on the map." : " — no published border to outline.") +
+        (city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
+          : city.shape ? " — its border is outlined on the map."
+          : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";
     } else {
@@ -1658,6 +1779,32 @@
       });
     });
 
+    $("ringGo").addEventListener("click", function () {
+      var ref = $("ringInput").value.trim();
+      if (!ref) return;
+      $("ringMsg").textContent = "Tracing the " + ref.toUpperCase() + "…";
+      $("ringMsg").className = "hint";
+      ringBoundary(ref, places.from).then(function (shape) {
+        var was = cities.from;
+        $("ringMsg").textContent = "";
+        $("ringInput").value = "";
+        useCity({
+          name: (was && was.name) || ref.toUpperCase(),
+          area: was ? was.area : null,
+          shape: shape,
+          fromRing: ref.toUpperCase(),
+          ringTried: true
+        }, true);
+      }).catch(function (err) {
+        $("ringMsg").textContent = err.message;
+        $("ringMsg").className = "hint hint--warn";
+      });
+    });
+
+    $("ringInput").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); $("ringGo").click(); }
+    });
+
     $("citySearch").addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); $("cityGo").click(); }
       if (e.key === "Escape") { $("cityFound").hidden = true; }
@@ -1835,7 +1982,8 @@
   window.QasrEngine = {
     /* The geography only. Rulings belong to Fiqh.evaluate and nowhere else. */
     inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm,
-    extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM
+    extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
+    convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD
   };
 
   if (document.readyState === "loading") {
