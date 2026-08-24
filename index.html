@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=24" />
-<link rel="stylesheet" href="qasr.css?v=24" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=26" />
+<link rel="stylesheet" href="qasr.css?v=26" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -75,49 +75,14 @@
         <p class="hint" id="toHint">The furthest point you mean to reach.</p>
       </div>
 
-      <div class="field field--split">
-        <div>
-          <span class="label-ish" id="tripLabel">The journey</span>
-          <div class="seg" role="radiogroup" aria-labelledby="tripLabel">
-            <label><input type="radio" name="trip" value="return" checked /><span>There and back</span></label>
-            <label><input type="radio" name="trip" value="oneway" /><span>One way</span></label>
-          </div>
-          <p class="hint">Both legs count — so 22&nbsp;km each way reaches the limit — unless you stay ten days or arrive in your own hometown.</p>
+      <div class="field">
+        <span class="label-ish" id="tripLabel">The journey</span>
+        <div class="seg" role="radiogroup" aria-labelledby="tripLabel">
+          <label><input type="radio" name="trip" value="return" checked /><span>There and back</span></label>
+          <label><input type="radio" name="trip" value="oneway" /><span>One way</span></label>
         </div>
-        <div>
-          <span class="label-ish" id="measureLabel">How to measure</span>
-          <div class="seg" role="radiogroup" aria-labelledby="measureLabel">
-            <label><input type="radio" name="measure" value="road" checked /><span>By road</span></label>
-            <label><input type="radio" name="measure" value="crow" /><span>Straight line</span></label>
-          </div>
-          <p class="hint">The law counts the road travelled; the straight line is only for comparison.</p>
-        </div>
+        <p class="hint">Both legs count — so 22&nbsp;km each way reaches the limit — unless you stay ten days or arrive in your own hometown.</p>
       </div>
-
-      <div class="field field--split">
-        <div>
-          <label for="edgeKm">From your door to your city border <span class="opt">(filled in for you)</span></label>
-          <input id="edgeKm" type="number" min="0" max="200" step="0.1" inputmode="decimal" placeholder="0" />
-          <p class="hint" id="edgeHint">Measured for you once the addresses are in.</p>
-        </div>
-        <div>
-          <label for="units">Units</label>
-          <select id="units">
-            <option value="km" selected>Kilometres</option>
-            <option value="mi">Miles</option>
-          </select>
-          <p class="hint">The limit is 8 <i>farsakh</i> — 44&nbsp;km.</p>
-        </div>
-      </div>
-
-      <details class="manual">
-        <summary>I already know the distance — let me type it in</summary>
-        <div class="field">
-          <label for="manualKm">One-way distance actually travelled</label>
-          <input id="manualKm" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 61.4" />
-          <p class="hint">Overrides the addresses. Give the distance actually travelled.</p>
-        </div>
-      </details>
     </section>
 
     <section class="block" id="mapCard">
@@ -266,6 +231,41 @@
         </div>
       </div>
       <p class="hint" id="measureNote"></p>
+
+      <details class="adjust">
+        <summary>Adjust how this was measured</summary>
+
+        <div class="field field--split">
+          <div>
+            <span class="label-ish" id="measureLabel">How to measure</span>
+            <div class="seg" role="radiogroup" aria-labelledby="measureLabel">
+              <label><input type="radio" name="measure" value="road" checked /><span>By road</span></label>
+              <label><input type="radio" name="measure" value="crow" /><span>Straight line</span></label>
+            </div>
+            <p class="hint">The law counts the road travelled; the straight line is only for comparison.</p>
+          </div>
+          <div>
+            <label for="units">Units</label>
+            <select id="units">
+              <option value="km" selected>Kilometres</option>
+              <option value="mi">Miles</option>
+            </select>
+            <p class="hint">The limit is 8 <i>farsakh</i> — 44&nbsp;km.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="edgeKm">From your door to your city border <span class="opt">(filled in for you)</span></label>
+          <input id="edgeKm" type="number" min="0" max="200" step="0.1" inputmode="decimal" placeholder="0" />
+          <p class="hint" id="edgeHint">Measured for you once the addresses are in.</p>
+        </div>
+
+        <div class="field">
+          <label for="manualKm">Or set the distance yourself <span class="opt">(overrides the addresses)</span></label>
+          <input id="manualKm" type="number" min="0" step="0.1" inputmode="decimal" placeholder="e.g. 61.4" />
+          <p class="hint">Give the distance actually travelled, one way. Press Calculate again after changing it.</p>
+        </div>
+      </details>
     </div>
 
     <div class="card" id="advisoryCard" hidden>
@@ -293,8 +293,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=24" defer></script>
-<script src="fiqh.js?v=24" defer></script>
-<script src="qasr.js?v=24" defer></script>
+<script src="lib/leaflet/leaflet.js?v=26" defer></script>
+<script src="fiqh.js?v=26" defer></script>
+<script src="qasr.js?v=26" defer></script>
 </body>
 </html>

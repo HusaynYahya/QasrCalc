@@ -55,7 +55,9 @@ labelled fallback.
 ## Choices the reader makes
 
 - **There and back / one way** — a return journey adds the legs together, so
-  22 km each way reaches the limit.
+  22 km each way reaches the limit. This is the only measurement choice in the
+  form; the rest sit with the result, since they are things you adjust after
+  seeing a number rather than before.
 - **By road / straight line** — the road is the default and what the law counts;
   the straight line is offered for comparison and labelled every time it is used,
   since it is always shorter and can understate a journey.

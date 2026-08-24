@@ -656,3 +656,13 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   .measure div { display: grid; gap: .15rem; }
   .measure dd { text-align: left; white-space: normal; }
 }
+
+/* ---- the measurement adjustments, folded under the distance ------------ */
+.adjust { margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px solid var(--hair); }
+.adjust > summary {
+  cursor: pointer; font-family: var(--font-label); font-size: .8rem;
+  letter-spacing: .04em; color: var(--ink-mute);
+}
+.adjust > summary:hover { color: var(--accent-bright); }
+.adjust[open] > summary { margin-bottom: 1.25rem; }
+.adjust .field:last-child { margin-bottom: 0; }

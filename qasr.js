@@ -1185,7 +1185,11 @@
     var dl = $("measure");
     dl.innerHTML = "";
 
-    dl.appendChild(measureRow("Road to the destination",
+    var src0 = lastRoute.source;
+    dl.appendChild(measureRow(
+      src0 === "crow"   ? "Straight line to the destination" :
+      src0 === "manual" ? "Distance you set" :
+                          "Road to the destination",
       fmtKm(lastRoute.km) + (lastRoute.minutes ? " · " + fmtDuration(lastRoute.minutes) : "")));
 
     if (edge > 0) {
@@ -1586,11 +1590,29 @@
         var base = err.message || "Something went wrong. Check the addresses and try again.";
         var offline = /failed to fetch|networkerror|load failed|returned \d+/i.test(base);
         say(offline
-          ? "Could not reach the address lookup. Enter the distance by hand — the panel is open above — and press Calculate."
+          ? "Could not reach the address lookup. Set the distance yourself below, then press Calculate."
           : base, true);
-        if (offline) $("manualKm").closest("details").open = true;
+        if (offline) offerManualEscape();
       })
       .then(function () { btn.disabled = false; });
+  }
+
+  /* The distance field lives with the results, which appear only after a
+     successful lookup — so a failed lookup would hide the one way round it.
+     Show the panel on its own, with nothing ruled, so it can still be used. */
+  function offerManualEscape() {
+    $("undeterminedCard").hidden = true;
+    $("segmentsCard").hidden = true;
+    $("advisoryCard").hidden = true;
+    $("verdict").className = "verdict verdict--ask";
+    $("verdictLabel").textContent = "Nothing measured yet";
+    $("verdictSub").textContent = "The addresses could not be looked up. Set the distance yourself below and press Calculate.";
+    $("measure").innerHTML = "";
+    $("measureNote").textContent = "";
+    $("gaugeFill").style.width = "0";
+    document.querySelector(".adjust").open = true;
+    $("result").hidden = false;
+    $("manualKm").focus();
   }
 
   /* Recalculate from the numbers already held, without touching the network. */
