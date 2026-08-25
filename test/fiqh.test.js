@@ -465,5 +465,45 @@ test("A3", "the verdict is the lattice maximum, never a default [§A.2]", functi
   assert.strictEqual(seg(r, "outbound").verdict, F.TAMAM);
 });
 
+/* ---- one city, or two? ---------------------------------------------------
+   Both ends inside one border means nothing is counted [1704], and the
+   districts of one city count as one however far apart [1790]. But a ring
+   road drawn round a city can enclose towns that are nobody's idea of one
+   place, and whether two places are one city is a judgement of common usage
+   the software may not make for itself [§15].                               */
+console.log("\nOne city, or two");
+
+test("C1", "both ends within one city count nothing, however far across [1704], [1790]", function () {
+  var r = F.evaluate(trip({ legs: { outboundKm: 80 * K, returning: true, staysInCity: true } }));
+  assert.strictEqual(seg(r, "outbound").verdict, F.TAMAM,
+    "eighty kilometres inside one city is still not a journey");
+  assert.ok(seg(r, "outbound").outcomes[1].citations.indexOf(1704) >= 0,
+    "the within-city rule must cite where the measuring starts");
+});
+
+test("C2", "a ring road that enclosed two towns halts rather than guessing [§15]", function () {
+  var r = F.evaluate(trip({
+    legs: { outboundKm: 50 * K, returning: true, staysInCity: undefined, oneCityInDoubt: true }
+  }));
+  assert.strictEqual(r.verdict, F.UNDETERMINED);
+  assert.ok(r.undetermined.some(function (u) { return /one city/i.test(u.question); }),
+    "the one-city question must be among those asked");
+});
+
+test("C3", "answering it decides the ruling, in both directions", function () {
+  var asOne = F.evaluate(trip({
+    legs: { outboundKm: 50 * K, returning: true, staysInCity: true, oneCityInDoubt: true } }));
+  var asTwo = F.evaluate(trip({
+    legs: { outboundKm: 50 * K, returning: true, staysInCity: false, oneCityInDoubt: true } }));
+  assert.strictEqual(asOne.verdict, F.TAMAM, "one city: nothing is counted");
+  assert.strictEqual(asTwo.verdict, F.QASR, "two towns: fifty kilometres is counted");
+});
+
+test("C4", "the question is not asked where nothing made it doubtful", function () {
+  var r = F.evaluate(trip({ legs: { outboundKm: 50 * K, returning: true, staysInCity: false } }));
+  assert.notStrictEqual(r.verdict, F.UNDETERMINED,
+    "an ordinary journey must not be held up by a question about ring roads");
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed, " + pending + " pending\n");
 process.exit(failed ? 1 : 0);

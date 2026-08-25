@@ -892,6 +892,10 @@
   var lastRoute = null;               /* whichever is being ruled on */
   var lastResult = null;
   var edgeTouched = false;            /* the reader overrode the measured border */
+  /* Whether two places inside one ring road are one city. Undefined until
+     asked, and asked only where a ring road made it doubtful.                */
+  var ringSameCity;
+  var oneCityDoubt = false;
   var cityConfirmed = false;          /* the reader settled which city counts */
   var staysInCity = false;
   /* Whether the count actually began at a city border, and if not, why not.
@@ -1045,7 +1049,8 @@
         returnKm: leg,
         returning: isReturn(),
         departingFromWatan: true,
-        staysInCity: staysInCity
+        staysInCity: oneCityDoubt ? undefined : staysInCity,
+        oneCityInDoubt: oneCityDoubt
       }
     };
   }
@@ -1605,6 +1610,7 @@
     cities.from = city;
     cityConfirmed = !!byHand;
     edgeTouched = false;                 /* a new border means a new measurement */
+    ringSameCity = undefined;            /* and a new border, a new question */
     showCity("from", "fromHint", "Your city is");
     applyBorderDeduction();
     renderCityChoices();
@@ -1687,6 +1693,26 @@
     if (!lastRoute) { el.hidden = true; return; }
     el.hidden = false;
 
+    if (borderCheck.ok && borderCheck.ask) {
+      el.className = "bordercheck is-ask";
+      el.innerHTML =
+        "<b>One city, or two?</b> Both ends lie inside the " + borderCheck.ring +
+        ", but they are in " + borderCheck.city + " and " + borderCheck.other +
+        ". Within one city nothing is counted, however far across it you go; " +
+        "between two towns the distance counts as usual. Only you can say which " +
+        "this is. <span class='cite'>1704</span> <span class='cite'>1790</span>" +
+        "<span class='bordercheck__ask'>" +
+        "<button type='button' class='btn btn--small' id='oneCityYes'>One city</button>" +
+        "<button type='button' class='btn btn--small' id='oneCityNo'>Two towns</button>" +
+        "</span>";
+      el.querySelector("#oneCityYes").addEventListener("click", function () {
+        ringSameCity = true; applyBorderDeduction(); recalc();
+      });
+      el.querySelector("#oneCityNo").addEventListener("click", function () {
+        ringSameCity = false; applyBorderDeduction(); recalc();
+      });
+      return;
+    }
     if (borderCheck.ok && borderCheck.within) {
       el.className = "bordercheck is-within";
       el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason + borderNote();
@@ -1823,6 +1849,29 @@
                     inShape(places.to.lat, places.to.lon, city.shape);
     } else if (cities.to && cities.to.name && city.name) {
       staysInCity = cities.to.name.toLowerCase() === city.name.toLowerCase();
+    }
+
+    /* A ring road is a wide line to draw round a city. Both ends can sit
+       inside the M25 and still be two towns: Watford and Dartford are fifty
+       kilometres apart and neither is the other. So where the border is a
+       ring road and the two ends answer to different settlements, whether
+       they are one city is a judgement of common usage — and §15 forbids the
+       software from making one. It is asked instead.                         */
+    oneCityDoubt = false;
+    if (staysInCity && city.fromRing && city.name && cities.to && cities.to.name &&
+        cities.to.name.toLowerCase() !== city.name.toLowerCase()) {
+      if (ringSameCity === false) staysInCity = false;
+      else if (ringSameCity !== true) oneCityDoubt = true;
+    }
+
+    if (oneCityDoubt) {
+      say("Both ends lie inside the " + city.fromRing + ", but in <b>" + city.name +
+          "</b> and <b>" + cities.to.name + "</b>. Say below whether you count those as one city.", "hint--warn");
+      borderCheck = { ok: true, within: true, ask: true, km: 0, city: city.name,
+                      other: cities.to.name, ring: city.fromRing,
+                      reason: "Both ends lie inside the " + city.fromRing + "." };
+      renderBorderCheck();
+      return;
     }
 
     if (staysInCity) {

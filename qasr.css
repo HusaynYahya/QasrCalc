@@ -673,3 +673,8 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   margin-bottom: 0;
 }
 .field--edge input { max-width: 12rem; }
+
+/* ---- one city, or two? the question a ring road can raise ---------------- */
+.bordercheck.is-ask { border-left-color: var(--warn, #b0740d); }
+.bordercheck__ask { display: flex; gap: .5rem; margin-top: .6rem; }
+.bordercheck__ask .btn { margin-top: 0; }

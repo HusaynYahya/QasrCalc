@@ -670,6 +670,16 @@
     need((trip.residence || {}).intendsTenDays, "Will you stay ten continuous days at the destination?",
       "A firm ten-day intention makes you a resident there and stops the legs being added together.", [1779, 1719]);
 
+    /* Whether two places are one city is a judgement of common usage, and the
+       software may not make it. It is only asked where it is actually in
+       doubt — the caller says so — because for most journeys it is not.      */
+    if ((trip.legs || {}).oneCityInDoubt) {
+      need((trip.legs || {}).staysInCity,
+        "Are these two places one city, or two towns that happen to share a boundary?",
+        "Within one city nothing is counted, however far across it you go [1704], and its districts count as one [1790]. Between two towns the distance is counted in the ordinary way.",
+        [1704, 1790]);
+    }
+
     return missing;
   }
 
