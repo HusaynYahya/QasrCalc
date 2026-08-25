@@ -209,39 +209,61 @@
   }
 
   /* The candidates for "your city", nearest first, without repeats. */
-  function cityChoices(place) {
+  /* The alternatives, fetched all at once and reported as they arrive.
+
+     This was a chain: each lookup waited for the one before it to come back,
+     and only then waited its turn in the address queue. Five lookups meant
+     five round trips stacked on five one-second pauses, and nothing on screen
+     until the last of them landed.
+
+     Now they are all started together. The address service still gets one
+     request a second, as its terms require — that pacing is the queue's job,
+     not the caller's — but the waiting overlaps instead of accumulating, and
+     each city appears the moment it is known.                                */
+  function cityChoices(place, onFound) {
     var found = [];
-    return [12, 10].reduce(function (chain, zoom) {
-      return chain.then(function () {
-        return cityAt(place, zoom).then(function (city) {
-          if (!city || !city.name) return;
-          if (found.some(function (c) { return c.name === city.name; })) return;
-          if (isSettlement(city) && city.shape) { found.push(city); return; }
+    function add(city, first) {
+      if (!city || !city.name) return;
+      if (found.some(function (c) { return c.name === city.name; })) return;
+      if (first) found.unshift(city); else found.push(city);
+      if (onFound) onFound(found);
+    }
+
+    /* Overpass answers on its own host, so it need not wait behind the
+       address lookups at all — it used to be asked only after all of them.   */
+    var nearby = biggestCityNear(place)
+      .then(function (big) {
+        if (!big) return null;
+        return cityByName(big.name).then(function (settlement) {
+          settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
+          return settlement;
+        });
+      })
+      .catch(function () { return null; });
+
+    var byZoom = [12, 10].map(function (zoom) {
+      return cityAt(place, zoom)
+        .then(function (city) {
+          if (!city || !city.name) return null;
+          if (isSettlement(city) && city.shape) return city;
           /* Named by a district or a county — take the settlement itself. */
           return cityByName(city.name, place)
             .then(function (settlement) {
               /* Keep whichever knows the border. A named lookup that comes
                  back without one must not displace a shape already found.    */
-              found.push(settlement.shape ? settlement : (city.shape ? city : settlement));
+              return settlement.shape ? settlement : (city.shape ? city : settlement);
             })
-            .catch(function () { found.push(city); });
-        });
-      });
-    }, Promise.resolve())
-      .then(function () { return biggestCityNear(place); })
-      .then(function (big) {
-        if (!big) return found;
-        if (found.some(function (c) { return c.name === big.name; })) return found;
-        return cityByName(big.name)
-          .then(function (settlement) {
-            settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
-            /* Ahead of the smaller alternatives: it is the one a reader is
-               least likely to think of, and most likely to want.             */
-            found.unshift(settlement);
-            return found;
-          })
-          .catch(function () { return found; });
-      });
+            .catch(function () { return city; });
+        })
+        .then(function (city) { add(city); })
+        .catch(function () {});
+    });
+
+    /* The largest city goes to the front whenever it lands: it is the one a
+       reader is least likely to think of, and most likely to want.           */
+    var big = nearby.then(function (city) { add(city, true); });
+
+    return Promise.all(byZoom.concat([big])).then(function () { return found; });
   }
 
   /* The largest city within reach, whether or not the reader lives in it.
@@ -386,6 +408,24 @@
           };
         }).filter(function (c) { return c.name; });
       });
+  }
+
+  /* Some answers are slow to fetch and good for months — a motorway's course
+     above all. They are kept in the browser between visits. Every access is
+     guarded: private windows, cleared site data and full quotas all throw,
+     and none of them is a reason to fail.                                    */
+  function stored(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return null;
+      var box = JSON.parse(raw);
+      if (!box || (Date.now() - box.at) > 30 * 24 * 3600 * 1000) return null;
+      return box.value;
+    } catch (e) { return null; }
+  }
+  function keep(key, value) {
+    try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), value: value })); }
+    catch (e) { /* out of room, or refused — the fetch simply happens again */ }
   }
 
   /* ---- a ring road as the city's edge ----------------------------------- */
@@ -581,6 +621,11 @@
         tol *= 1.6;
         ring = simplifyLine(best.ring, tol);
       }
+      /* Five decimals is a metre on the ground — far past anything that
+         could move a verdict, and it halves what has to be stored.           */
+      ring = ring.map(function (p) {
+        return [Math.round(p[0] * 1e5) / 1e5, Math.round(p[1] * 1e5) / 1e5];
+      });
       if (!ptsMeet(ring[0], ring[ring.length - 1])) ring.push(ring[0].slice());
       else ring[ring.length - 1] = ring[0].slice();     /* exactly closed */
       if (ring.length >= 4) {
@@ -607,16 +652,36 @@
       .map(function (r) { return String(r).trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, ""); })
       .filter(Boolean);
     if (!wanted.length) return Promise.reject(new Error("Name a road first."));
+    var ref = wanted.join(" and ");
 
     /* Narrowed to the reader's part of the world where we know it: "M25" is
-       not a number unique to England.                                        */
-    var round = near && typeof near.lat === "number" && typeof near.lon === "number"
-              ? "(around:150000," + near.lat + "," + near.lon + ")" : "";
-    var query = "[out:json][timeout:60];(" +
+       not a number unique to England.
+
+       A bounding box and not "around": Overpass indexes by box, so it answers
+       in a moment, where a 150 km radius test against every relation on the
+       planet takes it tens of seconds.                                       */
+    var box = "";
+    if (near && typeof near.lat === "number" && typeof near.lon === "number") {
+      var dLat = 150 / 111.32;
+      var dLon = 150 / (111.32 * Math.max(0.1, Math.cos(near.lat * Math.PI / 180)));
+      box = "[bbox:" + (near.lat - dLat).toFixed(3) + "," + (near.lon - dLon).toFixed(3) +
+            "," + (near.lat + dLat).toFixed(3) + "," + (near.lon + dLon).toFixed(3) + "]";
+    }
+
+    /* A motorway does not move. Tracing it costs a megabyte of geometry and
+       several seconds; the answer is a few hundred rounded pairs. It is worth
+       fetching once and keeping.                                             */
+    var key = "qasr.ring.v1:" + ref + box;
+    var was = stored(key);
+    if (was && was.shape) return Promise.resolve(was);
+
+    /* "skel" drops the tags and version stamps from every way; only the
+       geometry is wanted, and it is most of the reply either way.            */
+    var query = "[out:json][timeout:60]" + box + ";(" +
       wanted.map(function (r) {
-        return "relation" + round + "[\"ref\"=\"" + r + "\"][\"type\"=\"route\"][\"route\"=\"road\"];";
+        return "relation[\"ref\"=\"" + r + "\"][\"type\"=\"route\"][\"route\"=\"road\"];";
       }).join("") +
-      ");out geom;";
+      ");out skel geom;";
 
     function ask(hosts, why) {
       if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
@@ -629,13 +694,19 @@
     }
 
     return ask(OVERPASS).then(function (data) {
-      var out = ringShape(data, wanted.join(" and "));
-      out.ref = wanted.join(" and ");
+      var out = ringShape(data, ref);
+      out.ref = ref;
+      keep(key, out);
       return out;
     });
   }
 
+  var nameCache = {};
+
   function cityByName(name, mustContain) {
+    var cacheKey = String(name).toLowerCase() + "|" + (mustContain
+      ? mustContain.lat.toFixed(2) + "," + mustContain.lon.toFixed(2) : "");
+    if (nameCache[cacheKey]) return Promise.resolve(nameCache[cacheKey]);
     /* featureType=settlement confines the answer to cities, towns, villages
        and hamlets — never a county, a district or a region. The spelling is
        case-sensitive; "featuretype" is quietly ignored.
@@ -682,7 +753,7 @@
         }
         var row = withShape[0] || rows[0], a = row.address || {};
         var settlementName = String(name).replace(/^Greater\s+/i, "");
-        return {
+        var city = {
           /* The name the reader asked for, not the administrative label the
              boundary happens to carry. */
           name: fromAggregate ? settlementName
@@ -692,6 +763,8 @@
           fromAggregate: fromAggregate,
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
+        nameCache[cacheKey] = city;      /* failures are not kept: they retry */
+        return city;
       });
   }
 
@@ -1548,7 +1621,10 @@
     var refs = RING_ROAD[city.name.toLowerCase()];
     if (!refs) return;
     city.ringTried = true;
+    city.ringPending = true;
+    showCity("from", "fromHint", "Your city is");
     ringBoundary(refs, places.from || city).then(function (ring) {
+      city.ringPending = false;
       if (cities.from !== city) return;              /* the reader moved on */
       city.shape = ring.shape;
       city.fromRing = ring.ref;
@@ -1561,6 +1637,8 @@
       if (lastRoute) recalc(); else renderMap(null);
     }).catch(function () {
       /* The published boundary was there before and stays. */
+      city.ringPending = false;
+      if (cities.from === city) showCity("from", "fromHint", "Your city is");
     });
   }
 
@@ -1658,7 +1736,14 @@
     if (!places.from) return;
     $("cityMsg").textContent = "Looking for the alternatives…";
     $("cityMsg").className = "hint";
-    cityChoices(places.from).then(function (found) {
+    /* Drawn again on every arrival, so the first city is on screen in about a
+       second rather than after the last one has landed.                      */
+    cityChoices(places.from, function (sofar) {
+      cityOptions = sofar;
+      $("cityMsg").textContent = "";
+      renderCityChoices();
+      labelCityBtn();
+    }).then(function (found) {
       cityOptions = found;
       var lonely = found.length < 2;
       $("cityMsg").textContent = lonely
@@ -1675,6 +1760,12 @@
 
   function showCity(slot, hintId, lead) {
     var city = cities[slot], hint = $(hintId);
+    if (city && city.ringPending) {
+      hint.innerHTML = lead + " <b>" + city.name + "</b> — tracing the " +
+        (RING_ROAD[city.name.toLowerCase()] || []).join(" and ") + " now…";
+      hint.className = "hint";
+      return;
+    }
     if (city && city.name) {
       hint.innerHTML = lead + " <b>" + city.name + "</b>" +
         (city.area && city.area !== city.name ? ", " + city.area : "") +
@@ -2166,7 +2257,7 @@
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
-    ringAreaKm2: ringAreaKm2
+    ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices
   };
 
   if (document.readyState === "loading") {

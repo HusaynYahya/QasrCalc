@@ -49,6 +49,10 @@ function stripCommentsAndStrings(src) {
    constants are where a typo hides longest — they are read rarely.           */
 var NAME = "[A-Z][A-Z0-9_]{2,}";
 
+/* Standard globals that happen to shout. Deliberately short: every name
+   waved through here is a name this test can no longer catch.                */
+var BUILTIN = { JSON: true, URL: true, NaN: true, Infinity: true };
+
 function undeclaredConstants(file) {
   var code = stripCommentsAndStrings(fs.readFileSync(file, "utf8"));
 
@@ -62,7 +66,7 @@ function undeclaredConstants(file) {
     var before = u[1], name = u[2], isKey = !!u[3];
     if (before === ".") continue;                    /* Fiqh.THRESHOLD_KM */
     if (isKey && /[{,\s]/.test(before)) continue;    /* a key in an object literal */
-    if (declared[name] || seen[name]) continue;
+    if (declared[name] || seen[name] || BUILTIN[name]) continue;
     seen[name] = true;
     missing.push(name);
   }
