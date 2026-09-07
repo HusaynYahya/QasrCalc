@@ -717,3 +717,15 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .q--sub > * + * { margin-top: .9rem; }
 .q--sub .hint { margin: .55rem 0 0; }
 .q--sub .q--toggle { margin-top: 1rem; }
+
+/* ---- the yes/no boxes line up, wherever the question sits --------------- */
+/* A follow-up question sits inside a panel with its own padding, and that
+   padding pushed its toggle about a pica left of every other toggle on the
+   page. The panel gives up its right-hand padding, and the things that are
+   not questions take that inset themselves — so the follow-up's right edge
+   meets the edge every other question already had, and all the toggles share
+   one line down the page. The spacing is otherwise left as it was. */
+.q--sub { padding-right: 0; }
+.q--sub > label,
+.q--sub > select,
+.q--sub > .hint { margin-right: 1.1rem; }
