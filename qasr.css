@@ -321,7 +321,13 @@ input::placeholder { color: var(--ink-faint); }
 .key--to    { border: 3px solid var(--amber-bright); }
 .key--route { height: 3px; border-radius: 2px; background: var(--accent); }
 .key--edge  { border: 1px dashed var(--ink-mute); }
-.key--limit { border: 2px solid var(--accent); width: 11px; height: 11px; }
+/* A milestone, not a change of prayer — filled and grey, so it cannot be
+   mistaken for the marker that matters. */
+.key--limit { background: #64737f; width: 8px; height: 8px; border-radius: 50%; }
+/* The point the reader came for. */
+.key--begin { border: 3px solid var(--accent); background: #fff; width: 13px; height: 13px; border-radius: 50%; }
+.key--fullroute { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 4px, transparent 4px 9px); }
+.legend li.is-begin { font-weight: 600; }
 
 /* ---- choosing the road ------------------------------------------------- */
 #routePick { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--hair); }
@@ -433,7 +439,7 @@ input::placeholder { color: var(--ink-faint); }
 .citypick__row .combo { flex: 1; }
 .citypick__row .suggest { z-index: 30; }
 
-.key--head { height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--ink-faint) 0 3px, transparent 3px 7px); }
+.key--head { height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 3px, transparent 3px 7px); }
 
 /* ---- the ruling, segment by segment ------------------------------------ */
 .segments { display: grid; gap: .6rem; }

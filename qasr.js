@@ -1175,6 +1175,47 @@
   /* Draw whatever is known: nothing at all, one address, both, or a full
      route with the reckoning marked on it. Called on load, whenever an
      address is picked, and after every calculation.                          */
+  /* What the map should say about the prayer, and where it changes.
+
+     The shortening does not begin where the eight farsakh is reached. Once a
+     journey qualifies, it begins on leaving the town [1755], [1756] — and
+     readers were reading the eight-farsakh mark as the moment of change,
+     because both were drawn as the same green circle. This decides what each
+     length of road means; renderMap only draws it.
+
+     Kept a pure function of the measure so it can be tested without a map. */
+  function prayerStates(m) {
+    var leg = m && m.legVerdict;
+    var begins = m && m.qasrBegins;
+    var doubted = begins && begins.where === "undetermined";
+
+    if (!m || (leg !== "QASR" && leg !== "JAMA") || doubted) {
+      return {
+        changes: false,
+        both: false,
+        head: doubted
+          ? "Pray in full — the shortening is doubted, so it does not begin"
+          : "Inside your city — not counted",
+        tail: "Pray in full for the whole of this journey",
+        begin: null
+      };
+    }
+
+    var both = leg === "JAMA";
+    return {
+      changes: true,
+      both: both,
+      head: "Pray in full — still in town",
+      tail: both
+        ? "From here pray both — shortened, then full — to the destination"
+        : "Pray shortened from here to the destination",
+      begin: (both ? "Both prayers begin about here" : "Shortened prayer begins about here") +
+        (begins && begins.where === "haddAlTarakhkhus"
+          ? " — at ḥadd al-tarakhkhuṣ, where the town is lost to sight. The map can only show the town's edge; the line itself is judged by eye, a little beyond it."
+          : " — on leaving the town.")
+    };
+  }
+
   function renderMap(m) {
     if (!ensureMap()) return;
 
@@ -1214,6 +1255,7 @@
 
     var straight = false;
     var at = null;
+    var shortensHere = false;
 
     if (line) {
       straight = lastRoute.source === "straight" || lastRoute.source === "crow";
@@ -1229,25 +1271,34 @@
         counted = parts[1].length > 1 ? parts[1] : null;
       }
 
+      /* Two lengths of road, drawn as the two prayers. The shortening does
+         not begin where the eight farsakh is reached — it begins on leaving
+         the town, once the journey qualifies [1755], [1756]. Colouring the
+         road by what is prayed on it is the only way to say that plainly. */
+      var says = prayerStates(m);
+      shortensHere = says.changes;
+
       if (head && head.length > 1) {
         L.polyline(head, {
-          color: "#93a1ac", weight: 3, opacity: .85, dashArray: "3 7"
-        }).addTo(mapState.drawn).bindTooltip("Not counted — inside " +
+          color: says.changes ? "#b0740d" : "#93a1ac", weight: 4, opacity: .85,
+          dashArray: "3 7"
+        }).addTo(mapState.drawn).bindTooltip(says.head + " — " +
           ((cities.from && cities.from.name) || "your city"));
       }
       if (counted) {
         L.polyline(counted, {
-          color: "#0f8a76", weight: 5, opacity: .9,
+          color: says.changes ? "#0f8a76" : "#b0740d", weight: 5, opacity: .9,
           dashArray: straight ? "6 8" : null
-        }).addTo(mapState.drawn);
+        }).addTo(mapState.drawn).bindTooltip(says.tail);
 
-        /* Where the counting begins. */
+        /* The one point the reader came for. */
         if (head && head.length > 1) {
-          L.circleMarker(counted[0], {
-            radius: 7, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
-          }).addTo(mapState.drawn)
-            .bindTooltip("Counting starts here — the " +
-              ((cities.from && cities.from.name) || "city") + " border",
+          L.circleMarker(counted[0], says.changes
+            ? { radius: 8, color: "#0f8a76", weight: 4, fillColor: "#ffffff", fillOpacity: 1 }
+            : { radius: 7, color: "#b0740d", weight: 3, fillColor: "#ffffff", fillOpacity: 1 })
+            .addTo(mapState.drawn)
+            .bindTooltip(says.begin || ("Counting starts here — the " +
+              ((cities.from && cities.from.name) || "city") + " border"),
               { permanent: true, direction: "right", className: "tip-start" });
         }
       }
@@ -1259,10 +1310,13 @@
       var oneWayNeeded = m.roundTrip ? m.limitKm / 2 : m.limitKm;
       at = m.meets ? walkTo(line, m.edgeKm + oneWayNeeded, scaleAll) : null;
       if (at) {
+        /* Deliberately unlike the marker above: a plain milestone, not a
+           change of prayer. Readers took the two for the same thing.        */
         L.circleMarker(at, {
-          radius: 6, color: "#0f8a76", weight: 3, fillColor: "#ffffff", fillOpacity: 1
+          radius: 4, color: "#64737f", weight: 2, fillColor: "#64737f", fillOpacity: 1
         }).addTo(mapState.drawn).bindTooltip("Eight farsakh — " + fmtKm(m.limitKm) +
-          (m.roundTrip ? " counted, outward and back" : ""));
+          (m.roundTrip ? " counted, outward and back" : "") +
+          ". This is what qualifies the journey; the shortening already began at the town's edge.");
       }
     }
 
@@ -1276,8 +1330,17 @@
     }
 
     $("mapTitle").textContent = line ? "The route" : "The map";
-    $("mapLegend").querySelector(".is-route").hidden = !line;
+    $("mapLegend").querySelector(".is-route").hidden = !(line && shortensHere);
+    $("mapLegend").querySelector(".is-fullroute").hidden = !(line && !shortensHere);
+    $("mapLegend").querySelector(".is-begin").hidden = !(line && shortensHere && m && m.edgeKm > 0);
     $("mapLegend").querySelector(".is-head").hidden = !(line && m && m.edgeKm > 0);
+    $("mapLegend").querySelector(".is-head").textContent = "";
+    $("mapLegend").querySelector(".is-head").innerHTML =
+      "<span class='key key--head'></span>" + prayerStates(m).head;
+    $("mapLegend").querySelector(".is-route").innerHTML =
+      "<span class='key key--route'></span>" +
+      (m && prayerStates(m).both ? "Pray both — shortened, then full"
+                                 : "Pray shortened — to the destination");
     $("mapLegend").querySelector(".is-from").hidden = !places.from;
     $("mapLegend").querySelector(".is-to").hidden = !places.to;
     $("mapLegend").querySelector(".is-border").hidden = !drewBorder;
@@ -1495,7 +1558,12 @@
       edgeKm: edge,
       limitKm: Fiqh.THRESHOLD_KM,
       roundTrip: isReturn(),
-      meets: out && out.outcomes[1].verdict === "QASR"
+      meets: out && out.outcomes[1].verdict === "QASR",
+      /* What the prayer actually is on this leg, and where it changes. The
+         map draws the ruling, not the arithmetic.                            */
+      verdict: result.verdict,
+      legVerdict: out && out.verdict,
+      qasrBegins: out && out.qasrBeginsAt
     };
   }
 
@@ -2306,7 +2374,8 @@
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
-    ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices
+    ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
+    prayerStates: prayerStates
   };
 
   if (document.readyState === "loading") {
