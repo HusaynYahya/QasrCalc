@@ -1268,16 +1268,24 @@
        the destination's put a second outline on the map that decided nothing.
        The destination's city is still worked out — it is what tells us whether
        both ends lie in one place — it is simply not drawn.                    */
+    /* A border the start is not inside, on a road that never enters it, is
+       deducting nothing — and drawn in the same green as a working one it
+       says the opposite. It is still drawn, because seeing that your address
+       falls outside the city you chose is how you know to choose another one;
+       but it is drawn as what it is: grey, unfilled, and labelled unused.    */
+    var borderUnused = !!(borderCheck && borderCheck.ok === false && borderCheck.outside);
     var drewBorder = false;
     [["from", "#0f8a76", "Your city"]]
       .forEach(function (spec) {
         var city = cities[spec[0]];
         if (!city || !city.shape) return;
+        var tone = borderUnused ? "#93a1ac" : spec[1];
         var layer = L.geoJSON(city.shape, {
-          style: { color: spec[1], weight: 1.5, opacity: .75, dashArray: "5 5",
-                   fill: true, fillOpacity: .06, fillColor: spec[1] }
+          style: { color: tone, weight: 1.5, opacity: borderUnused ? .5 : .75,
+                   dashArray: "5 5", fill: !borderUnused, fillOpacity: .06, fillColor: tone }
         }).addTo(mapState.drawn).bindTooltip(spec[2] + ": " + (city.name || "border") +
-          (city.fromRing ? " — traced along the " + city.fromRing : ""));
+          (city.fromRing ? " — traced along the " + city.fromRing : "") +
+          (borderUnused ? " — your start is not inside it, so nothing is deducted from it" : ""));
         seen.push(layer.getBounds());
         drewBorder = true;
       });
@@ -1394,6 +1402,10 @@
     $("mapLegend").querySelector(".is-from").hidden = !places.from;
     $("mapLegend").querySelector(".is-to").hidden = !places.to;
     $("mapLegend").querySelector(".is-border").hidden = !drewBorder;
+    $("mapLegend").querySelector(".is-border").innerHTML =
+      "<span class='key key--border" + (borderUnused ? " key--border-off" : "") + "'></span>" +
+      (borderUnused ? "Your city's border — your start is outside it"
+                    : "Your city's border");
     $("mapLegend").querySelector(".is-edge").hidden = !hasEdge;
     $("mapLegend").querySelector(".is-limit").hidden = !at;
     renderBorderCheck();
@@ -1972,8 +1984,9 @@
       hint.innerHTML = text;
       hint.className = "hint" + (kind ? " " + kind : "");
     }
-    function fail(reason) {
-      borderCheck = { ok: false, reason: reason, km: 0, city: city && city.name };
+    function fail(reason, outside) {
+      borderCheck = { ok: false, reason: reason, km: 0, city: city && city.name,
+                      outside: outside === true };
       renderBorderCheck();
     }
 
@@ -2047,7 +2060,7 @@
       say("The start lies outside <b>" + city.name + "</b> and this route does not pass through it, so nothing is deducted. " +
           "Choose the city you would call leaving town, above.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";
-      fail("The start lies outside " + city.name + " and the route never crosses its border, so nothing is deducted. Choose the city whose edge you would call leaving town.");
+      fail("The start lies outside " + city.name + " and the route never crosses its border, so nothing is deducted. Choose the city whose edge you would call leaving town.", true);
       return;
     }
 

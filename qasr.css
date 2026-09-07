@@ -729,3 +729,6 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .q--sub > label,
 .q--sub > select,
 .q--sub > .hint { margin-right: 1.1rem; }
+
+/* A border that is deducting nothing, because the start is not inside it. */
+.key--border-off { border: 1px dashed var(--ink-faint); background: none; }
