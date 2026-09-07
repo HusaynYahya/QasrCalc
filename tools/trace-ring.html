@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Trace the M25 — Qasr Calculator</title>
+<title>Trace a ring road — Qasr Calculator</title>
 <style>
   body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
          max-width: 780px; margin: 0 auto; padding: 1.5rem; color: #16212b; background: #f4f7f8; }
@@ -12,173 +12,124 @@
            background: #0f8a76; color: #fff; border: 0; }
   button[disabled] { opacity: .5; cursor: default; }
   pre { background: #fff; border: 1px solid rgba(22,33,43,.12); border-radius: 8px;
-        padding: .8rem; overflow: auto; max-height: 320px; font-size: 12px; }
+        padding: .8rem; overflow: auto; max-height: 260px; font-size: 12px; }
   .ok { color: #0a6455; } .bad { color: #b3261e; font-weight: 600; }
   #log div { padding: .1rem 0; }
 </style>
 </head>
 <body>
-<h1>Trace the M25</h1>
-<p>The page that measures your journeys already asks a routing service for the
-road between two places, and gets the real one back. This asks that same
-service for the road <em>round</em> the M25, junction by junction, which is the
-motorway's own line rather than an approximation of it.</p>
-<p>It runs in your browser, so it uses your network, not mine.</p>
-<p><button id="go">Trace it</button></p>
+<h1>Trace a ring road</h1>
+<p>This asks OpenStreetMap for the motorway's own centreline — the ways it is
+built from — and stitches them into the loop the road makes. That is the road
+itself, with no routing involved, so there are no slip roads or turnarounds in
+the answer.</p>
+<p>It runs in your browser, on your network.</p>
+<p><label>Roads <input id="refs" value="M25, A282" size="18" /></label>
+   <button id="go">Trace it</button></p>
 <div id="log"></div>
 <pre id="out" hidden></pre>
-<p id="save" hidden><button id="dl">Download m25.json</button></p>
+<p id="save" hidden><button id="dl">Download the ring</button></p>
 
+<!-- the page's own geometry: the same stitching, thinning and area sums it
+     uses to measure a journey, so what is built here is what it would build -->
+<script src="../qasr.js"></script>
 <script>
-/* The M25 junctions, clockwise from the Dartford Crossing. The eastern side
-   across the Thames is the A282; the loop closes over it. */
-var J = [[0.256,51.446],[0.247,51.409],[0.19,51.39],[0.124,51.369],[0.157,51.2935],
-[0.06,51.275],[-0.035,51.262],[-0.147,51.27],[-0.1949,51.2478],[-0.329,51.287],
-[-0.454,51.308],[-0.505,51.365],[-0.522,51.384],[-0.524,51.431],[-0.488,51.464],
-[-0.489,51.497],[-0.518,51.569],[-0.495,51.618],[-0.488,51.651],[-0.423,51.67],
-[-0.416,51.696],[-0.379,51.704],[-0.339,51.71],[-0.28,51.716],[-0.225,51.702],
-[-0.177,51.696],[-0.125,51.685],[-0.073,51.669],[0.017,51.681],[0.103,51.68],
-[0.18,51.65],[0.262,51.613],[0.256,51.561],[0.279,51.506],[0.26,51.484]];
+var G = window.QasrEngine;
+var HOSTS = ["https://overpass-api.de/api/interpreter",
+             "https://overpass.kumi.systems/api/interpreter",
+             "https://overpass.private.coffee/api/interpreter"];
 
-var OSRM = "https://router.project-osrm.org/route/v1/driving/";
-var CHUNK = 8;                       /* the public server dislikes long lists */
-
-function say(text, cls) {
+function say(t, c) {
   var d = document.createElement("div");
-  d.className = cls || "";
-  d.textContent = text;
+  if (c) d.className = c;
+  d.textContent = t;
   document.getElementById("log").appendChild(d);
 }
 
-function leg(points) {
-  var url = OSRM + points.map(function (p) { return p[0] + "," + p[1]; }).join(";") +
-            "?overview=full&geometries=geojson";
-  return fetch(url).then(function (r) {
-    if (!r.ok) throw new Error("the routing service returned " + r.status);
-    return r.json();
-  }).then(function (d) {
-    if (d.code !== "Ok" || !d.routes || !d.routes.length) throw new Error("no route for that stretch");
-    return d.routes[0].geometry.coordinates;
-  });
-}
-
-function haversineKm(a, b) {
-  var R = 6371, t = Math.PI / 180;
-  var dLat = (b[1] - a[1]) * t, dLon = (b[0] - a[0]) * t;
-  var x = Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(a[1]*t) * Math.cos(b[1]*t) * Math.sin(dLon/2) * Math.sin(dLon/2);
-  return 2 * R * Math.asin(Math.sqrt(x));
-}
-
-/* Douglas–Peucker, so a road of tens of thousands of points becomes a few
-   hundred without moving more than fifty metres. */
-function thin(points, tol) {
-  if (points.length < 3) return points.slice();
-  var keep = points.map(function () { return false; });
-  keep[0] = keep[points.length - 1] = true;
-  var scale = Math.cos(points[0][1] * Math.PI / 180) * 111.32, stack = [[0, points.length - 1]];
-  while (stack.length) {
-    var sp = stack.pop(), lo = sp[0], hi = sp[1];
-    if (hi - lo < 2) continue;
-    var ax = points[lo][0]*scale, ay = points[lo][1]*111.32;
-    var bx = points[hi][0]*scale, by = points[hi][1]*111.32;
-    var dx = bx-ax, dy = by-ay, len = Math.sqrt(dx*dx + dy*dy), far = -1, at = -1;
-    for (var i = lo+1; i < hi; i++) {
-      var px = points[i][0]*scale, py = points[i][1]*111.32;
-      var d = len === 0 ? Math.sqrt((px-ax)*(px-ax)+(py-ay)*(py-ay))
-                        : Math.abs(dy*px - dx*py + bx*ay - by*ax) / len;
-      if (d > far) { far = d; at = i; }
-    }
-    if (far > tol && at > 0) { keep[at] = true; stack.push([lo, at], [at, hi]); }
-  }
-  return points.filter(function (p, i) { return keep[i]; });
-}
-
-function areaKm2(ring) {
-  var sum = 0, latSum = 0;
-  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    sum += ring[j][0]*ring[i][1] - ring[i][0]*ring[j][1];
-    latSum += ring[i][1];
-  }
-  var lat = latSum / ring.length;
-  return Math.abs(sum/2) * 111.32 * 111.32 * Math.cos(lat * Math.PI/180);
-}
-
-function inShape(lat, lon, ring) {
-  var hit = false;
-  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    var yi = ring[i][1], xi = ring[i][0], yj = ring[j][1], xj = ring[j][0];
-    if (((yi > lat) !== (yj > lat)) && (lon < (xj-xi) * (lat-yi) / (yj-yi) + xi)) hit = !hit;
-  }
-  return hit;
+function ask(hosts, query, why) {
+  if (!hosts.length) return Promise.reject(new Error(why || "no map server answered"));
+  say("  asking " + hosts[0].split("/")[2] + "…");
+  return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
+    .then(function (r) {
+      if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
+      return r.json();
+    })
+    .catch(function (e) { say("  " + e.message, "bad"); return ask(hosts.slice(1), query, e.message); });
 }
 
 var CHECKS = [
   ["WD19 4QP",51.6238,-0.3892,1],["Cricklewood",51.5556,-0.2136,1],["Watford",51.6560,-0.3960,1],
   ["Heathrow",51.4700,-0.4543,1],["Croydon",51.3762,-0.0982,1],["Dartford",51.4460,0.2170,1],
   ["Enfield",51.6520,-0.0810,1],["Romford",51.5750,0.1830,1],["Charing Cross",51.5074,-0.1278,1],
-  ["Rickmansworth",51.6390,-0.4700,1],["Uxbridge",51.5460,-0.4780,1],
+  ["Rickmansworth",51.6390,-0.4700,1],["Uxbridge",51.5460,-0.4780,1],["Bromley",51.4060,0.0140,1],
   ["St Albans",51.7520,-0.3360,0],["Slough",51.5105,-0.5950,0],["Sevenoaks",51.2720,0.1900,0],
-  ["Guildford",51.2362,-0.5704,0],["Luton",51.8790,-0.4200,0],["Brighton",50.8225,-0.1372,0]
+  ["Guildford",51.2362,-0.5704,0],["Luton",51.8790,-0.4200,0],["Brighton",50.8225,-0.1372,0],
+  ["Stevenage",51.9020,-0.2020,0],["Crawley",51.1090,-0.1870,0]
 ];
 
 document.getElementById("go").addEventListener("click", function () {
   var btn = this;
   btn.disabled = true;
   document.getElementById("log").innerHTML = "";
+  document.getElementById("out").hidden = true;
+  document.getElementById("save").hidden = true;
 
-  /* Overlapping chunks, so consecutive legs join at a shared junction. */
-  var legs = [];
-  for (var i = 0; i < J.length; i += CHUNK - 1) {
-    var part = J.slice(i, i + CHUNK);
-    if (part.length > 1) legs.push(part);
-  }
-  legs.push([J[J.length - 1], J[0]]);          /* close the loop */
-  say("asking for " + legs.length + " stretches of road…");
+  var refs = document.getElementById("refs").value.split(",")
+    .map(function (r) { return r.trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, ""); })
+    .filter(Boolean);
+  if (!refs.length) { say("name a road first", "bad"); btn.disabled = false; return; }
 
-  var all = [];
-  legs.reduce(function (chain, part, n) {
-    return chain.then(function () {
-      return leg(part).then(function (coords) {
-        say("  stretch " + (n + 1) + " of " + legs.length + ": " + coords.length + " points", "ok");
-        all = all.concat(n ? coords.slice(1) : coords);
-        /* the public server asks for no more than one request a second */
-        return new Promise(function (go) { setTimeout(go, 1100); });
-      });
-    });
-  }, Promise.resolve()).then(function () {
-    if (all[0][0] !== all[all.length-1][0] || all[0][1] !== all[all.length-1][1]) all.push(all[0].slice());
-    var ring = thin(all, 0.05).map(function (p) {
-      return [Math.round(p[0]*1e5)/1e5, Math.round(p[1]*1e5)/1e5];
-    });
+  /* Every way of every route relation carrying these numbers. "out geom"
+     gives each way its coordinates; without it only the ids come back. */
+  var query = "[out:json][timeout:90];(" + refs.map(function (r) {
+    return 'relation["ref"="' + r + '"]["type"="route"]["route"="road"];';
+  }).join("") + ");out geom;";
+
+  say("asking for " + refs.join(" and ") + "…");
+  ask(HOSTS, query).then(function (data) {
+    var lines = G.ringLines(data);
+    var pts = lines.reduce(function (n, l) { return n + l.length; }, 0);
+    say("the road came back as " + lines.length + " ways, " + pts + " points", "ok");
+    if (!lines.length) throw new Error("nothing was returned for " + refs.join(" and "));
+
+    var ring = G.ringShape(data, refs.join(" and "));
+    var edge = ring.shape.coordinates[0];
     var perim = 0;
-    for (var i = 1; i < ring.length; i++) perim += haversineKm(ring[i-1], ring[i]);
+    for (var i = 1; i < edge.length; i++) {
+      perim += G.haversineKm({ lat: edge[i-1][1], lon: edge[i-1][0] },
+                             { lat: edge[i][1],   lon: edge[i][0] });
+    }
 
     say("");
-    say("road traced: " + all.length + " points, thinned to " + ring.length);
-    say("perimeter: " + perim.toFixed(1) + " km   (the M25 with the A282 is about 191 km)");
-    say("encloses: " + Math.round(areaKm2(ring)) + " km²   (about 2,200 expected)");
+    say(ring.traced ? "stitched into a closed loop" : "COULD NOT be stitched — this is a hull, not the road",
+        ring.traced ? "ok" : "bad");
+    if (ring.closedByHand) say("a gap was closed by hand", "bad");
+    say("kept " + edge.length + " points");
+    say("perimeter: " + perim.toFixed(1) + " km");
+    say("encloses: " + Math.round(ring.areaKm2) + " km²");
 
-    var wrong = CHECKS.filter(function (c) { return inShape(c[1], c[2], ring) !== !!c[3]; });
-    say(wrong.length
-      ? "landmarks WRONG: " + wrong.map(function (c) { return c[0]; }).join(", ")
-      : "all " + CHECKS.length + " landmarks correct", wrong.length ? "bad" : "ok");
+    var wrong = CHECKS.filter(function (c) { return G.inShape(c[1], c[2], ring.shape) !== !!c[3]; });
+    say(wrong.length ? "landmarks WRONG: " + wrong.map(function (c) { return c[0]; }).join(", ")
+                     : "all " + CHECKS.length + " landmarks correct",
+        wrong.length ? "bad" : "ok");
 
-    var payload = JSON.stringify({ ref: "M25 and A282", points: ring.length,
-      perimeterKm: +perim.toFixed(1), areaKm2: Math.round(areaKm2(ring)), ring: ring });
+    var payload = JSON.stringify({ ref: refs.join(" and "), traced: ring.traced,
+      closedByHand: ring.closedByHand, points: edge.length,
+      perimeterKm: +perim.toFixed(1), areaKm2: Math.round(ring.areaKm2), ring: edge });
     var out = document.getElementById("out");
     out.hidden = false;
-    out.textContent = payload;
+    out.textContent = payload.slice(0, 3000) + (payload.length > 3000 ? "\n… " + payload.length + " characters in all" : "");
     document.getElementById("save").hidden = false;
     document.getElementById("dl").onclick = function () {
       var a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
-      a.download = "m25.json";
+      a.download = refs[0].toLowerCase() + ".json";
       a.click();
     };
     btn.disabled = false;
   }).catch(function (err) {
     say("failed: " + err.message, "bad");
+    say("if every server refused, the road can still be traced from a saved Overpass file — tell Claude what this said.");
     btn.disabled = false;
   });
 });
