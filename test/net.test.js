@@ -226,6 +226,37 @@ test("a ring road that will not trace falls back to the published city", functio
     });
 });
 
+/* The whole sequence, in the order it happens: an address arrives, the box
+   says a ring road is worth looking for, the road is traced, the address is
+   found to be inside it, that becomes the city border, and the map frames the
+   ring. Each step has its own test above or in map.test.js; this one is here
+   so that the sequence itself cannot quietly come apart. */
+test("address, box, trace, inside, border, drawn — the whole way through", function () {
+  var b = londonWorld();
+  var G = b.window.QasrEngine;
+  var here = { lat: 51.6238, lon: -0.3892 };          /* WD19 4QP */
+
+  var step = G.ringRoadNear(here);
+  assert.ok(step, "1. the box did not recognise the address as near a ring road");
+  assert.strictEqual(step.city, "London");
+
+  return G.ringBoundary(step.refs, here).then(function (ring) {
+    assert.strictEqual(ring.traced, true, "2. the road was not traced");
+    assert.strictEqual(G.inShape(here.lat, here.lon, ring.shape), true,
+      "3. the address was not found inside the road");
+
+    return G.cityWithRing(here, false).then(function (city) {
+      assert.strictEqual(city.name, "London", "4. the border did not become London");
+      assert.ok(city.shape, "4. the border came without a shape to measure against");
+      assert.strictEqual(city.fromRing, "M25 and A282");
+
+      var box = G.journeyBox(here, null, null, city.shape);
+      assert.ok(box[0] <= 51.26 && box[2] >= 51.72 && box[1] <= -0.55 && box[3] >= 0.28,
+        "5. the ring was drawn but framed off the edge of the map");
+    });
+  });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

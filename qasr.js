@@ -1550,10 +1550,15 @@
        circumstance does not yank the view about.                             */
     /* Framed on the journey. Where there is none yet — no address entered at
        all — whatever was drawn will do.                                      */
-    /* Where the road never leaves the city, the border is the ruling and has
-       to be on the screen; where it crosses, the crossing point is on the
-       route and is in frame already. */
-    var enclosing = (staysInCity && cities.from && cities.from.shape)
+    /* When the border must be on the screen.
+
+       Before there is a journey there is nothing else worth framing: an
+       address alone would zoom to the street it is on and leave the border
+       drawn somewhere off the edge of the map, which looks exactly like not
+       having drawn it. And where the road never leaves the city, the border
+       is the ruling. Where the road does cross it, the crossing lies on the
+       route and is in frame already, so the journey is framed on its own. */
+    var enclosing = (cities.from && cities.from.shape && (!line || staysInCity))
                   ? cities.from.shape : null;
     var box = journeyBox(places.from, places.to, line, enclosing);
     var bounds;

@@ -179,6 +179,16 @@ test("a shape that is not a polygon is passed over, not thrown on", function () 
   assert.ok(box[3] < 0, "a point border must not drag the frame to the meridian");
 });
 
+test("with no journey yet, the border is what gets framed", function () {
+  /* An address on its own, its city border known. Framing the address alone
+     zooms to its street and leaves the ring off the edge of the map — which
+     is indistinguishable from never having drawn it. */
+  var box = G.journeyBox(OXHEY, null, null, M25_SHAPE);
+  assert.ok(box[0] <= 51.26 && box[2] >= 51.72 && box[1] <= -0.55 && box[3] >= 0.28,
+    "the ring is outside the frame: " + JSON.stringify(box));
+  assert.ok(box[0] <= OXHEY.lat && box[2] >= OXHEY.lat, "the address left the frame");
+});
+
 test("the ring road does not widen the frame at all", function () {
   var withRing = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE.concat(RING));
   var without = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE);
