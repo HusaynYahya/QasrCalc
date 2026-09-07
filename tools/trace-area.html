@@ -26,11 +26,25 @@ administrative regions, and OpenStreetMap publishes each one, so this asks for
 them by name and puts them together. Nothing is drawn by hand and nothing is
 traced from a picture.</p>
 <p>One area per line, named as the map names it.</p>
-<textarea id="names" rows="6">City of Toronto, Ontario, Canada
-Regional Municipality of Durham, Ontario, Canada
-Regional Municipality of York, Ontario, Canada
+<textarea id="names" rows="17">City of Toronto, Ontario, Canada
 Regional Municipality of Peel, Ontario, Canada
-Regional Municipality of Halton, Ontario, Canada</textarea>
+Regional Municipality of Halton, Ontario, Canada
+City of Vaughan, Ontario, Canada
+City of Markham, Ontario, Canada
+City of Richmond Hill, Ontario, Canada
+Town of Newmarket, Ontario, Canada
+Town of Aurora, Ontario, Canada
+Township of King, Ontario, Canada
+Town of Whitchurch-Stouffville, Ontario, Canada
+Town of East Gwillimbury, Ontario, Canada
+City of Pickering, Ontario, Canada
+Town of Ajax, Ontario, Canada
+Town of Whitby, Ontario, Canada
+City of Oshawa, Ontario, Canada
+Township of Uxbridge, Ontario, Canada</textarea>
+<p style="font-size:.85rem;color:#64737f">York and Durham are named town by
+town rather than whole: the regions run north to Lake Simcoe and east past
+Bowmanville, and the boundary wanted here does not.</p>
 <p><button id="go">Fetch them</button></p>
 <div id="log"></div>
 <pre id="out" hidden></pre>
@@ -81,9 +95,16 @@ var CHECKS = [
   ["Pickering",43.8384,-79.0868,1],["Oshawa",43.8971,-78.8658,1],["Oakville",43.4675,-79.6877,1],
   ["Milton",43.5183,-79.8774,1],["Burlington",43.3255,-79.7990,1],["Uxbridge",44.1085,-79.1220,1],
   ["Scarborough",43.7731,-79.2578,1],["Pearson airport",43.6777,-79.6248,1],
+  ["Halton Hills",43.6300,-79.9500,1],["Aurora",44.0065,-79.4504,1],["Ajax",43.8509,-79.0204,1],
+  ["Richmond Hill",43.8828,-79.4403,1],["Whitby",43.8975,-78.9428,1],
   ["Hamilton",43.2557,-79.8711,0],["Guelph",43.5448,-80.2482,0],["Orangeville",43.9190,-80.0940,0],
   ["Barrie",44.3894,-79.6903,0],["Kitchener",43.4516,-80.4925,0],["Peterborough",44.3091,-78.3197,0],
-  ["St Catharines",43.1594,-79.2469,0],["Cambridge",43.3616,-80.3144,0]
+  ["St Catharines",43.1594,-79.2469,0],["Cambridge",43.3616,-80.3144,0],
+  /* The four that decide whether this is the regions or the smaller line:
+     Clarington, Scugog, Georgina and Brock are in the regions and not in the
+     boundary wanted here. */
+  ["Bowmanville",43.9120,-78.6880,0],["Port Perry",44.1000,-78.9450,0],
+  ["Keswick",44.2300,-79.4660,0],["Beaverton",44.4300,-79.1500,0]
 ];
 
 document.getElementById("go").addEventListener("click", function () {
