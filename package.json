@@ -1,0 +1,13 @@
+{
+  "name": "qasrcalc",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Qasr calculator — a static site; this file exists only for the test tooling.",
+  "scripts": {
+    "test": "node test/fiqh.test.js && node test/geo.test.js && node test/map.test.js && node test/net.test.js && node test/lint.test.js",
+    "test:browser": "node test/browser.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
