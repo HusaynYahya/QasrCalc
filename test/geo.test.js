@@ -451,6 +451,58 @@ test("it reaches as far as the motorway reaches, and no further", function () {
   assert.ok(e > 0.24 && e < 0.34, "east edge at " + e.toFixed(3));
 });
 
+/* --- the Greater Toronto Area ---------------------------------------------
+   Traced from the boundary map supplied, and checked the same way: places
+   whose side of that line is not in doubt. */
+console.log("\nThe GTA boundary");
+
+function gta() {
+  var e = G.RING_ROADS.filter(function (r) { return r.city === "Greater Toronto"; })[0];
+  assert.ok(e && e.shape, "the GTA is not in the page");
+  return e;
+}
+
+test("it holds the cities the GTA is made of", function () {
+  var shape = gta().shape;
+  [["Toronto", 43.6532, -79.3832], ["Mississauga", 43.5890, -79.6441],
+   ["Brampton", 43.7315, -79.7624], ["Vaughan", 43.8361, -79.4983],
+   ["Markham", 43.8561, -79.3370], ["Richmond Hill", 43.8828, -79.4403],
+   ["Newmarket", 44.0592, -79.4613], ["Aurora", 44.0065, -79.4504],
+   ["Pickering", 43.8384, -79.0868], ["Ajax", 43.8509, -79.0204],
+   ["Whitby", 43.8975, -78.9428], ["Oshawa", 43.8971, -78.8658],
+   ["Oakville", 43.4675, -79.6877], ["Milton", 43.5183, -79.8774],
+   ["Halton Hills", 43.6300, -79.9500], ["Burlington", 43.3255, -79.7990],
+   ["Uxbridge", 44.1085, -79.1220], ["Stouffville", 43.9710, -79.2470],
+   ["Scarborough", 43.7731, -79.2578], ["Etobicoke", 43.6205, -79.5132],
+   ["Pearson airport", 43.6777, -79.6248]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), true, c[0] + " came out outside the GTA");
+  });
+});
+
+test("it stops where the map stops it", function () {
+  var shape = gta().shape;
+  [["Hamilton", 43.2557, -79.8711], ["Guelph", 43.5448, -80.2482],
+   ["Orangeville", 43.9190, -80.0940], ["Barrie", 44.3894, -79.6903],
+   ["Kitchener", 43.4516, -80.4925], ["Port Perry", 44.1000, -78.9450],
+   ["Bowmanville", 43.9120, -78.6880], ["Peterborough", 44.3091, -78.3197],
+   ["St Catharines", 43.1594, -79.2469], ["Cambridge", 43.3616, -80.3144],
+   ["Niagara Falls", 43.0896, -79.0849], ["Keswick", 44.2300, -79.4660]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), false, c[0] + " came out inside the GTA");
+  });
+});
+
+test("it encloses what that boundary encloses, and its box holds it", function () {
+  var e = gta();
+  var area = G.ringAreaKm2(e.shape.coordinates[0]);
+  assert.ok(area > 4000 && area < 6000, "the GTA came out at " + area.toFixed(0) + " km²");
+  e.shape.coordinates[0].forEach(function (p) {
+    assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
+      "the boundary runs outside its own box at " + p);
+  });
+});
+
 test("the box that gates the lookup contains the whole ring", function () {
   var entry = m25(), b = entry.box;
   entry.shape.coordinates[0].forEach(function (p) {

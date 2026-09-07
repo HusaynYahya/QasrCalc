@@ -655,19 +655,78 @@
     [0.25600, 51.44600]
   ];
 
+  /* The Greater Toronto Area, traced from the boundary map supplied: Toronto
+     with Halton, Peel, York and the western part of Durham — Burlington and
+     Oakville in the south-west, up past Halton Hills, across the top by
+     Newmarket and Uxbridge, and down to Oshawa. Hamilton, Guelph, Barrie and
+     Orangeville lie outside it, as do Scugog and Clarington.
+
+     It is a far larger claim than London's: some 4,900 km² against 2,270, and
+     about 100 km from Burlington to Oshawa. Whether the whole of it is one
+     city in common usage is a judgement, and it is not mine — it is taken
+     from the boundary the reader supplied.                                  */
+  var GTA = [
+    [-79.9200, 43.3700],  /* west of Burlington; Hamilton stays south-west */
+    [-79.9400, 43.4300],
+    [-79.9600, 43.5200],
+    [-80.0300, 43.5800],
+    [-80.0500, 43.6400],  /* the western step, out past Halton Hills */
+    [-80.0100, 43.7000],
+    [-79.9800, 43.7800],
+    [-79.9600, 43.8600],
+    [-79.9400, 43.9400],
+    [-79.8900, 43.9900],  /* short of Orangeville and Mono */
+    [-79.8200, 44.0400],
+    [-79.7000, 44.0700],
+    [-79.6000, 44.1000],
+    [-79.5200, 44.1500],  /* the notch at East Gwillimbury */
+    [-79.4600, 44.1800],
+    [-79.3800, 44.1700],
+    [-79.2600, 44.1600],
+    [-79.1600, 44.1500],  /* Uxbridge, inside */
+    [-79.0600, 44.1100],
+    [-78.9800, 44.0500],
+    [-78.9200, 43.9700],
+    [-78.8500, 43.9200],  /* Oshawa in; Scugog and Clarington out */
+    [-78.8300, 43.8700],
+    [-78.9400, 43.8300],  /* and back along the Lake Ontario shore */
+    [-79.0700, 43.8000],
+    [-79.1600, 43.7600],
+    [-79.2500, 43.7000],
+    [-79.3400, 43.6300],
+    [-79.4400, 43.6100],
+    [-79.5400, 43.5700],
+    [-79.6200, 43.5100],
+    [-79.6900, 43.4400],
+    [-79.7600, 43.3700],
+    [-79.7900, 43.3150],  /* the shore turns west at the head of the lake */
+    [-79.8400, 43.2900],
+    [-79.9000, 43.3050],
+    [-79.9200, 43.3700]
+  ];
+
   var RING_ROADS = [
-    { city: "London", area: "England", refs: ["M25", "A282"],
+    { city: "London", area: "England", edge: "M25 and A282", refs: ["M25", "A282"],
       /* A box that contains the ring, checked before the ring itself: it is
          a handful of comparisons against a point, where the ring is a walk
          round three dozen. */
       box: [51.20, -0.62, 51.78, 0.36],
       shape: { type: "Polygon", coordinates: [M25] },
-      areaKm2: 2269 }
+      areaKm2: 2269 },
+
+    { city: "Greater Toronto", area: "Ontario", edge: "GTA boundary",
+      box: [43.28, -80.07, 44.20, -78.81],
+      shape: { type: "Polygon", coordinates: [GTA] },
+      areaKm2: 4939 }
   ];
 
   /* Keyed by name as well, for a city named by hand. */
+  /* Only the boundaries that are an actual numbered road can be traced from
+     a map server, so only those go in the by-name table. */
   var RING_ROAD = {};
-  RING_ROADS.forEach(function (r) { RING_ROAD[r.city.toLowerCase()] = r.refs; });
+  RING_ROADS.forEach(function (r) {
+    if (r.refs) RING_ROAD[r.city.toLowerCase()] = r.refs;
+  });
 
   /* What a city's ring road may plausibly enclose. The M25 holds about 2,200
      square kilometres. A figure far outside this range is not a ring road: it
@@ -1040,7 +1099,7 @@
     if (entry && entry.shape && inShape(place.lat, place.lon, entry.shape)) {
       return Promise.resolve({
         name: entry.city, area: entry.area || null,
-        shape: entry.shape, fromRing: entry.refs.join(" and "),
+        shape: entry.shape, fromRing: entry.edge,
         ringArea: entry.areaKm2, ringTraced: true, ringClosedByHand: false,
         ringTried: true, ringAuto: true
       });
@@ -1708,6 +1767,20 @@
         radius: m.edgeKm * 1000, color: paint("--ink-mute"), weight: 1,
         dashArray: "4 6", fill: false
       }).addTo(mapState.drawn).bindTooltip("Edge of town — " + fmtKm(m.edgeKm) + " out");
+    }
+
+    /* The same journey on Google Maps, for a reader who wants to drive it, or
+       to see the road this was measured along on a map they already trust. */
+    var out = $("mapOut");
+    if (out) {
+      var have = places.from && places.to;
+      out.hidden = !have;
+      if (have) {
+        out.href = "https://www.google.com/maps/dir/?api=1" +
+          "&origin=" + places.from.lat + "," + places.from.lon +
+          "&destination=" + places.to.lat + "," + places.to.lon +
+          "&travelmode=driving";
+      }
     }
 
     $("mapTitle").textContent = line ? "The route" : "The map";

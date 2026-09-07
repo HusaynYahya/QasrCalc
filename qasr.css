@@ -889,3 +889,7 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   .themeToggle span { display: none; }
   .themeToggle { padding: .45rem .55rem; }
 }
+
+/* The journey on a map the reader already has. */
+.mapout { margin: .6rem 0 0; font-family: var(--font-label); font-size: .82rem; }
+.mapout a { color: var(--accent-bright); }

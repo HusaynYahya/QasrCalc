@@ -304,6 +304,22 @@ async function shot(page, name) {
     await page.close();
   });
 
+  await test("the journey can be opened in Google Maps", async function () {
+    var page = await open(browser, base);
+    assert.ok(!(await page.isVisible("#mapOut")), "the link should not be there before a journey is");
+    await journey(page, "WD19 4QP", "University of Warwick");
+    assert.ok(await page.isVisible("#mapOut"), "no link to Google Maps after a journey");
+    var href = await page.getAttribute("#mapOut", "href");
+    assert.ok(/^https:\/\/www\.google\.com\/maps\/dir\/\?api=1/.test(href), href);
+    /* The two places the reader actually gave, not the map's centre. */
+    assert.ok(href.indexOf("origin=51.6238,-0.3892") > 0, "wrong origin: " + href);
+    assert.ok(href.indexOf("destination=52.3793,-1.5615") > 0, "wrong destination: " + href);
+    assert.ok(/travelmode=driving/.test(href), "it should open as a drive: " + href);
+    assert.strictEqual(await page.getAttribute("#mapOut", "target"), "_blank",
+      "it should not navigate away from the ruling");
+    await page.close();
+  });
+
   await test("the page can be turned dark, and stays dark", async function () {
     var page = await open(browser, base);
     var light = await page.evaluate(function () {
