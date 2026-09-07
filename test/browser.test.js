@@ -304,6 +304,30 @@ async function shot(page, name) {
     await page.close();
   });
 
+  await test("distances can be read in miles, and it is remembered", async function () {
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    var inKm = await page.textContent("#measure");
+    assert.ok(/km/.test(inKm), "distances should start in kilometres: " + inKm.slice(0, 80));
+
+    /* The label, as a reader taps it: the radio itself is visually hidden. */
+    await page.click(".units label:has(input[value='mi'])");
+    await page.waitForTimeout(400);
+    var inMi = await page.textContent("#measure");
+    assert.ok(/\bmi\b|mile/.test(inMi), "still not in miles: " + inMi.slice(0, 120));
+    assert.ok(!/\d\s?km/.test(inMi), "kilometres left on the page: " + inMi.slice(0, 120));
+
+    /* 44 km is 27.3 miles: the threshold must convert, not stay put. */
+    assert.ok(/27\./.test(inMi), "the eight-farsakh limit did not convert: " + inMi.slice(0, 200));
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(500);
+    assert.strictEqual(
+      await page.isChecked("input[name='unit'][value='mi']"), true,
+      "the choice of miles was forgotten on reload");
+    await page.close();
+  });
+
   await test("the journey can be opened in Google Maps", async function () {
     var page = await open(browser, base);
     assert.ok(!(await page.isVisible("#mapOut")), "the link should not be there before a journey is");

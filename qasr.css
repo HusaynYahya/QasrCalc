@@ -893,3 +893,18 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 /* The journey on a map the reader already has. */
 .mapout { margin: .6rem 0 0; font-family: var(--font-label); font-size: .82rem; }
 .mapout a { color: var(--accent-bright); }
+
+/* ---- kilometres or miles, on the card it governs ------------------------ */
+.block__title .units {
+  margin-left: auto; display: inline-grid; grid-template-columns: 1fr 1fr;
+  background: var(--bg-sink); border: 1px solid var(--hair);
+  border-radius: 999px; padding: 2px; letter-spacing: 0; text-transform: none;
+}
+.units label { margin: 0; cursor: pointer; }
+.units input { position: absolute; opacity: 0; width: 0; height: 0; }
+.units span {
+  display: block; padding: .22rem .7rem; border-radius: 999px;
+  font-size: .78rem; color: var(--ink-mute); font-weight: 500; text-align: center;
+}
+.units input:checked + span { background: var(--accent); color: #fff; font-weight: 600; }
+.units input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }

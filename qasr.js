@@ -1222,7 +1222,13 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
-  var unit = "km";                    /* display unit */
+  /* Kilometres or miles. Remembered, because a reader who thinks in miles
+     thinks in miles every time. The law is 8 farsakh either way; the unit
+     only decides how it is written down.                                    */
+  var unit = (function () {
+    try { return localStorage.getItem("qasr.unit") === "mi" ? "mi" : "km"; }
+    catch (e) { return "km"; }
+  })();
   var places = { from: null, to: null };
   var cities = { from: null, to: null };
   var routes = [];                    /* every road the service offered */
@@ -2965,9 +2971,10 @@
     /* Ten days and hesitation are contraries — one excludes the other. */
 
     /* Switching units converts what is already typed, then redraws. */
-    $("units").addEventListener("change", function () {
+    function chooseUnit(next) {
       var was = unit;
-      unit = this.value;
+      unit = next === "mi" ? "mi" : "km";
+      try { localStorage.setItem("qasr.unit", unit); } catch (e) {}
       if (was !== unit) {
         ["edgeKm"].forEach(function (id) {
           var el = $(id), v = parseFloat(el.value);
@@ -2975,7 +2982,15 @@
         });
       }
       recalc();
-    });
+    }
+
+    Array.prototype.forEach.call(
+      document.querySelectorAll("input[name='unit']"), function (el) {
+        el.checked = el.value === unit;          /* what was remembered */
+        el.addEventListener("change", function () {
+          if (this.checked) chooseUnit(this.value);
+        });
+      });
 
   }
 

@@ -14,8 +14,8 @@
     if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
   } catch (e) { /* a private window refuses; the system preference then decides */ }
 </script>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=55" />
-<link rel="stylesheet" href="qasr.css?v=55" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=56" />
+<link rel="stylesheet" href="qasr.css?v=56" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -252,7 +252,12 @@
     </div>
 
     <div class="card">
-      <h2 class="block__title">The distance</h2>
+      <h2 class="block__title">The distance
+        <span class="units" role="radiogroup" aria-label="Units">
+          <label><input type="radio" name="unit" value="km" checked /><span>km</span></label>
+          <label><input type="radio" name="unit" value="mi" /><span>miles</span></label>
+        </span>
+      </h2>
       <dl class="measure" id="measure"></dl>
       <div class="gauge" id="gauge" aria-hidden="true">
         <div class="gauge__track"><div class="gauge__fill" id="gaugeFill"></div></div>
@@ -279,14 +284,6 @@
               <label><input type="radio" name="measure" value="crow" /><span>Straight line</span></label>
             </div>
             <p class="hint">The law counts the road travelled; the straight line is only for comparison.</p>
-          </div>
-          <div>
-            <label for="units">Units</label>
-            <select id="units">
-              <option value="km" selected>Kilometres</option>
-              <option value="mi">Miles</option>
-            </select>
-            <p class="hint">The limit is 8 <i>farsakh</i> — 44&nbsp;km.</p>
           </div>
         </div>
       </details>
@@ -317,8 +314,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=55" defer></script>
-<script src="fiqh.js?v=55" defer></script>
-<script src="qasr.js?v=55" defer></script>
+<script src="lib/leaflet/leaflet.js?v=56" defer></script>
+<script src="fiqh.js?v=56" defer></script>
+<script src="qasr.js?v=56" defer></script>
 </body>
 </html>
