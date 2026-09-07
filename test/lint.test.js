@@ -100,5 +100,36 @@ test("the scan would have caught the bug it was written for", function () {
   }
 });
 
+/* The map and its legend must carry the same mark. The colour lives in two
+   files — a hex in qasr.js for the SVG cross drawn on the map, and a custom
+   property in qasr.css for the one drawn in the legend — and nothing but this
+   stops them drifting apart. */
+console.log("\nThe map and its legend agree");
+
+test("the eight-farsakh mark is the same colour in both files", function () {
+  var js = fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8");
+  var css = fs.readFileSync(path.join(__dirname, "..", "qasr.css"), "utf8");
+  var inJs = /var MILESTONE = "(#[0-9a-fA-F]{3,8})"/.exec(js);
+  var inCss = /--milestone:\s*(#[0-9a-fA-F]{3,8})/.exec(css);
+  assert.ok(inJs, "MILESTONE is not declared in qasr.js");
+  assert.ok(inCss, "--milestone is not declared in qasr.css");
+  assert.strictEqual(inJs[1].toLowerCase(), inCss[1].toLowerCase(),
+    "the map draws " + inJs[1] + " and the legend " + inCss[1]);
+});
+
+test("that colour is neither of the two prayer colours", function () {
+  var css = fs.readFileSync(path.join(__dirname, "..", "qasr.css"), "utf8");
+  function prop(name) {
+    var m = new RegExp("--" + name + ":\\s*(#[0-9a-fA-F]{3,8})").exec(css);
+    return m && m[1].toLowerCase();
+  }
+  var mile = prop("milestone");
+  assert.ok(mile, "--milestone is not declared");
+  [["accent", prop("accent")], ["amber", prop("amber")]].forEach(function (p) {
+    assert.notStrictEqual(mile, p[1],
+      "the milestone shares its colour with --" + p[0] + ", which is a prayer state");
+  });
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);

@@ -16,6 +16,9 @@
 
   /* Amber — the "pray full" colour */
   --amber:        #b0740d;
+  /* The eight-farsakh mark: neither prayer colour. Kept in step with
+     MILESTONE in qasr.js. */
+  --milestone:    #3f6ea8;
   --amber-bright: #8a5a06;
   --amber-line:   rgba(176, 116, 13, 0.30);
 
@@ -321,9 +324,24 @@ input::placeholder { color: var(--ink-faint); }
 .key--to    { border: 3px solid var(--amber-bright); }
 .key--route { height: 3px; border-radius: 2px; background: var(--accent); }
 .key--edge  { border: 1px dashed var(--ink-mute); }
-/* A milestone, not a change of prayer — filled and grey, so it cannot be
-   mistaken for the marker that matters. */
-.key--limit { background: #64737f; width: 8px; height: 8px; border-radius: 50%; }
+/* A cross, and neither green nor amber: the eight farsakh is a measurement,
+   not a prayer. Every other key here is a circle. The colour is MILESTONE in
+   qasr.js — the legend must carry the same mark as the map. */
+.key--limit {
+  position: relative; width: 14px; height: 14px;
+  background: none; border: 0; border-radius: 0;
+}
+.key--limit::before, .key--limit::after {
+  content: ""; position: absolute; top: 0; left: 50%;
+  width: 3px; height: 100%; margin-left: -1.5px; border-radius: 2px;
+  background: var(--milestone);
+}
+.key--limit::before { transform: rotate(45deg); }
+.key--limit::after  { transform: rotate(-45deg); }
+.legend li.is-limit { color: var(--ink-soft); }
+/* Leaflet paints a white box behind a divIcon unless the class is replaced;
+   passing our own className replaces it, and this keeps it so. */
+.mark-limit { background: none; border: 0; }
 /* The point the reader came for. */
 .key--begin { border: 3px solid var(--accent); background: #fff; width: 13px; height: 13px; border-radius: 50%; }
 .key--fullroute { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 4px, transparent 4px 9px); }

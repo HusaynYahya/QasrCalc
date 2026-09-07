@@ -299,6 +299,12 @@
   ];
   var nearbyReason = null;          /* why the last search found nothing */
 
+  /* The eight-farsakh mark. Deliberately outside the palette of the two
+     prayers — green shortens, amber does not — because it is neither: it is
+     the measurement that decides whether the journey qualifies at all.
+     Kept in step with .key--limit in qasr.css.                              */
+  var MILESTONE = "#3f6ea8";
+
   /* Overpass is asked first, because it answers the question directly — every
      city and town within the radius, with the population tag where it exists.
      Population beats any guess from the size of a bounding box.              */
@@ -1340,10 +1346,22 @@
       var oneWayNeeded = m.roundTrip ? m.limitKm / 2 : m.limitKm;
       at = m.meets ? walkTo(line, m.edgeKm + oneWayNeeded, scaleAll) : null;
       if (at) {
-        /* Deliberately unlike the marker above: a plain milestone, not a
-           change of prayer. Readers took the two for the same thing.        */
-        L.circleMarker(at, {
-          radius: 4, color: "#64737f", weight: 2, fillColor: "#64737f", fillOpacity: 1
+        /* A cross, and neither green nor amber. Every other mark on the map
+           is a circle and belongs to a prayer; this one is a measurement, and
+           the two were being read as the same thing. Shape and colour both
+           say so, so that neither has to be relied on alone.
+
+           MILESTONE is repeated in qasr.css as .key--limit: the legend must
+           carry the same mark as the map.                                   */
+        L.marker(at, {
+          keyboard: false,
+          icon: L.divIcon({
+            className: "mark-limit",
+            html: "<svg viewBox='0 0 18 18' width='18' height='18' aria-hidden='true'>" +
+                  "<path d='M4 4 L14 14 M14 4 L4 14' stroke='" + MILESTONE +
+                  "' stroke-width='3.2' stroke-linecap='round'/></svg>",
+            iconSize: [18, 18], iconAnchor: [9, 9]
+          })
         }).addTo(mapState.drawn).bindTooltip("Eight farsakh — " + fmtKm(m.limitKm) +
           (m.roundTrip ? " counted, outward and back" : "") +
           ". This is what qualifies the journey; the shortening already began at the town's edge.");
