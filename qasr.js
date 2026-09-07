@@ -1616,9 +1616,7 @@
     $("mapLegend").querySelector(".is-border").innerHTML =
       "<span class='key key--border" +
         (borderUnused ? " key--border-off" : homeRing ? " key--border-ring" : "") + "'></span>" +
-      (borderUnused ? "Your city's border — your start is outside it"
-       : homeRing ? "The " + cities.from.fromRing + " — your city's edge, and where the count starts"
-       : "Your city's border");
+      (borderUnused ? "City border — your start is outside it" : "City border");
     $("mapLegend").querySelector(".is-edge").hidden = !hasEdge;
     $("mapLegend").querySelector(".is-limit").hidden = !at;
     renderBorderCheck();
@@ -1632,7 +1630,7 @@
         ? "The straight line between the two places, as you asked. It is not a road, and the law measures the road."
       : straight
         ? "The road could not be fetched, so this is the straight line between the two places — not a route."
-        : "Counted from where the route leaves your city border to the destination itself. The destination's border is drawn only to place it.";
+        : "Counted from where the route leaves your city border to the destination itself.";
 
     /* Frame whatever is on the map, and only when that changes, so toggling a
        circumstance does not yank the view about.                             */
@@ -2082,13 +2080,11 @@
     var city = cities.from;
     if (!city || !city.name) return "";
     if (city.fromRing) {
-      return " The line used is the " + city.fromRing + ", not the council boundary — " +
-             "the edge most people would call leaving " + city.name + "." +
-             (city.ringTraced === false
-               ? " It could not be traced into a loop, so the outline is a rough one and runs wide."
-               : city.ringClosedByHand
-                 ? " The road does not quite close, so its two ends are joined straight across."
-                 : "");
+      /* Which road it is, is said under the address and in the tooltip. Said
+         a third time here it was just length. */
+      return city.ringTraced === false
+        ? " The " + city.fromRing + " could not be traced into a loop, so the outline runs wide."
+        : "";
     }
     if (city.fromAggregate) {
       return " No town-level boundary is published for " + city.name +
@@ -2125,13 +2121,13 @@
     }
     if (borderCheck.ok && borderCheck.within) {
       el.className = "bordercheck is-within";
-      el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason + borderNote();
+      el.innerHTML = "<b>Inside one city.</b> " + borderCheck.reason;
       return;
     }
     if (borderCheck.ok) {
       el.className = "bordercheck is-ok";
       el.innerHTML = "<b>Counting from the " + borderCheck.city + " border.</b> " +
-        "The " + fmtKm(borderCheck.km) + " from your door to it is drawn faint and is not counted." +
+        "The " + fmtKm(borderCheck.km) + " from your door to it is not counted." +
         borderNote() +
         " <span class='cite'>1704</span>";
       return;
@@ -2295,7 +2291,8 @@
     if (staysInCity) {
       say("Both ends lie inside <b>" + city.name + "</b>, so nothing is counted: you never leave town.", "hint--warn");
       if (!edgeTouched) $("edgeKm").value = "";
-      borderCheck = { ok: true, within: true, reason: "Both ends lie inside " + city.name + ", so the border is never crossed and nothing is counted.", km: 0, city: city.name };
+      borderCheck = { ok: true, within: true, km: 0, city: city.name,
+                      reason: "Both ends lie inside " + city.name + " — nothing is counted." };
       renderBorderCheck();
       return;
     }
