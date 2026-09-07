@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trace an area — Qasr Calculator</title>
+<style>
+  body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         max-width: 800px; margin: 0 auto; padding: 1.5rem; color: #16212b; background: #f4f7f8; }
+  h1 { font-size: 1.3rem; }
+  textarea { width: 100%; font: inherit; font-size: 14px; padding: .5rem;
+             border: 1px solid rgba(22,33,43,.2); border-radius: 8px; }
+  button { font: inherit; padding: .6rem 1.2rem; border-radius: 999px; cursor: pointer;
+           background: #0f8a76; color: #fff; border: 0; }
+  button[disabled] { opacity: .5; cursor: default; }
+  pre { background: #fff; border: 1px solid rgba(22,33,43,.12); border-radius: 8px;
+        padding: .8rem; overflow: auto; max-height: 240px; font-size: 12px; }
+  .ok { color: #0a6455; } .bad { color: #b3261e; font-weight: 600; }
+  #log div { padding: .1rem 0; }
+</style>
+</head>
+<body>
+<h1>Trace an area</h1>
+<p>Some boundaries are not roads. The Greater Toronto Area is five
+administrative regions, and OpenStreetMap publishes each one, so this asks for
+them by name and puts them together. Nothing is drawn by hand and nothing is
+traced from a picture.</p>
+<p>One area per line, named as the map names it.</p>
+<textarea id="names" rows="6">City of Toronto, Ontario, Canada
+Regional Municipality of Durham, Ontario, Canada
+Regional Municipality of York, Ontario, Canada
+Regional Municipality of Peel, Ontario, Canada
+Regional Municipality of Halton, Ontario, Canada</textarea>
+<p><button id="go">Fetch them</button></p>
+<div id="log"></div>
+<pre id="out" hidden></pre>
+<p id="save" hidden><button id="dl">Download the boundary</button></p>
+
+<script src="../qasr.js"></script>
+<script>
+var G = window.QasrEngine;
+var NOMINATIM = "https://nominatim.openstreetmap.org/search";
+
+function say(t, c) {
+  var d = document.createElement("div");
+  if (c) d.className = c;
+  d.textContent = t;
+  document.getElementById("log").appendChild(d);
+}
+
+/* One request a second, which is what the address service asks for. */
+function pause(ms) { return new Promise(function (go) { setTimeout(go, ms); }); }
+
+function area(name) {
+  var url = NOMINATIM + "?format=jsonv2&polygon_geojson=1&limit=8&q=" + encodeURIComponent(name);
+  return fetch(url, { headers: { Accept: "application/json" } })
+    .then(function (r) {
+      if (!r.ok) throw new Error("the address service returned " + r.status);
+      return r.json();
+    })
+    .then(function (rows) {
+      var withShape = (rows || []).filter(function (r) {
+        return r.geojson && /Polygon/.test(r.geojson.type);
+      });
+      if (!withShape.length) throw new Error("no boundary published for “" + name + "”");
+      return { name: withShape[0].display_name.split(",")[0], shape: withShape[0].geojson };
+    });
+}
+
+/* Every outer ring of a shape, whichever kind it is. Holes are dropped: a
+   region with a lake in it is still the region for this purpose. */
+function outers(shape) {
+  if (shape.type === "Polygon") return [shape.coordinates[0]];
+  if (shape.type === "MultiPolygon") return shape.coordinates.map(function (p) { return p[0]; });
+  return [];
+}
+
+var CHECKS = [
+  ["Toronto",43.6532,-79.3832,1],["Mississauga",43.5890,-79.6441,1],["Brampton",43.7315,-79.7624,1],
+  ["Vaughan",43.8361,-79.4983,1],["Markham",43.8561,-79.3370,1],["Newmarket",44.0592,-79.4613,1],
+  ["Pickering",43.8384,-79.0868,1],["Oshawa",43.8971,-78.8658,1],["Oakville",43.4675,-79.6877,1],
+  ["Milton",43.5183,-79.8774,1],["Burlington",43.3255,-79.7990,1],["Uxbridge",44.1085,-79.1220,1],
+  ["Scarborough",43.7731,-79.2578,1],["Pearson airport",43.6777,-79.6248,1],
+  ["Hamilton",43.2557,-79.8711,0],["Guelph",43.5448,-80.2482,0],["Orangeville",43.9190,-80.0940,0],
+  ["Barrie",44.3894,-79.6903,0],["Kitchener",43.4516,-80.4925,0],["Peterborough",44.3091,-78.3197,0],
+  ["St Catharines",43.1594,-79.2469,0],["Cambridge",43.3616,-80.3144,0]
+];
+
+document.getElementById("go").addEventListener("click", function () {
+  var btn = this;
+  btn.disabled = true;
+  document.getElementById("log").innerHTML = "";
+  document.getElementById("out").hidden = true;
+  document.getElementById("save").hidden = true;
+
+  var names = document.getElementById("names").value.split("\n")
+    .map(function (n) { return n.trim(); }).filter(Boolean);
+  if (!names.length) { say("name at least one area", "bad"); btn.disabled = false; return; }
+
+  var parts = [];
+  names.reduce(function (chain, name, i) {
+    return chain.then(function () {
+      say("asking for " + name.split(",")[0] + "…");
+      return area(name).then(function (got) {
+        var rings = outers(got.shape);
+        var pts = rings.reduce(function (n, r) { return n + r.length; }, 0);
+        say("  " + got.name + ": " + rings.length + " part(s), " + pts + " points", "ok");
+        rings.forEach(function (r) { parts.push(r); });
+        return pause(1200);
+      }).catch(function (e) { say("  " + e.message, "bad"); throw e; });
+    });
+  }, Promise.resolve()).then(function () {
+    /* Thinned to a hundred metres: far below anything that could move a
+       ruling, and it takes tens of thousands of points down to hundreds. */
+    var thin = parts.map(function (r) {
+      var t = G.simplifyLine(r, 0.1);
+      if (t.length > 2 && (t[0][0] !== t[t.length-1][0] || t[0][1] !== t[t.length-1][1])) {
+        t.push(t[0].slice());
+      }
+      return t.map(function (p) { return [Math.round(p[0]*1e5)/1e5, Math.round(p[1]*1e5)/1e5]; });
+    }).filter(function (r) { return r.length >= 4; });
+
+    var shape = { type: "MultiPolygon", coordinates: thin.map(function (r) { return [r]; }) };
+    var total = thin.reduce(function (n, r) { return n + G.ringAreaKm2(r); }, 0);
+    var kept  = thin.reduce(function (n, r) { return n + r.length; }, 0);
+
+    say("");
+    say("kept " + kept + " points across " + thin.length + " part(s)");
+    say("encloses " + Math.round(total) + " km² in all");
+
+    var wrong = CHECKS.filter(function (c) { return G.inShape(c[1], c[2], shape) !== !!c[3]; });
+    say(wrong.length ? "places on the wrong side: " + wrong.map(function (c) { return c[0]; }).join(", ")
+                     : "all " + CHECKS.length + " places fall where they should",
+        wrong.length ? "bad" : "ok");
+
+    if (wrong.length || total < 100) {
+      say("");
+      say("This is not usable — do not send it.", "bad");
+      btn.disabled = false;
+      return;
+    }
+
+    var payload = JSON.stringify({ areas: names, parts: thin.length, points: kept,
+      areaKm2: Math.round(total), shape: shape });
+    var out = document.getElementById("out");
+    out.hidden = false;
+    out.textContent = payload.slice(0, 2500) +
+      (payload.length > 2500 ? "\n… " + payload.length + " characters in all" : "");
+    document.getElementById("save").hidden = false;
+    document.getElementById("dl").onclick = function () {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+      a.download = "area.json";
+      a.click();
+    };
+    btn.disabled = false;
+  }).catch(function () {
+    say("stopped — nothing was built", "bad");
+    btn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>
