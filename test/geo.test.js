@@ -412,6 +412,45 @@ test("places outside the M25 are outside", function () {
   });
 });
 
+/* Checked against the M25 as Google Maps draws it, place by place, from a
+   screenshot of the ring with these towns named on it. Every one of them sits
+   plainly on one side or the other there — none is a borderline call. */
+test("it agrees with the motorway on every town the map names", function () {
+  var shape = m25().shape;
+  [["Enfield", 51.6520, -0.0810, true],
+   ["Romford", 51.5750, 0.1830, true],
+   ["Ilford", 51.5590, 0.0690, true],
+   ["Wembley", 51.5520, -0.2960, true],
+   ["Charing Cross", 51.5074, -0.1278, true],
+   ["Croydon", 51.3762, -0.0982, true],
+   ["Watford", 51.6560, -0.3960, true],
+   ["Rickmansworth", 51.6390, -0.4700, true],
+   ["Luton", 51.8790, -0.4200, false],
+   ["Stevenage", 51.9020, -0.2020, false],
+   ["Guildford", 51.2362, -0.5704, false],
+   ["Crawley", 51.1090, -0.1870, false],
+   ["Wellingborough", 52.3020, -0.6960, false]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), c[3],
+      c[0] + " is " + (c[3] ? "inside" : "outside") + " the M25 on the map, and came out " +
+      (c[3] ? "outside" : "inside"));
+  });
+});
+
+test("it reaches as far as the motorway reaches, and no further", function () {
+  var edge = m25().shape.coordinates[0];
+  var lat = edge.map(function (p) { return p[1]; });
+  var lon = edge.map(function (p) { return p[0]; });
+  var n = Math.max.apply(null, lat), s = Math.min.apply(null, lat);
+  var e = Math.max.apply(null, lon), w = Math.min.apply(null, lon);
+  /* The M25 runs from about 51.25 in the south to 51.72 in the north, and
+     from about -0.53 in the west to 0.29 in the east. */
+  assert.ok(n > 51.68 && n < 51.76, "north edge at " + n.toFixed(3));
+  assert.ok(s > 51.21 && s < 51.29, "south edge at " + s.toFixed(3));
+  assert.ok(w > -0.58 && w < -0.48, "west edge at " + w.toFixed(3));
+  assert.ok(e > 0.24 && e < 0.34, "east edge at " + e.toFixed(3));
+});
+
 test("the box that gates the lookup contains the whole ring", function () {
   var entry = m25(), b = entry.box;
   entry.shape.coordinates[0].forEach(function (p) {
