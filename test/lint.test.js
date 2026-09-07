@@ -131,5 +131,33 @@ test("that colour is neither of the two prayer colours", function () {
   });
 });
 
+/* The M25 was adopted only when Calculate was pressed, while the city shown
+   beside the address came from cityOf directly — so an address in Watford was
+   named Watford, and silently became London later. One missed call site is
+   all it takes, so the rule is made structural: cityOf is the fallback inside
+   cityWithRing and is called from nowhere else. */
+console.log("\nThe ring road is asked every time");
+
+test("cityOf is only ever called from inside cityWithRing", function () {
+  var js = fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8");
+  var wrapper = /function cityWithRing\([\s\S]*?\n  \}\n/.exec(js);
+  assert.ok(wrapper, "cityWithRing has gone — the rule below no longer means anything");
+
+  var everywhere = (js.match(/\bcityOf\(/g) || []).length;
+  var inside = (wrapper[0].match(/\bcityOf\(/g) || []).length;
+  /* One for the declaration itself; the rest must all be the fallback. */
+  assert.strictEqual(everywhere - 1, inside,
+    "cityOf is called " + (everywhere - 1 - inside) + " time(s) outside cityWithRing — " +
+    "those places will miss the ring road");
+});
+
+test("the places that name the starting city do ask for the ring", function () {
+  var js = fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8");
+  var adopt = /function adoptPlace\([\s\S]*?\n  \}\n/.exec(js);
+  assert.ok(adopt, "adoptPlace has gone");
+  assert.ok(/cityWithRing\(/.test(adopt[0]),
+    "adoptPlace names the city as soon as an address is picked, and must ask the ring road");
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);

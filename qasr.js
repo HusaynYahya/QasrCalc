@@ -222,6 +222,13 @@
      each city appears the moment it is known.                                */
   function cityChoices(place, onFound) {
     var found = [];
+
+    /* Where the place lies inside a ring road, that road is one of the
+       choices — and the one already in use, so it belongs at the top. */
+    var ringed = ringRoadNear(place)
+      ? cityWithRing(place, false).then(function (c) { return c && c.fromRing ? c : null; })
+                                  .catch(function () { return null; })
+      : Promise.resolve(null);
     function add(city, first) {
       if (!city || !city.name) return;
       if (found.some(function (c) { return c.name === city.name; })) return;
@@ -262,8 +269,14 @@
     /* The largest city goes to the front whenever it lands: it is the one a
        reader is least likely to think of, and most likely to want.           */
     var big = nearby.then(function (city) { add(city, true); });
+    var ring = ringed.then(function (city) { add(city, true); });
 
-    return Promise.all(byZoom.concat([big])).then(function () { return found; });
+    return Promise.all(byZoom.concat([big, ring])).then(function () {
+      /* Whatever order they arrived in, a ring road that is already the edge
+         being measured from goes first. */
+      found.sort(function (a, b) { return (b.fromRing ? 1 : 0) - (a.fromRing ? 1 : 0); });
+      return found;
+    });
   }
 
   /* The largest city within reach, whether or not the reader lives in it.
@@ -1868,7 +1881,11 @@
 
     if (slot === "from") { cityConfirmed = false; cityOptions = null; }
 
-    return cityOf(place).then(function (city) {
+    /* The ring road is asked for here, and not only when Calculate is
+       pressed: the city is named on screen the moment an address is picked,
+       and naming it Watford and then quietly changing it later would be worse
+       than never having said it.                                             */
+    return cityWithRing(place, slot === "from").then(function (city) {
       if (places[slot] !== place) return;   /* the reader moved on */
       cities[slot] = city;
       showCity(slot, spec.hint, spec.lead);
@@ -1956,7 +1973,7 @@
     btn.setAttribute("aria-pressed", isOn ? "true" : "false");
     btn.innerHTML = "<b>" + city.name + "</b><span>" +
       (city.area && city.area !== city.name ? city.area + " · " : "") +
-      (city.fromRing ? "edge taken from the " + city.fromRing
+      (city.fromRing ? "measured from the " + city.fromRing
         : city.shape ? "border published" : "no border published — nothing to deduct") +
       (city.note ? " · " + city.note : "") +
       "</span>";
