@@ -1007,10 +1007,15 @@
       if (chain.length < 4) return;
       var closed = ptsMeet(chain[0], chain[chain.length - 1]);
       var area = ringAreaKm2(chain);
-      /* A loop that closes on itself beats one that has to be closed by hand,
-         whatever their areas; among equals, the larger.                      */
-      if (!best || (closed && !best.closed) ||
-          (closed === best.closed && area > best.area)) {
+      /* The largest wins, and closing is only a tiebreaker between equals.
+
+         It used to be the other way about — any closed loop beat any open one
+         — and that is fine for a road returned as two carriageways and
+         nothing else. Given the real M25, which comes back as eleven hundred
+         ways, it picked a two-kilometre loop at a junction over the motorway
+         itself and reported it as a closed ring, because it was one.        */
+      if (!best || area > best.area ||
+          (area === best.area && closed && !best.closed)) {
         best = { ring: chain, closed: closed, area: area };
       }
     });

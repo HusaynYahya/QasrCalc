@@ -264,6 +264,24 @@ test("the larger of two carriageways is the one taken", function () {
     "expected the outer loop, got an area of " + area.toFixed(0) + " against " + outerArea.toFixed(0));
 });
 
+test("a slip road that loops does not outrank the motorway", function () {
+  /* The real M25 comes back as eleven hundred ways, and some of the small
+     ones close on themselves. A ring road is the biggest thing in the answer,
+     not merely a closed thing in it. */
+  /* The motorway as it really came back: a long arc that does not quite meet
+     itself, because a stretch of it is signed differently. The junction loop
+     does meet itself. */
+  var arc = ringLoop.slice(0, Math.floor(ringLoop.length * 0.85));
+  var roundabout = [[-0.4000, 51.6700], [-0.3990, 51.6706], [-0.3980, 51.6700],
+                    [-0.3990, 51.6694], [-0.4000, 51.6700]];
+  var data = { elements: [relationOf([arc, roundabout], "M25")] };
+  var ring = G.ringShape(data, "M25");
+  assert.ok(G.ringAreaKm2(ring.shape.coordinates[0]) > 1000,
+    "the ring encloses " + G.ringAreaKm2(ring.shape.coordinates[0]).toFixed(1) +
+    " km² — a junction loop was taken for the motorway");
+  assert.strictEqual(G.inShape(51.5556, -0.2136, ring.shape), true, "Cricklewood fell outside it");
+});
+
 test("a road that does not quite close is joined, and says so", function () {
   var open = ringLoop.slice(0, ringLoop.length - 8);      /* a gap left in it */
   var data = { elements: [relationOf(asWays(open, 7, 0).filter(function (w, i) {
