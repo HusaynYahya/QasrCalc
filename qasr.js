@@ -1263,11 +1263,13 @@
              ? lastRoute.line : null;
     var seen = [];
 
-    /* The two city borders. The home border is where counting starts; the
-       destination's is drawn for orientation only, since the count runs to
-       the destination itself, not to its border.                             */
+    /* Only the home border. It is the one the measuring starts from [1704];
+       the count runs to the destination itself, not to its border, so drawing
+       the destination's put a second outline on the map that decided nothing.
+       The destination's city is still worked out — it is what tells us whether
+       both ends lie in one place — it is simply not drawn.                    */
     var drewBorder = false;
-    [["from", "#0f8a76", "Your city"], ["to", "#b0740d", "Destination city"]]
+    [["from", "#0f8a76", "Your city"]]
       .forEach(function (spec) {
         var city = cities[spec[0]];
         if (!city || !city.shape) return;
@@ -1940,15 +1942,18 @@
     if (city && city.name) {
       hint.innerHTML = lead + " <b>" + city.name + "</b>" +
         (city.area && city.area !== city.name ? ", " + city.area : "") +
-        (city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
+        /* Only the starting city's border is drawn, so only it may be said to
+           be on the map. */
+        (slot !== "from" ? ""
+          : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
           : city.shape ? " — its border is outlined on the map."
           : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";
     } else {
       hint.textContent = city && city.reason
-        ? city.reason + " No border is drawn, and the deduction stays as you left it."
-        : "The city here could not be identified, so no border is drawn.";
+        ? city.reason + (slot === "from" ? " No border is drawn, and the deduction stays as you left it." : "")
+        : "The city here could not be identified" + (slot === "from" ? ", so no border is drawn." : ".");
       hint.className = "hint" + (city && city.reason ? " hint--warn" : "");
     }
   }
