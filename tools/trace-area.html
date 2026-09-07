@@ -73,11 +73,25 @@ function lookUp(name) {
       return r.json();
     })
     .then(function (rows) {
-      var withShape = (rows || []).filter(function (r) {
-        return r.geojson && /Polygon/.test(r.geojson.type);
+      /* An administrative boundary, and nothing else. Asking only for a
+         polygon returned Richmond Hill's fire station, Newmarket's telephone
+         exchange and Ajax's operations centre — all of them buildings with
+         outlines, none of them a municipality. */
+      var admin = (rows || []).filter(function (r) {
+        return r.geojson && /Polygon/.test(r.geojson.type) &&
+               r.category === "boundary" && r.type === "administrative";
       });
-      return withShape.length
-        ? { name: withShape[0].display_name.split(",")[0], shape: withShape[0].geojson }
+      /* Older versions of the service say "class" where newer ones say
+         "category"; accept either rather than depend on which is answering. */
+      if (!admin.length) {
+        admin = (rows || []).filter(function (r) {
+          return r.geojson && /Polygon/.test(r.geojson.type) &&
+                 r["class"] === "boundary" && r.type === "administrative";
+        });
+      }
+      return admin.length
+        ? { name: admin[0].display_name.split(",")[0], shape: admin[0].geojson,
+            rank: admin[0].place_rank }
         : null;
     });
 }
@@ -141,7 +155,8 @@ document.getElementById("go").addEventListener("click", function () {
       return area(name).then(function (got) {
         var rings = outers(got.shape);
         var pts = rings.reduce(function (n, r) { return n + r.length; }, 0);
-        say("  " + got.name + ": " + rings.length + " part(s), " + pts + " points", "ok");
+        say("  " + got.name + ": " + rings.length + " part(s), " + pts + " points" +
+            (got.rank != null ? "  (rank " + got.rank + ")" : ""), "ok");
         rings.forEach(function (r) { parts.push(r); });
         return pause(1200);
       }).catch(function (e) {
