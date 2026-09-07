@@ -1,7 +1,7 @@
 /* ============================================================================
    Turn an Overpass answer into the ring road this page carries.
 
-     node tools/build-ring.js <overpass.json> [--write]
+     node tools/build-ring.js <overpass.json> [more.json ...] [--write]
 
    The M25 does not move, so its shape belongs in the page rather than being
    fetched every visit. This takes the raw answer, stitches the member ways
@@ -26,10 +26,10 @@ var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
 
-var file = process.argv[2];
 var WRITE = process.argv.indexOf("--write") >= 0;
-if (!file) {
-  console.error("usage: node tools/build-ring.js <overpass.json> [--write]");
+var files = process.argv.slice(2).filter(function (a) { return a !== "--write"; });
+if (!files.length) {
+  console.error("usage: node tools/build-ring.js <overpass.json> [more.json ...] [--write]");
   process.exit(2);
 }
 
@@ -45,8 +45,17 @@ vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8"), sandbox);
 var G = sandbox.window.QasrEngine;
 
-var data = JSON.parse(fs.readFileSync(file, "utf8"));
-var raw = (data.elements || []).reduce(function (n, el) {
+/* Several files are merged before stitching, so the M25 and the A282 may be
+   fetched separately — one query each is easier to get past a browser than
+   one query with brackets in it. */
+var data = { elements: [] };
+files.forEach(function (f) {
+  var part = JSON.parse(fs.readFileSync(f, "utf8"));
+  var got = (part.elements || []).length;
+  console.log("  " + path.basename(f) + ": " + got + " element(s)");
+  data.elements = data.elements.concat(part.elements || []);
+});
+var raw = data.elements.reduce(function (n, el) {
   return n + ((el.members || []).reduce(function (m, w) {
     return m + ((w.geometry || []).length);
   }, 0)) + ((el.geometry || []).length);
@@ -61,7 +70,7 @@ try {
 }
 
 var edge = ring.shape.coordinates[0];
-console.log("\nread          " + raw + " points from " + path.basename(file));
+console.log("\nread          " + raw + " points from " + files.length + " file(s)");
 console.log("stitched      " + (ring.traced ? "into a loop" : "NOT into a loop — this is a hull, not the road"));
 console.log("closed        " + (ring.closedByHand ? "by hand, across a gap" : "by the road itself"));
 console.log("kept          " + edge.length + " points");
