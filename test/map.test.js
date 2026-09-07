@@ -142,6 +142,43 @@ test("nothing entered yet frames nothing", function () {
   assert.strictEqual(G.journeyBox(null, null, []), null);
 });
 
+/* The case that prompted this: WD19 4QP to Cricklewood is about fifteen
+   kilometres and never leaves the M25, which is fifty across. Framing the
+   drive alone left the ring — the only thing that decides the ruling — off
+   the screen entirely, and it looked as though no border had been drawn.   */
+var M25_SHAPE = { type: "Polygon", coordinates: [
+  [[-0.55, 51.72], [0.28, 51.72], [0.28, 51.26], [-0.55, 51.26], [-0.55, 51.72]]
+]};
+
+test("a journey that never leaves the city frames the border round it", function () {
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE, M25_SHAPE);
+  assert.ok(box[0] <= 51.26 && box[2] >= 51.72, "the ring's north and south are outside the frame");
+  assert.ok(box[1] <= -0.55 && box[3] >= 0.28, "the ring's east and west are outside the frame");
+});
+
+test("a journey that does leave the city is framed on its own", function () {
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE, null);
+  assert.ok(box[2] < 51.72 && box[1] > -0.55,
+    "without an enclosing border the frame must stay on the journey");
+});
+
+test("the enclosing border may be a multipolygon", function () {
+  var multi = { type: "MultiPolygon", coordinates: [
+    [[[-0.55, 51.72], [0.28, 51.72], [0.28, 51.26], [-0.55, 51.26], [-0.55, 51.72]]],
+    [[[1.00, 51.50], [1.10, 51.50], [1.10, 51.60], [1.00, 51.60], [1.00, 51.50]]]
+  ]};
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE, multi);
+  assert.ok(box[3] >= 1.10, "the second part of the border fell outside the frame");
+});
+
+test("a shape that is not a polygon is passed over, not thrown on", function () {
+  assert.strictEqual(G.ringsOf(null).length, 0);
+  assert.strictEqual(G.ringsOf({ type: "Point", coordinates: [0, 0] }).length, 0);
+  assert.strictEqual(G.ringsOf(M25_SHAPE).length, 1);
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE, { type: "Point", coordinates: [0, 0] });
+  assert.ok(box[3] < 0, "a point border must not drag the frame to the meridian");
+});
+
 test("the ring road does not widen the frame at all", function () {
   var withRing = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE.concat(RING));
   var without = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE);

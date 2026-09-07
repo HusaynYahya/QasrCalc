@@ -1222,7 +1222,18 @@
     };
   }
 
-  /* The box the map should frame: the journey, and nothing else.
+  /* The outer rings of a GeoJSON shape, whichever kind it is. */
+  function ringsOf(shape) {
+    if (!shape) return [];
+    if (shape.type === "Polygon") return shape.coordinates.slice(0, 1);
+    if (shape.type === "MultiPolygon") {
+      return shape.coordinates.map(function (poly) { return poly[0]; });
+    }
+    return [];
+  }
+
+  /* The box the map should frame: the journey, and the border round it when
+     that border is what decides the ruling.
 
      City borders used to be framed too, and once London's edge became the
      M25 that meant fitting a fifty-kilometre ring round a fifteen-kilometre
@@ -1230,11 +1241,23 @@
      are context; they are still drawn, and a reader who wants the whole ring
      can zoom out to it.
 
+     One exception, and it is the case that prompted this: where the journey
+     never crosses the border — both ends inside one city — there is nothing
+     on the route to look at, and the enclosing border is the whole of the
+     answer. Framing the journey alone then leaves the reader zoomed in on a
+     short drive with the ring that decides it somewhere off the screen. So an
+     enclosing shape may be passed, and is framed with the journey.
+
      Returns [south, west, north, east], or null when there is no journey yet.
      A single point gives a box of no size, which the caller opens out to a
      sensible zoom.                                                           */
-  function journeyBox(from, to, line) {
+  function journeyBox(from, to, line, enclosing) {
     var pts = [];
+    ringsOf(enclosing).forEach(function (ring) {
+      ring.forEach(function (c) {
+        if (c && typeof c[0] === "number" && typeof c[1] === "number") pts.push([c[1], c[0]]);
+      });
+    });
     if (from && typeof from.lat === "number") pts.push([from.lat, from.lon]);
     if (to && typeof to.lat === "number") pts.push([to.lat, to.lon]);
     (line || []).forEach(function (p) {
@@ -1425,7 +1448,12 @@
        circumstance does not yank the view about.                             */
     /* Framed on the journey. Where there is none yet — no address entered at
        all — whatever was drawn will do.                                      */
-    var box = journeyBox(places.from, places.to, line);
+    /* Where the road never leaves the city, the border is the ruling and has
+       to be on the screen; where it crosses, the crossing point is on the
+       route and is in frame already. */
+    var enclosing = (staysInCity && cities.from && cities.from.shape)
+                  ? cities.from.shape : null;
+    var box = journeyBox(places.from, places.to, line, enclosing);
     var bounds;
     if (box) {
       bounds = L.latLngBounds([[box[0], box[1]], [box[2], box[3]]]);
@@ -1803,6 +1831,7 @@
     }).catch(function () {
       /* The published boundary was there before and stays. */
       city.ringPending = false;
+      city.ringFailed = (Array.isArray(refs) ? refs : [refs]).join(" and ");
       if (cities.from === city) showCity("from", "fromHint", "Your city is");
     });
   }
@@ -1957,6 +1986,8 @@
         /* Only the starting city's border is drawn, so only it may be said to
            be on the map. */
         (slot !== "from" ? ""
+          : city.ringFailed ? " — the " + city.ringFailed + " could not be traced just now, " +
+              "so its published boundary is outlined instead. Press Refresh to try again."
           : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
           : city.shape ? " — its border is outlined on the map."
           : " — no published border to outline.") +
@@ -2488,7 +2519,7 @@
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
-    prayerStates: prayerStates, journeyBox: journeyBox,
+    prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer
   };
 
