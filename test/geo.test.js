@@ -492,7 +492,13 @@ test("it holds the cities the GTA is made of", function () {
    ["Halton Hills", 43.6300, -79.9500], ["Burlington", 43.3255, -79.7990],
    ["Uxbridge", 44.1085, -79.1220], ["Stouffville", 43.9710, -79.2470],
    ["Scarborough", 43.7731, -79.2578], ["Etobicoke", 43.6205, -79.5132],
-   ["Pearson airport", 43.6777, -79.6248]
+   ["Pearson airport", 43.6777, -79.6248],
+   /* The regions reach further than the outline traced from a screenshot
+      did: Durham runs east past Bowmanville and north to Lake Simcoe, and
+      York takes in Georgina. These four were asserted to be outside on the
+      strength of that tracing, and are not. */
+   ["Port Perry", 44.1000, -78.9450], ["Bowmanville", 43.9120, -78.6880],
+   ["Keswick", 44.2300, -79.4660], ["Beaverton", 44.4300, -79.1500]
   ].forEach(function (c) {
     assert.strictEqual(G.inShape(c[1], c[2], shape), true, c[0] + " came out outside the GTA");
   });
@@ -502,10 +508,9 @@ test("it stops where the map stops it", function () {
   var shape = gta().shape;
   [["Hamilton", 43.2557, -79.8711], ["Guelph", 43.5448, -80.2482],
    ["Orangeville", 43.9190, -80.0940], ["Barrie", 44.3894, -79.6903],
-   ["Kitchener", 43.4516, -80.4925], ["Port Perry", 44.1000, -78.9450],
-   ["Bowmanville", 43.9120, -78.6880], ["Peterborough", 44.3091, -78.3197],
+   ["Kitchener", 43.4516, -80.4925], ["Peterborough", 44.3091, -78.3197],
    ["St Catharines", 43.1594, -79.2469], ["Cambridge", 43.3616, -80.3144],
-   ["Niagara Falls", 43.0896, -79.0849], ["Keswick", 44.2300, -79.4660]
+   ["Niagara Falls", 43.0896, -79.0849]
   ].forEach(function (c) {
     assert.strictEqual(G.inShape(c[1], c[2], shape), false, c[0] + " came out inside the GTA");
   });
@@ -513,11 +518,17 @@ test("it stops where the map stops it", function () {
 
 test("it encloses what that boundary encloses, and its box holds it", function () {
   var e = gta();
-  var area = G.ringAreaKm2(e.shape.coordinates[0]);
-  assert.ok(area > 4000 && area < 6000, "the GTA came out at " + area.toFixed(0) + " km²");
-  e.shape.coordinates[0].forEach(function (p) {
-    assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
-      "the boundary runs outside its own box at " + p);
+  /* Five parts now, one per region, so the area is their sum. */
+  assert.strictEqual(e.shape.type, "MultiPolygon");
+  var area = e.shape.coordinates.reduce(function (n, poly) {
+    return n + G.ringAreaKm2(poly[0]);
+  }, 0);
+  assert.ok(area > 7000 && area < 8600, "the GTA came out at " + area.toFixed(0) + " km²");
+  e.shape.coordinates.forEach(function (poly) {
+    poly[0].forEach(function (p) {
+      assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
+        "the boundary runs outside its own box at " + p);
+    });
   });
 });
 
