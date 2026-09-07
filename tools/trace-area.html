@@ -65,7 +65,7 @@ function say(t, c) {
 /* One request a second, which is what the address service asks for. */
 function pause(ms) { return new Promise(function (go) { setTimeout(go, ms); }); }
 
-function area(name) {
+function lookUp(name) {
   var url = NOMINATIM + "?format=jsonv2&polygon_geojson=1&limit=8&q=" + encodeURIComponent(name);
   return fetch(url, { headers: { Accept: "application/json" } })
     .then(function (r) {
@@ -76,9 +76,25 @@ function area(name) {
       var withShape = (rows || []).filter(function (r) {
         return r.geojson && /Polygon/.test(r.geojson.type);
       });
-      if (!withShape.length) throw new Error("no boundary published for “" + name + "”");
-      return { name: withShape[0].display_name.split(",")[0], shape: withShape[0].geojson };
+      return withShape.length
+        ? { name: withShape[0].display_name.split(",")[0], shape: withShape[0].geojson }
+        : null;
     });
+}
+
+/* "City of Vaughan" is not how the map names Vaughan. Rather than depend on
+   guessing each place's official style, the bare name is tried as well. */
+function area(name) {
+  var bare = name.replace(/^\s*(City|Town|Township|Municipality|Regional Municipality)\s+of\s+/i, "");
+  return lookUp(name).then(function (got) {
+    if (got) return got;
+    if (bare === name) throw new Error("no boundary published for “" + name + "”");
+    say("  not under that name — trying “" + bare.split(",")[0] + "”");
+    return pause(1200).then(function () { return lookUp(bare); }).then(function (g2) {
+      if (!g2) throw new Error("no boundary published for “" + name + "” or “" + bare + "”");
+      return g2;
+    });
+  });
 }
 
 /* Every outer ring of a shape, whichever kind it is. Holes are dropped: a
@@ -118,7 +134,7 @@ document.getElementById("go").addEventListener("click", function () {
     .map(function (n) { return n.trim(); }).filter(Boolean);
   if (!names.length) { say("name at least one area", "bad"); btn.disabled = false; return; }
 
-  var parts = [];
+  var parts = [], missing = [];
   names.reduce(function (chain, name, i) {
     return chain.then(function () {
       say("asking for " + name.split(",")[0] + "…");
@@ -128,9 +144,23 @@ document.getElementById("go").addEventListener("click", function () {
         say("  " + got.name + ": " + rings.length + " part(s), " + pts + " points", "ok");
         rings.forEach(function (r) { parts.push(r); });
         return pause(1200);
-      }).catch(function (e) { say("  " + e.message, "bad"); throw e; });
+      }).catch(function (e) {
+        /* One name it cannot find should not throw away fifteen it could:
+           the run goes on and every failure is reported together. */
+        say("  " + e.message, "bad");
+        missing.push(name.split(",")[0]);
+        return pause(1200);
+      });
     });
   }, Promise.resolve()).then(function () {
+    if (missing.length) {
+      say("");
+      say("not found: " + missing.join(", "), "bad");
+      say("Each missing area is a hole in the boundary, so nothing is offered. " +
+          "Correct those names and run it again.", "bad");
+      btn.disabled = false;
+      return;
+    }
     /* Thinned to a hundred metres: far below anything that could move a
        ruling, and it takes tens of thousands of points down to hundreds. */
     var thin = parts.map(function (r) {
@@ -175,8 +205,8 @@ document.getElementById("go").addEventListener("click", function () {
       a.click();
     };
     btn.disabled = false;
-  }).catch(function () {
-    say("stopped — nothing was built", "bad");
+  }).catch(function (e) {
+    say("stopped: " + (e && e.message ? e.message : "nothing was built"), "bad");
     btn.disabled = false;
   });
 });
