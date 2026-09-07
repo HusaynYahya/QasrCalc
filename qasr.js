@@ -2153,7 +2153,7 @@
         rule();
         renderRoutes();
         say(lastRoute.source === "straight" ? "Routing unavailable — showing the straight-line distance." : "");
-        $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+        showAnswer();
       })
       .catch(function (err) {
         /* A browser reports an unreachable service as "Failed to fetch", which
@@ -2181,6 +2181,24 @@
     $("measureNote").textContent = "";
     $("gaugeFill").style.width = "0";
     $("result").hidden = false;
+  }
+
+  /* Where to put the page once there is an answer.
+
+     The reader wants two things at once: the map, and the ruling under it.
+     Where both fit on the screen the map's top goes to the top of it. Where
+     they do not — a short window, or a long legend — the ruling takes the
+     bottom of the screen and the map fills whatever is left above, because an
+     answer scrolled off the bottom of the page is the one outcome to avoid.  */
+  function showAnswer() {
+    var card = $("mapCard"), answer = $("verdict");
+    if (!card || !answer) return;
+    var y = window.pageYOffset || window.scrollY || 0;
+    var top = card.getBoundingClientRect().top + y;
+    var foot = answer.getBoundingClientRect().bottom + y;
+    var room = window.innerHeight || 0;
+    var to = (foot - top) <= room ? top - 12 : foot - room + 16;
+    if (window.scrollTo) window.scrollTo({ top: Math.max(0, to), behavior: "smooth" });
   }
 
   /* Recalculate from the numbers already held, without touching the network. */
