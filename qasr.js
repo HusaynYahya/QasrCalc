@@ -1517,19 +1517,21 @@
     }
 
     $("undeterminedCard").hidden = true;
-    $("segmentsCard").hidden = false;
-
     var says = SAYS[result.verdict];
     $("verdict").className = "verdict" + says.cls;
     $("verdictLabel").textContent = says.label;
     $("verdictSub").textContent = summarise(result);
 
-    /* every segment, with its conditions and their masāʾil */
+    /* The parts are shown only where they disagree — see segmentsDiffer. */
+    var differ = segmentsDiffer(result);
+    $("segmentsCard").hidden = !differ;
     var box = $("segments");
     box.innerHTML = "";
-    result.segments.forEach(function (seg) {
-      box.appendChild(segmentCard(seg));
-    });
+    if (differ) {
+      result.segments.forEach(function (seg) {
+        box.appendChild(segmentCard(seg));
+      });
+    }
 
     renderMeasure(result);
 
@@ -1547,7 +1549,24 @@
     renderMap(metricsFor(result));
   }
 
+  /* Do the parts of the journey disagree with the ruling as a whole?
+
+     Usually they do not, and three rows each repeating the headline are
+     noise. But a journey does not always carry one ruling throughout: ten
+     days at the destination makes you a resident there, so the stay is full
+     while the legs stay shortened [1779]; and a return to your waṭan is
+     shortened only until you actually enter it [1757]. Where that happens the
+     difference is the ruling, and the parts are the only place it is said. */
+  function segmentsDiffer(result) {
+    return (result.segments || []).some(function (s) {
+      return s.verdict !== result.verdict;
+    });
+  }
+
   function summarise(result) {
+    if (!segmentsDiffer(result)) {
+      return "The same for every part of this journey.";
+    }
     var parts = result.segments.map(function (s) {
       return s.name.toLowerCase() + ": " + SAYS[s.verdict].label.toLowerCase();
     });
@@ -2433,7 +2452,8 @@
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
-    prayerStates: prayerStates, journeyBox: journeyBox
+    prayerStates: prayerStates, journeyBox: journeyBox,
+    segmentsDiffer: segmentsDiffer
   };
 
   if (document.readyState === "loading") {

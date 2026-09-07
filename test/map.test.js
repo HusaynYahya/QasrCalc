@@ -151,5 +151,46 @@ test("the ring road does not widen the frame at all", function () {
   assert.ok(span(without).lon < 0.25, "the journey's own frame stayed tight");
 });
 
+/* --- when the parts of the journey are worth showing ---------------------- */
+console.log("\nWhen the parts are worth showing");
+
+function result(overall, segs) {
+  return { verdict: overall, segments: segs.map(function (v, i) {
+    return { id: "s" + i, verdict: v };
+  })};
+}
+
+test("three parts all agreeing with the ruling are not shown", function () {
+  assert.strictEqual(
+    G.segmentsDiffer(result("QASR", ["QASR", "QASR", "QASR"])), false,
+    "repeating the headline three times is noise, not information");
+});
+
+test("ten days at the destination is shown, because the stay differs [1779]", function () {
+  /* The legs are shortened; the stay is full, because ten days makes you a
+     resident there. This is the case a traveller most often gets wrong.     */
+  assert.strictEqual(
+    G.segmentsDiffer(result("TAMAM", ["QASR", "TAMAM", "QASR"])), true);
+});
+
+test("a return ruled differently from the outward leg is shown [1757]", function () {
+  assert.strictEqual(
+    G.segmentsDiffer(result("TAMAM", ["QASR", "TAMAM"])), true);
+});
+
+test("a one-way journey that agrees throughout is not shown", function () {
+  assert.strictEqual(G.segmentsDiffer(result("QASR", ["QASR"])), false);
+});
+
+test("praying both on one part alone is a difference", function () {
+  assert.strictEqual(
+    G.segmentsDiffer(result("JAMA", ["QASR", "JAMA"])), true);
+});
+
+test("nothing segmented at all is no difference", function () {
+  assert.strictEqual(G.segmentsDiffer({ verdict: "QASR" }), false);
+  assert.strictEqual(G.segmentsDiffer({ verdict: "QASR", segments: [] }), false);
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);
