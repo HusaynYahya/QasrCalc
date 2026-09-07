@@ -1216,6 +1216,36 @@
     };
   }
 
+  /* The box the map should frame: the journey, and nothing else.
+
+     City borders used to be framed too, and once London's edge became the
+     M25 that meant fitting a fifty-kilometre ring round a fifteen-kilometre
+     drive — the journey shrank to a squiggle in the middle of it. The borders
+     are context; they are still drawn, and a reader who wants the whole ring
+     can zoom out to it.
+
+     Returns [south, west, north, east], or null when there is no journey yet.
+     A single point gives a box of no size, which the caller opens out to a
+     sensible zoom.                                                           */
+  function journeyBox(from, to, line) {
+    var pts = [];
+    if (from && typeof from.lat === "number") pts.push([from.lat, from.lon]);
+    if (to && typeof to.lat === "number") pts.push([to.lat, to.lon]);
+    (line || []).forEach(function (p) {
+      if (p && typeof p[0] === "number" && typeof p[1] === "number") pts.push([p[0], p[1]]);
+    });
+    if (!pts.length) return null;
+
+    var s = pts[0][0], n = pts[0][0], w = pts[0][1], e = pts[0][1];
+    pts.forEach(function (p) {
+      if (p[0] < s) s = p[0];
+      if (p[0] > n) n = p[0];
+      if (p[1] < w) w = p[1];
+      if (p[1] > e) e = p[1];
+    });
+    return [s, w, n, e];
+  }
+
   function renderMap(m) {
     if (!ensureMap()) return;
 
@@ -1361,12 +1391,22 @@
 
     /* Frame whatever is on the map, and only when that changes, so toggling a
        circumstance does not yank the view about.                             */
-    if (!seen.length) return;
-    var bounds = seen.reduce(function (all, b) { return all.extend(b); }, L.latLngBounds(seen[0]));
-    var key = (line ? line.length + ":" + line[0] + ":" + line[line.length - 1] : "no-line") +
-              "|" + bounds.toBBoxString();
+    /* Framed on the journey. Where there is none yet — no address entered at
+       all — whatever was drawn will do.                                      */
+    var box = journeyBox(places.from, places.to, line);
+    var bounds;
+    if (box) {
+      bounds = L.latLngBounds([[box[0], box[1]], [box[2], box[3]]]);
+    } else {
+      if (!seen.length) return;
+      bounds = seen.reduce(function (all, b) { return all.extend(b); }, L.latLngBounds(seen[0]));
+    }
+
+    /* Refitted only when the journey itself changes, so that tracing a ring
+       road or picking another city does not throw away the reader's panning. */
+    var key = bounds.toBBoxString();
     if (mapState.fitted !== key) {
-      mapState.map.fitBounds(bounds.pad(0.15), { maxZoom: 13 });
+      mapState.map.fitBounds(bounds.pad(0.15), { maxZoom: 15 });
       mapState.fitted = key;
     }
   }
@@ -2375,7 +2415,7 @@
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
-    prayerStates: prayerStates
+    prayerStates: prayerStates, journeyBox: journeyBox
   };
 
   if (document.readyState === "loading") {

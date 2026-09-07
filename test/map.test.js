@@ -93,5 +93,63 @@ test("nothing measured yet is not a ruling", function () {
   assert.strictEqual(s.begin, null);
 });
 
+/* --- what the map frames -------------------------------------------------- */
+console.log("\nWhat the map frames");
+
+/* The M25, near enough: fifty kilometres across. */
+var RING = [[51.72, -0.55], [51.72, 0.28], [51.26, 0.28], [51.26, -0.55], [51.72, -0.55]];
+/* WD19 4QP to Anson Road, Cricklewood — about fifteen kilometres, well inside. */
+var OXHEY = { lat: 51.6238, lon: -0.3892 };
+var CRICKLEWOOD = { lat: 51.5556, lon: -0.2136 };
+var DRIVE = [[51.6238, -0.3892], [51.60, -0.34], [51.58, -0.28], [51.5556, -0.2136]];
+
+function span(box) {          /* [south, west, north, east] -> degrees across */
+  return { lat: box[2] - box[0], lon: box[3] - box[1] };
+}
+
+test("the journey is framed, not the city border round it", function () {
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE);
+  var ring = span([51.26, -0.55, 51.72, 0.28]);
+  var got = span(box);
+  assert.ok(got.lat < ring.lat / 3 && got.lon < ring.lon / 3,
+    "the frame is still the size of the ring road: " + JSON.stringify(box));
+});
+
+test("the frame holds every part of the journey", function () {
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE);
+  [[OXHEY.lat, OXHEY.lon], [CRICKLEWOOD.lat, CRICKLEWOOD.lon]].concat(DRIVE)
+    .forEach(function (p) {
+      assert.ok(p[0] >= box[0] && p[0] <= box[2] && p[1] >= box[1] && p[1] <= box[3],
+        "left out of the frame: " + p);
+    });
+});
+
+test("a route that wanders wider than its endpoints is still framed whole", function () {
+  var detour = DRIVE.concat([[51.70, -0.50]]);       /* a swing to the north-west */
+  var box = G.journeyBox(OXHEY, CRICKLEWOOD, detour);
+  assert.ok(box[2] >= 51.70 && box[1] <= -0.50, "the detour fell outside the frame");
+});
+
+test("one address alone gives a point to zoom to, not nothing", function () {
+  var box = G.journeyBox(OXHEY, null, null);
+  /* Compared value by value: the array is built inside the sandbox realm, so
+     it is not reference-equal to one built out here. */
+  assert.strictEqual(box.join(","), [OXHEY.lat, OXHEY.lon, OXHEY.lat, OXHEY.lon].join(","));
+});
+
+test("nothing entered yet frames nothing", function () {
+  assert.strictEqual(G.journeyBox(null, null, null), null);
+  assert.strictEqual(G.journeyBox(null, null, []), null);
+});
+
+test("the ring road does not widen the frame at all", function () {
+  var withRing = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE.concat(RING));
+  var without = G.journeyBox(OXHEY, CRICKLEWOOD, DRIVE);
+  assert.notStrictEqual(withRing.join(","), without.join(","),
+    "sanity: passing the ring as route points must widen it");
+  /* But the border is never passed as route points — that is the whole fix. */
+  assert.ok(span(without).lon < 0.25, "the journey's own frame stayed tight");
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);
