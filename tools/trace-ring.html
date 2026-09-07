@@ -24,8 +24,12 @@ built from — and stitches them into the loop the road makes. That is the road
 itself, with no routing involved, so there are no slip roads or turnarounds in
 the answer.</p>
 <p>It runs in your browser, on your network.</p>
-<p><label>Roads <input id="refs" value="M25, A282" size="18" /></label>
-   <button id="go">Trace it</button></p>
+<p><label>Roads <input id="refs" value="M25, A282" size="16" /></label>
+   <label style="margin-left:1rem">near <input id="near" value="51.5, -0.12" size="12" /></label>
+   <button id="go" style="margin-left:1rem">Trace it</button></p>
+<p style="font-size:.85rem;color:#64737f">A road number is not unique to one
+country — there is an M25 in Cape Town as well as round London — so the search
+is confined to 150 km of the point given. Latitude, then longitude.</p>
 <div id="log"></div>
 <pre id="out" hidden></pre>
 <p id="save" hidden><button id="dl">Download the ring</button></p>
@@ -79,9 +83,20 @@ document.getElementById("go").addEventListener("click", function () {
     .filter(Boolean);
   if (!refs.length) { say("name a road first", "bad"); btn.disabled = false; return; }
 
+  var near = document.getElementById("near").value.split(",").map(parseFloat);
+  if (near.length !== 2 || isNaN(near[0]) || isNaN(near[1])) {
+    say("give the centre as latitude, longitude", "bad"); btn.disabled = false; return;
+  }
+  /* A road number belongs to no country in particular. Without a box round
+     the place meant, "M25" fetches Cape Town's as readily as London's — which
+     is exactly what happened the first time this was asked. */
+  var dLat = 150 / 111.32, dLon = 150 / (111.32 * Math.max(0.1, Math.cos(near[0] * Math.PI / 180)));
+  var box = "[bbox:" + (near[0]-dLat).toFixed(3) + "," + (near[1]-dLon).toFixed(3) + "," +
+                       (near[0]+dLat).toFixed(3) + "," + (near[1]+dLon).toFixed(3) + "]";
+
   /* Every way of every route relation carrying these numbers. "out geom"
      gives each way its coordinates; without it only the ids come back. */
-  var query = "[out:json][timeout:90];(" + refs.map(function (r) {
+  var query = "[out:json][timeout:90]" + box + ";(" + refs.map(function (r) {
     return 'relation["ref"="' + r + '"]["type"="route"]["route"="road"];';
   }).join("") + ");out geom;";
 
@@ -112,6 +127,23 @@ document.getElementById("go").addEventListener("click", function () {
     say(wrong.length ? "landmarks WRONG: " + wrong.map(function (c) { return c[0]; }).join(", ")
                      : "all " + CHECKS.length + " landmarks correct",
         wrong.length ? "bad" : "ok");
+
+    /* Where it came back from, so a road on the wrong continent is obvious. */
+    var cx = 0, cy = 0;
+    edge.forEach(function (p) { cx += p[0]; cy += p[1]; });
+    say("centred on " + (cy/edge.length).toFixed(3) + ", " + (cx/edge.length).toFixed(3));
+
+    var sound = ring.traced && !ring.closedByHand && ring.areaKm2 > 40 && !wrong.length;
+    if (!sound) {
+      say("");
+      say("This is not usable — do not send it. " +
+          (!ring.traced ? "The ways would not stitch into a loop."
+           : ring.closedByHand ? "The loop had to be closed by hand."
+           : ring.areaKm2 <= 40 ? "It encloses almost nothing, so it is a line rather than a ring."
+           : "It puts places on the wrong side of the road."), "bad");
+      btn.disabled = false;
+      return;
+    }
 
     var payload = JSON.stringify({ ref: refs.join(" and "), traced: ring.traced,
       closedByHand: ring.closedByHand, points: edge.length,
