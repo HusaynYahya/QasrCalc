@@ -47,6 +47,10 @@ test("a qualifying journey changes prayer, and says where", function () {
   assert.ok(/still in town/i.test(s.head), "the road before it must be named as full prayer");
   assert.ok(/shortened/i.test(s.tail), "the road after it must be named as shortened");
   assert.ok(s.begin && /begins/i.test(s.begin), "the point itself must be labelled");
+  assert.ok(s.beginLabel && s.beginLabel.length < 40,
+    "the label written on the map must be short enough to fit on it: " + s.beginLabel);
+  assert.ok(/about/.test(s.beginLabel),
+    "the map's own label must still say the point is approximate");
 });
 
 test("it points at leaving town, and admits the map cannot draw the real line", function () {
@@ -70,6 +74,7 @@ test("a full-prayer journey shows no change at all", function () {
   var s = G.prayerStates(measure("TAMAM", "haddAlTarakhkhus"));
   assert.strictEqual(s.changes, false);
   assert.strictEqual(s.begin, null, "there is no point of change to mark");
+  assert.strictEqual(s.beginLabel, null);
   assert.ok(/whole of this journey/i.test(s.tail));
 });
 

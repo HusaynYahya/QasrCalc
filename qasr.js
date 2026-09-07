@@ -330,17 +330,6 @@
      Kept in step with .key--limit in qasr.css.                              */
   var MILESTONE = "#3f6ea8";
 
-  /* The mark for where the shortening begins. Drawn white-behind-colour so it
-     reads over the route line it sits on. The same shape is in index.html as
-     .key--begin.                                                            */
-  function flagSvg(colour) {
-    return "<svg viewBox='0 0 22 22' width='22' height='22' aria-hidden='true'>" +
-      "<path d='M4.5 20.5 L4.5 2.5' stroke='#fff' stroke-width='5' stroke-linecap='round'/>" +
-      "<path d='M4.5 3 L17 7 L4.5 11 Z' fill='#fff' stroke='#fff' stroke-width='3' stroke-linejoin='round'/>" +
-      "<path d='M4.5 20.5 L4.5 2.5' stroke='" + colour + "' stroke-width='2.4' stroke-linecap='round'/>" +
-      "<path d='M4.5 3.4 L15.5 7 L4.5 10.6 Z' fill='" + colour + "'/></svg>";
-  }
-
   /* Overpass is asked first, because it answers the question directly — every
      city and town within the radius, with the population tag where it exists.
      Population beats any guess from the size of a bounding box.              */
@@ -1373,7 +1362,8 @@
           ? "Pray in full — the shortening is doubted, so it does not begin"
           : "Inside your city — not counted",
         tail: "Pray in full for the whole of this journey",
-        begin: null
+        begin: null,
+        beginLabel: null
       };
     }
 
@@ -1385,6 +1375,9 @@
       tail: both
         ? "From here pray both — shortened, then full — to the destination"
         : "Pray shortened from here to the destination",
+      /* Two lengths: one to write on the map, one for prose. The full
+         sentence was being pinned to the map and ran off the edge of it. */
+      beginLabel: both ? "Both prayers begin about here" : "Shortening begins about here",
       begin: (both ? "Both prayers begin about here" : "Shortened prayer begins about here") +
         (begins && begins.where === "haddAlTarakhkhus"
           ? " — at ḥadd al-tarakhkhuṣ, where the town is lost to sight. The map can only show the town's edge; the line itself is judged by eye, a little beyond it."
@@ -1540,20 +1533,19 @@
 
         /* The one point the reader came for. */
         if (head && head.length > 1) {
-          /* A flag, because this is a line crossed rather than a place
-             arrived at — and because a circle here could not be told from the
-             dots at either end of the journey. FLAG_SVG is matched by the
-             .key--begin mark in index.html; the legend must show what the map
-             shows.                                                           */
+          /* A ring, in the amber of the stretch it ends: the road before it
+             is the road prayed in full. It reads apart from the two ends of
+             the journey because those are filled and this is hollow — a place
+             you are at against a line you cross. Matched by .key--begin in
+             qasr.css; the legend must show what the map shows.               */
           var beginMark = says.changes
-            ? L.marker(counted[0], { keyboard: false, icon: L.divIcon({
-                className: "mark-begin", iconSize: [22, 22], iconAnchor: [4, 20],
-                html: flagSvg("#0f8a76") }) })
+            ? L.circleMarker(counted[0],
+                { radius: 8, color: "#b0740d", weight: 4, fillColor: "#ffffff", fillOpacity: 1 })
             : L.circleMarker(counted[0],
                 { radius: 6, color: "#ffffff", weight: 2, fillColor: "#b0740d", fillOpacity: 1 });
           beginMark
             .addTo(mapState.drawn)
-            .bindTooltip(says.begin || ("Counting starts here — the " +
+            .bindTooltip(says.beginLabel || ("Counting starts here — the " +
               ((cities.from && cities.from.name) || "city") + " border"),
               { permanent: true, direction: "right", className: "tip-start" });
         }

@@ -352,9 +352,9 @@ input::placeholder { color: var(--ink-faint); }
    passing our own className replaces it, and this keeps it so. */
 .mark-limit { background: none; border: 0; }
 /* The point the reader came for. */
-/* A flag, matching flagSvg in qasr.js: a line crossed, not a place arrived
-   at, and unmistakable next to the two dots. */
-.key--begin { width: 16px; height: 16px; border: 0; border-radius: 0; background: none; color: var(--accent); overflow: visible; }
+/* A ring in the amber of the stretch it ends. Hollow, where the two ends of
+   the journey are filled: a line you cross, not a place you are at. */
+.key--begin { border: 3px solid var(--amber); background: var(--bg-raise); width: 14px; height: 14px; border-radius: 50%; }
 .key--fullroute { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 4px, transparent 4px 9px); }
 .legend li.is-begin { font-weight: 600; }
 
@@ -774,8 +774,10 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   .mapbusy .spin { animation-duration: 2.4s; }
 }
 
-.mark-begin { background: none; border: 0; }
 
 /* The ring road is the line the measuring starts from, not one boundary among
    several: solid and heavy in the key, as it is on the map. */
 .key--border-ring { border: 2px solid var(--accent); background: rgba(15, 138, 118, .18); }
+
+/* A label pinned to the map must not run off the edge of it. */
+.leaflet-tooltip.tip-start { max-width: 170px; white-space: normal; line-height: 1.35; }
