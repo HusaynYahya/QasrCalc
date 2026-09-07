@@ -305,6 +305,17 @@
      Kept in step with .key--limit in qasr.css.                              */
   var MILESTONE = "#3f6ea8";
 
+  /* The mark for where the shortening begins. Drawn white-behind-colour so it
+     reads over the route line it sits on. The same shape is in index.html as
+     .key--begin.                                                            */
+  function flagSvg(colour) {
+    return "<svg viewBox='0 0 22 22' width='22' height='22' aria-hidden='true'>" +
+      "<path d='M4.5 20.5 L4.5 2.5' stroke='#fff' stroke-width='5' stroke-linecap='round'/>" +
+      "<path d='M4.5 3 L17 7 L4.5 11 Z' fill='#fff' stroke='#fff' stroke-width='3' stroke-linejoin='round'/>" +
+      "<path d='M4.5 20.5 L4.5 2.5' stroke='" + colour + "' stroke-width='2.4' stroke-linecap='round'/>" +
+      "<path d='M4.5 3.4 L15.5 7 L4.5 10.6 Z' fill='" + colour + "'/></svg>";
+  }
+
   /* Overpass is asked first, because it answers the question directly — every
      city and town within the radius, with the population tag where it exists.
      Population beats any guess from the size of a bounding box.              */
@@ -1172,9 +1183,13 @@
     return true;
   }
 
+  /* The two ends of the journey are solid dots with a white rim. They used to
+     be rings with a white centre, which is exactly what the shortening mark
+     was, in the same green — on the map the two were indistinguishable. A
+     place is now filled; nothing else on the map is.                         */
   function pin(at, colour, label) {
     L.circleMarker(at, {
-      radius: 7, color: colour, weight: 3, fillColor: "#ffffff", fillOpacity: 1
+      radius: 7, color: "#ffffff", weight: 2.5, fillColor: colour, fillOpacity: 1
     }).addTo(mapState.drawn).bindTooltip(label);
   }
 
@@ -1362,9 +1377,18 @@
 
         /* The one point the reader came for. */
         if (head && head.length > 1) {
-          L.circleMarker(counted[0], says.changes
-            ? { radius: 8, color: "#0f8a76", weight: 4, fillColor: "#ffffff", fillOpacity: 1 }
-            : { radius: 7, color: "#b0740d", weight: 3, fillColor: "#ffffff", fillOpacity: 1 })
+          /* A flag, because this is a line crossed rather than a place
+             arrived at — and because a circle here could not be told from the
+             dots at either end of the journey. FLAG_SVG is matched by the
+             .key--begin mark in index.html; the legend must show what the map
+             shows.                                                           */
+          var beginMark = says.changes
+            ? L.marker(counted[0], { keyboard: false, icon: L.divIcon({
+                className: "mark-begin", iconSize: [22, 22], iconAnchor: [4, 20],
+                html: flagSvg("#0f8a76") }) })
+            : L.circleMarker(counted[0],
+                { radius: 6, color: "#ffffff", weight: 2, fillColor: "#b0740d", fillOpacity: 1 });
+          beginMark
             .addTo(mapState.drawn)
             .bindTooltip(says.begin || ("Counting starts here — the " +
               ((cities.from && cities.from.name) || "city") + " border"),
@@ -1792,6 +1816,25 @@
     });
   }
 
+  /* The badge on the map that says something slow is happening, and then
+     that it has finished. Tracing a motorway takes seconds on a first visit,
+     and until now the only sign of it was a line of text further up the page.
+
+     Passing done shows a tick instead of the spinner and clears itself after
+     a moment: "it is finished" is as much what the reader wants as "it is
+     working", and a badge that only ever disappears says the second badly. */
+  var busyTimer = null;
+  function busy(text, done) {
+    var el = $("mapBusy");
+    if (!el) return;
+    if (busyTimer) { clearTimeout(busyTimer); busyTimer = null; }
+    if (!text) { el.hidden = true; return; }
+    $("mapBusyText").textContent = text;
+    el.className = "mapbusy" + (done ? " is-done" : "");
+    el.hidden = false;
+    if (done) busyTimer = setTimeout(function () { el.hidden = true; }, 2800);
+  }
+
   /* Take a city as the one whose border the count starts from. */
   function useCity(city, byHand) {
     cities.from = city;
@@ -1815,10 +1858,13 @@
     if (!refs) return;
     city.ringTried = true;
     city.ringPending = true;
+    var named = (Array.isArray(refs) ? refs : [refs]).join(" and ");
+    busy("Tracing the " + named + " — a moment the first time");
     showCity("from", "fromHint", "Your city is");
     ringBoundary(refs, places.from || city).then(function (ring) {
       city.ringPending = false;
-      if (cities.from !== city) return;              /* the reader moved on */
+      if (cities.from !== city) { busy(null); return; }   /* the reader moved on */
+      busy("Traced the " + ring.ref + " — that is your city's edge", true);
       city.shape = ring.shape;
       city.fromRing = ring.ref;
       city.ringTraced = ring.traced;
@@ -1831,7 +1877,8 @@
     }).catch(function () {
       /* The published boundary was there before and stays. */
       city.ringPending = false;
-      city.ringFailed = (Array.isArray(refs) ? refs : [refs]).join(" and ");
+      city.ringFailed = named;
+      busy(null);
       if (cities.from === city) showCity("from", "fromHint", "Your city is");
     });
   }
@@ -2293,7 +2340,11 @@
       if (!name) return;
       $("cityMsg").textContent = "Looking for " + name + "…";
       $("cityMsg").className = "hint";
+      busy("Looking for " + name + "…");
       cityByName(name).then(function (city) {
+        /* Cleared before the city is taken: taking it may start a trace of
+           its ring road, which puts its own badge up. */
+        busy(null);
         if (!city.shape) {
           $("cityMsg").textContent = "Found " + city.name + ", but it has no published border, so nothing can be deducted from it.";
           $("cityMsg").className = "hint hint--warn";
@@ -2303,6 +2354,7 @@
         }
         useCity(city, true);
       }).catch(function (err) {
+        busy(null);
         $("cityMsg").textContent = err.message;
         $("cityMsg").className = "hint hint--warn";
       });
@@ -2313,7 +2365,9 @@
       if (!ref) return;
       $("ringMsg").textContent = "Tracing the " + ref.toUpperCase() + "…";
       $("ringMsg").className = "hint";
+      busy("Tracing the " + ref.toUpperCase() + " — a moment the first time");
       ringBoundary(ref, places.from).then(function (ring) {
+        busy("Traced the " + ring.ref + " — that is your city's edge", true);
         var was = cities.from;
         $("ringMsg").textContent = ring.traced ? "" :
           "The " + ring.ref + " could not be traced into a loop, so its outline is a rough one.";
@@ -2329,6 +2383,7 @@
           ringTried: true
         }, true);
       }).catch(function (err) {
+        busy(null);
         $("ringMsg").textContent = err.message;
         $("ringMsg").className = "hint hint--warn";
       });

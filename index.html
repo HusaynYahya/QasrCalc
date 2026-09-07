@@ -6,8 +6,8 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=42" />
-<link rel="stylesheet" href="qasr.css?v=42" />
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=44" />
+<link rel="stylesheet" href="qasr.css?v=44" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -191,13 +191,20 @@
       </div>
     </div>
 
-    <div id="map" class="map" aria-label="Map of the route between the two places"></div>
+    <div class="map-holder">
+      <div id="map" class="map" aria-label="Map of the route between the two places"></div>
+      <p class="mapbusy" id="mapBusy" role="status" aria-live="polite" hidden>
+        <span class="spin" aria-hidden="true"></span>
+        <span class="tick" aria-hidden="true">✓</span>
+        <span id="mapBusyText"></span>
+      </p>
+    </div>
 
     <ul class="legend" id="mapLegend">
       <li class="is-from"><span class="key key--from"></span>Start</li>
       <li class="is-to"><span class="key key--to"></span>Destination</li>
       <li class="is-head" hidden><span class="key key--head"></span>Pray in full — still in town</li>
-      <li class="is-begin" hidden><span class="key key--begin"></span><b>Shortening begins here</b></li>
+      <li class="is-begin" hidden><svg class="key key--begin" viewBox="0 0 22 22" width="16" height="16" aria-hidden="true"><path d="M4.5 20.5 L4.5 2.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4.5 3.4 L15.5 7 L4.5 10.6 Z" fill="currentColor"/></svg><b>Shortening begins here</b></li>
       <li class="is-route" hidden><span class="key key--route"></span>Pray shortened — to the destination</li>
       <li class="is-fullroute" hidden><span class="key key--fullroute"></span>Pray in full — the whole way</li>
       <li class="is-border"><span class="key key--border"></span>Your city's border</li>
@@ -298,8 +305,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=42" defer></script>
-<script src="fiqh.js?v=42" defer></script>
-<script src="qasr.js?v=42" defer></script>
+<script src="lib/leaflet/leaflet.js?v=44" defer></script>
+<script src="fiqh.js?v=44" defer></script>
+<script src="qasr.js?v=44" defer></script>
 </body>
 </html>

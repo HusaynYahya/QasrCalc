@@ -320,8 +320,10 @@ input::placeholder { color: var(--ink-faint); }
 .legend li { display: flex; align-items: center; gap: .45rem; }
 .legend li[hidden] { display: none; }
 .key { width: 14px; height: 14px; border-radius: 50%; flex: none; }
-.key--from  { border: 3px solid var(--accent-bright); }
-.key--to    { border: 3px solid var(--amber-bright); }
+/* A place is filled; nothing else in the key is. The two ends used to be
+   rings, which is what the shortening mark was, in the same green. */
+.key--from  { background: var(--accent-bright); box-shadow: 0 0 0 2px var(--bg-raise), 0 0 0 3px var(--hair); width: 11px; height: 11px; }
+.key--to    { background: var(--amber-bright);  box-shadow: 0 0 0 2px var(--bg-raise), 0 0 0 3px var(--hair); width: 11px; height: 11px; }
 .key--route { height: 3px; border-radius: 2px; background: var(--accent); }
 .key--edge  { border: 1px dashed var(--ink-mute); }
 /* A cross, and neither green nor amber: the eight farsakh is a measurement,
@@ -343,7 +345,9 @@ input::placeholder { color: var(--ink-faint); }
    passing our own className replaces it, and this keeps it so. */
 .mark-limit { background: none; border: 0; }
 /* The point the reader came for. */
-.key--begin { border: 3px solid var(--accent); background: #fff; width: 13px; height: 13px; border-radius: 50%; }
+/* A flag, matching flagSvg in qasr.js: a line crossed, not a place arrived
+   at, and unmistakable next to the two dots. */
+.key--begin { width: 16px; height: 16px; border: 0; border-radius: 0; background: none; color: var(--accent); overflow: visible; }
 .key--fullroute { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 4px, transparent 4px 9px); }
 .legend li.is-begin { font-weight: 600; }
 
@@ -732,3 +736,35 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 
 /* A border that is deducting nothing, because the start is not inside it. */
 .key--border-off { border: 1px dashed var(--ink-faint); background: none; }
+
+/* ---- saying that the map is still working ------------------------------- */
+/* Tracing a motorway takes seconds the first time, and looking a city up
+   takes a moment more. Both used to happen behind a line of text further up
+   the page, so the map simply sat there and the reader could not tell
+   whether it had finished or failed. This sits on the map itself, which is
+   where the answer is going to appear. */
+.map-holder { position: relative; }
+.mapbusy {
+  position: absolute; left: 50%; top: 1rem; transform: translateX(-50%);
+  z-index: 1200; margin: 0; display: flex; align-items: center; gap: .55rem;
+  max-width: calc(100% - 2rem);
+  padding: .55rem .95rem; border-radius: 999px;
+  background: var(--bg-raise); border: 1px solid var(--accent-line);
+  box-shadow: var(--shadow);
+  font-family: var(--font-label); font-size: .82rem; color: var(--ink-soft);
+}
+.mapbusy .spin {
+  flex: none; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--accent-line); border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+.mapbusy .tick { display: none; flex: none; color: var(--accent); font-weight: 700; }
+.mapbusy.is-done { border-color: var(--accent); color: var(--accent-bright); }
+.mapbusy.is-done .spin { display: none; }
+.mapbusy.is-done .tick { display: inline; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .mapbusy .spin { animation-duration: 2.4s; }
+}
+
+.mark-begin { background: none; border: 0; }
