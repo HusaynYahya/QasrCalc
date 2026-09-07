@@ -357,5 +357,68 @@ test("London is measured from the M25, and from the A282 across the Thames", fun
   assert.strictEqual(G.RING_ROAD.london.join(","), "M25,A282");
 });
 
+/* --- the M25 as the page carries it --------------------------------------- */
+/* This polygon decides whether an address is in London, and with it whether a
+   journey counts at all. It is checked against places whose side of the
+   motorway is not in doubt. */
+console.log("\nThe M25 carried in the page");
+
+function m25() {
+  var entry = G.RING_ROADS.filter(function (r) { return r.city === "London"; })[0];
+  assert.ok(entry && entry.shape, "London has no ring road in the page");
+  return entry;
+}
+
+test("it encloses about what the M25 encloses", function () {
+  var area = G.ringAreaKm2(m25().shape.coordinates[0]);
+  assert.ok(area > 1900 && area < 2600,
+    "the M25 holds roughly 2,200 km²; this holds " + area.toFixed(0));
+});
+
+test("it is a closed ring of enough points to be a road", function () {
+  var edge = m25().shape.coordinates[0];
+  assert.ok(edge.length >= 30, "too few points to follow a motorway: " + edge.length);
+  assert.strictEqual(edge[0].join(","), edge[edge.length - 1].join(","), "the ring must close");
+  assert.ok(edge.every(function (p) {
+    return p[0] > -0.7 && p[0] < 0.4 && p[1] > 51.1 && p[1] < 51.9;
+  }), "a point strayed outside the south-east — check the [lon, lat] order");
+});
+
+test("places inside the M25 are inside", function () {
+  var shape = m25().shape;
+  [["WD19 4QP, South Oxhey", 51.6238, -0.3892],
+   ["Anson Road, Cricklewood", 51.5556, -0.2136],
+   ["Watford town centre", 51.6560, -0.3960],
+   ["Heathrow", 51.4700, -0.4543],
+   ["Croydon", 51.3762, -0.0982],
+   ["Dartford", 51.4460, 0.2170],
+   ["Uxbridge", 51.5460, -0.4780],
+   ["Charing Cross", 51.5074, -0.1278]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), true, c[0] + " came out outside");
+  });
+});
+
+test("places outside the M25 are outside", function () {
+  var shape = m25().shape;
+  [["St Albans", 51.7520, -0.3360],
+   ["Slough", 51.5105, -0.5950],
+   ["Sevenoaks town", 51.2720, 0.1900],
+   ["Guildford", 51.2362, -0.5704],
+   ["Brighton", 50.8225, -0.1372],
+   ["Milton Keynes", 52.0406, -0.7594]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), false, c[0] + " came out inside");
+  });
+});
+
+test("the box that gates the lookup contains the whole ring", function () {
+  var entry = m25(), b = entry.box;
+  entry.shape.coordinates[0].forEach(function (p) {
+    assert.ok(p[1] >= b[0] && p[1] <= b[2] && p[0] >= b[1] && p[0] <= b[3],
+      "the ring runs outside its own box at " + p + " — addresses there would be missed");
+  });
+});
+
 console.log("\n" + passed + " passed, " + failed + " failed\n");
 process.exit(failed ? 1 : 0);

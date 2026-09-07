@@ -493,9 +493,68 @@
      contains each. The box is a cheap gate: an address outside it cannot be
      inside the road, so the road is never fetched for one. Only an address
      inside the box is tested against the traced ring itself.                 */
+  /* The M25, by its junctions, clockwise from the Dartford Crossing. Its
+     eastern side across the Thames is the A282, and the ring closes over it.
+
+     Carried in the page rather than fetched. The motorway does not move, and
+     making London's boundary depend on a map server that may be slow,
+     unreachable, or answer in a shape the stitching cannot close meant that
+     an address plainly inside the M25 could be called Watford, shown no
+     border, and ruled a journey. A boundary this central to the answer should
+     not be able to fail at all.
+
+     Straight lines between junctions cut the corners the motorway rounds, by
+     something under a kilometre and a half at the worst of them. Against a
+     legal distance of 44 km that cannot move a ruling; it can only matter for
+     an address within about a kilometre of the motorway itself, and there the
+     question of whether you are inside London is one for the reader anyway.  */
+  var M25 = [
+    [0.256, 51.446],  /* J1a Dartford */
+    [0.247, 51.409],  /* J2 Darenth */
+    [0.19, 51.39],  /* J3 Swanley */
+    [0.124, 51.369],  /* J4 Orpington */
+    [0.157, 51.2935],  /* J5 Sevenoaks */
+    [0.06, 51.275],  /* between J5 and J6 */
+    [-0.035, 51.262],  /* J6 Godstone */
+    [-0.147, 51.27],  /* J7 Merstham */
+    [-0.1949, 51.2478],  /* J8 Reigate */
+    [-0.329, 51.287],  /* J9 Leatherhead */
+    [-0.454, 51.308],  /* J10 Wisley */
+    [-0.505, 51.365],  /* J11 Chertsey */
+    [-0.522, 51.384],  /* J12 M3 */
+    [-0.524, 51.431],  /* J13 Staines */
+    [-0.488, 51.464],  /* J14 Heathrow */
+    [-0.489, 51.497],  /* J15 M4 */
+    [-0.518, 51.569],  /* J16 M40 */
+    [-0.495, 51.618],  /* J17 Maple Cross */
+    [-0.488, 51.651],  /* J18 Chorleywood */
+    [-0.423, 51.67],  /* J19 Watford */
+    [-0.416, 51.696],  /* J20 Kings Langley */
+    [-0.379, 51.704],  /* J21 M1 */
+    [-0.339, 51.71],  /* J21a */
+    [-0.28, 51.716],  /* J22 London Colney */
+    [-0.225, 51.702],  /* J23 South Mimms */
+    [-0.177, 51.696],  /* J24 Potters Bar */
+    [-0.125, 51.685],  /* between J24 and J25 */
+    [-0.073, 51.669],  /* J25 Enfield */
+    [0.017, 51.681],  /* J26 Waltham Abbey */
+    [0.103, 51.68],  /* J27 M11 */
+    [0.18, 51.65],  /* between J27 and J28 */
+    [0.262, 51.613],  /* J28 Brentwood */
+    [0.256, 51.561],  /* J29 Romford */
+    [0.279, 51.506],  /* J30 Thurrock */
+    [0.26, 51.484],  /* J31 West Thurrock */
+    [0.256, 51.446]  /* back to J1a */
+  ];
+
   var RING_ROADS = [
     { city: "London", area: "England", refs: ["M25", "A282"],
-      box: [51.20, -0.62, 51.78, 0.36] }
+      /* A box that contains the ring, checked before the ring itself: it is
+         a handful of comparisons against a point, where the ring is a walk
+         round three dozen. */
+      box: [51.20, -0.62, 51.78, 0.36],
+      shape: { type: "Polygon", coordinates: [M25] },
+      areaKm2: 2254 }
   ];
 
   /* Keyed by name as well, for a city named by hand. */
@@ -868,38 +927,17 @@
      a request, and the traced ring decides it after that.                    */
   function cityWithRing(place, announce) {
     var entry = ringRoadNear(place);
-    if (!entry) return cityOf(place);
-
-    if (announce) busy("Tracing the " + entry.refs.join(" and ") + " — a moment the first time");
-    return ringBoundary(entry.refs, place)
-      .then(function (ring) {
-        /* Adopted only if it really is a closed loop of a believable size.
-           A road that would not stitch is reported, not quietly used: taking
-           a hull for London's edge is how an address inside the M25 ends up
-           declared outside its own city.                                    */
-        if (!ringIsSound(ring)) {
-          if (announce) busy(null);
-          return cityOf(place).then(function (city) {
-            city.ringUnsound = entry.refs.join(" and ");
-            return city;
-          });
-        }
-        if (!inShape(place.lat, place.lon, ring.shape)) {
-          if (announce) busy(null);
-          return cityOf(place);                 /* near it, but outside it */
-        }
-        if (announce) busy("Inside the " + ring.ref + " — measured from its edge", true);
-        return {
-          name: entry.city, area: entry.area || null,
-          shape: ring.shape, fromRing: ring.ref, ringArea: ring.areaKm2,
-          ringTraced: ring.traced, ringClosedByHand: ring.closedByHand,
-          ringTried: true, ringAuto: true
-        };
-      })
-      .catch(function () {
-        if (announce) busy(null);
-        return cityOf(place);                   /* the road could not be traced */
+    /* No network, no waiting, nothing to fail: the ring is in the page, and
+       the only question is whether the address falls inside it.             */
+    if (entry && entry.shape && inShape(place.lat, place.lon, entry.shape)) {
+      return Promise.resolve({
+        name: entry.city, area: entry.area || null,
+        shape: entry.shape, fromRing: entry.refs.join(" and "),
+        ringArea: entry.areaKm2, ringTraced: true, ringClosedByHand: false,
+        ringTried: true, ringAuto: true
       });
+    }
+    return cityOf(place);
   }
 
   /* A readable address for a point on the map. Zoom 18 answers at street

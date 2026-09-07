@@ -213,47 +213,52 @@ test("the box round the ring is checked before the road is", function () {
   assert.strictEqual(G.ringRoadNear({ lat: "51.5", lon: -0.12 }), null, "a string is not a latitude");
 });
 
-test("a ring road that will not trace falls back to the published city", function () {
-  var b = browser(function (url) {
-    if (/overpass/.test(url)) return { ok: false, status: 504,
-      json: function () { return Promise.resolve({}); } };
-    return reply({ address: { town: "Watford", county: "Hertfordshire" },
-                   addresstype: "town", place_rank: 16, geojson: null });
+test("London needs no map server at all", function () {
+  /* The M25 is carried in the page. Overpass being down, slow, or answering
+     in a shape the stitching cannot close must no longer be able to turn an
+     address inside the ring into Watford with no border. */
+  var b = browser(function () {
+    throw new Error("nothing should be fetched to decide this");
   });
-  return b.window.QasrEngine.cityWithRing({ lat: 51.6238, lon: -0.3892 }, false)
+  return b.window.QasrEngine.cityWithRing({ lat: 51.6238, lon: -0.3892 }, true)
     .then(function (city) {
-      assert.strictEqual(city.name, "Watford", "the fallback must still name a city");
+      assert.strictEqual(city.name, "London");
+      assert.ok(city.shape, "the border must come with the shape to measure against");
+      assert.strictEqual(b.calls.length, 0,
+        "deciding London cost " + b.calls.length + " request(s); it should cost none");
     });
 });
 
 /* The whole sequence, in the order it happens: an address arrives, the box
-   says a ring road is worth looking for, the road is traced, the address is
-   found to be inside it, that becomes the city border, and the map frames the
-   ring. Each step has its own test above or in map.test.js; this one is here
-   so that the sequence itself cannot quietly come apart. */
-test("address, box, trace, inside, border, drawn — the whole way through", function () {
-  var b = londonWorld();
+   says a ring road may apply, the ring itself is consulted, the address is
+   found inside it, that becomes the city border, and the map frames the ring.
+   Each step has its own test; this one is here so the sequence cannot quietly
+   come apart, which is how it broke twice. */
+test("address, box, ring, inside, border, drawn — the whole way through", function () {
+  var b = browser(function () { throw new Error("no network for this"); });
   var G = b.window.QasrEngine;
   var here = { lat: 51.6238, lon: -0.3892 };          /* WD19 4QP */
 
-  var step = G.ringRoadNear(here);
-  assert.ok(step, "1. the box did not recognise the address as near a ring road");
-  assert.strictEqual(step.city, "London");
+  var entry = G.ringRoadNear(here);
+  assert.ok(entry, "1. the box did not recognise the address as near a ring road");
+  assert.strictEqual(entry.city, "London");
+  assert.ok(entry.shape, "2. the ring is not carried in the page");
+  assert.strictEqual(G.inShape(here.lat, here.lon, entry.shape), true,
+    "3. the address was not found inside the ring");
 
-  return G.ringBoundary(step.refs, here).then(function (ring) {
-    assert.strictEqual(ring.traced, true, "2. the road was not traced");
-    assert.strictEqual(G.inShape(here.lat, here.lon, ring.shape), true,
-      "3. the address was not found inside the road");
+  return G.cityWithRing(here, false).then(function (city) {
+    assert.strictEqual(city.name, "London", "4. the border did not become London");
+    assert.strictEqual(city.fromRing, "M25 and A282");
 
-    return G.cityWithRing(here, false).then(function (city) {
-      assert.strictEqual(city.name, "London", "4. the border did not become London");
-      assert.ok(city.shape, "4. the border came without a shape to measure against");
-      assert.strictEqual(city.fromRing, "M25 and A282");
-
-      var box = G.journeyBox(here, null, null, city.shape);
-      assert.ok(box[0] <= 51.26 && box[2] >= 51.72 && box[1] <= -0.55 && box[3] >= 0.28,
-        "5. the ring was drawn but framed off the edge of the map");
-    });
+    /* 5. the frame must hold the whole ring, or it is drawn off the screen. */
+    var edge = city.shape.coordinates[0];
+    var s = Math.min.apply(null, edge.map(function (p) { return p[1]; }));
+    var n = Math.max.apply(null, edge.map(function (p) { return p[1]; }));
+    var w = Math.min.apply(null, edge.map(function (p) { return p[0]; }));
+    var e = Math.max.apply(null, edge.map(function (p) { return p[0]; }));
+    var box = G.journeyBox(here, null, null, city.shape);
+    assert.ok(box[0] <= s && box[2] >= n && box[1] <= w && box[3] >= e,
+      "5. the ring was drawn but framed off the edge of the map");
   });
 });
 
