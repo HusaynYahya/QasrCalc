@@ -702,3 +702,18 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 .bordercheck.is-ask { border-left-color: var(--warn, #b0740d); }
 .bordercheck__ask { display: flex; gap: .5rem; margin-top: .6rem; }
 .bordercheck__ask .btn { margin-top: 0; }
+
+/* ---- room between the questions ----------------------------------------- */
+/* They sat edge to edge, divided only by a hairline, so a column of them read
+   as one long block rather than as separate questions. Each is now its own
+   box with air round it, and a follow-up that appears inside an answer is set
+   in again from the question it belongs to. */
+.q--toggle { border: 1px solid var(--hair); background: var(--bg-raise); }
+.q--toggle + .q--toggle {
+  margin-top: .5rem; border-top: 1px solid var(--hair); border-radius: var(--radius);
+}
+.q--sub { margin: .6rem 0 .6rem 2.6rem; padding: 1rem 1.1rem; }
+.q--sub > label { display: block; margin-bottom: .4rem; }
+.q--sub > * + * { margin-top: .9rem; }
+.q--sub .hint { margin: .55rem 0 0; }
+.q--sub .q--toggle { margin-top: 1rem; }
