@@ -14,6 +14,11 @@ var vm = require("vm");
 var assert = require("assert");
 
 var passed = 0, failed = 0, queue = Promise.resolve();
+/* Headings are queued like the tests. Printed directly they all appeared
+   first, before a single asynchronous test had run. */
+function section(name) {
+  queue = queue.then(function () { console.log("\n" + name); });
+}
 function test(name, fn) {
   queue = queue.then(function () {
     return Promise.resolve().then(fn).then(
@@ -68,7 +73,7 @@ function ringReply() {
   return { elements: [{ type: "relation", members: [{ type: "way", geometry: dense }] }] };
 }
 
-console.log("\nWhat is asked of the network");
+section("What is asked of the network");
 
 test("the ring is asked for by bounding box, not by radius", function () {
   var b = browser(function () { return reply(ringReply()); });
@@ -138,6 +143,86 @@ test("the nearby-city search does not wait for the address lookups", function ()
       assert.ok(started.overpass - t0 < 1000,
         "the nearby search waited " + (started.overpass - t0) + " ms behind the address queue");
       assert.ok(seen >= 1, "nothing was reported until the very end");
+    });
+});
+
+/* --- the M25 taken as London's edge, without being asked ------------------ */
+section("The ring road, adopted automatically");
+
+/* A square standing in for the M25, and a reverse-geocode that would call
+   every one of these places something else. */
+function londonWorld() {
+  return browser(function (url) {
+    if (/overpass/.test(url)) {
+      var loop = [[51.72, -0.55], [51.72, 0.28], [51.26, 0.28], [51.26, -0.55], [51.72, -0.55]];
+      var dense = [];
+      for (var i = 0; i < loop.length - 1; i++) {
+        for (var k = 0; k < 40; k++) {
+          var a = loop[i], b = loop[i + 1], t = k / 40;
+          dense.push({ lat: a[0] + (b[0] - a[0]) * t, lon: a[1] + (b[1] - a[1]) * t });
+        }
+      }
+      dense.push({ lat: 51.72, lon: -0.55 });
+      return reply({ elements: [{ type: "relation", members: [{ type: "way", geometry: dense }] }] });
+    }
+    return reply({ address: { town: "Watford", county: "Hertfordshire" },
+                   addresstype: "town", place_rank: 16, geojson: null });
+  });
+}
+
+test("an address inside the ring is in London, whatever it is called", function () {
+  var b = londonWorld();
+  /* WD19 4QP, which the address service calls Watford. */
+  return b.window.QasrEngine.cityWithRing({ lat: 51.6238, lon: -0.3892 }, false)
+    .then(function (city) {
+      assert.strictEqual(city.name, "London", "expected London, got " + city.name);
+      assert.strictEqual(city.fromRing, "M25 and A282");
+      assert.ok(city.shape, "the ring must come with the shape to measure against");
+      assert.strictEqual(city.ringAuto, true, "it should be marked as taken automatically");
+    });
+});
+
+test("an address near the ring but outside it keeps its own city", function () {
+  var b = londonWorld();
+  /* Inside the box that gates the lookup, outside the ring itself. */
+  return b.window.QasrEngine.cityWithRing({ lat: 51.76, lon: -0.30 }, false)
+    .then(function (city) {
+      assert.notStrictEqual(city.name, "London", "outside the ring is not inside London");
+      assert.ok(!city.fromRing, "no ring should be adopted for it");
+    });
+});
+
+test("an address far from any ring road costs no request at all", function () {
+  var b = londonWorld();
+  /* Manchester: outside the box, so the motorway is never fetched. */
+  return b.window.QasrEngine.cityWithRing({ lat: 53.4808, lon: -2.2426 }, false)
+    .then(function () {
+      var traced = b.calls.filter(function (c) { return /overpass/.test(c.url); });
+      assert.strictEqual(traced.length, 0,
+        "the ring road was fetched for a place nowhere near it");
+    });
+});
+
+test("the box round the ring is checked before the road is", function () {
+  var G = londonWorld().window.QasrEngine;
+  assert.ok(G.ringRoadNear({ lat: 51.5, lon: -0.12 }), "central London is in the box");
+  assert.ok(G.ringRoadNear({ lat: 51.6238, lon: -0.3892 }), "WD19 4QP is in the box");
+  assert.strictEqual(G.ringRoadNear({ lat: 53.48, lon: -2.24 }), null, "Manchester is not");
+  assert.strictEqual(G.ringRoadNear({ lat: 52.3793, lon: -1.5615 }), null, "Warwick is not");
+  assert.strictEqual(G.ringRoadNear(null), null);
+  assert.strictEqual(G.ringRoadNear({ lat: "51.5", lon: -0.12 }), null, "a string is not a latitude");
+});
+
+test("a ring road that will not trace falls back to the published city", function () {
+  var b = browser(function (url) {
+    if (/overpass/.test(url)) return { ok: false, status: 504,
+      json: function () { return Promise.resolve({}); } };
+    return reply({ address: { town: "Watford", county: "Hertfordshire" },
+                   addresstype: "town", place_rank: 16, geojson: null });
+  });
+  return b.window.QasrEngine.cityWithRing({ lat: 51.6238, lon: -0.3892 }, false)
+    .then(function (city) {
+      assert.strictEqual(city.name, "Watford", "the fallback must still name a city");
     });
 });
 

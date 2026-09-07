@@ -768,3 +768,7 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 }
 
 .mark-begin { background: none; border: 0; }
+
+/* The ring road is the line the measuring starts from, not one boundary among
+   several: solid and heavy in the key, as it is on the map. */
+.key--border-ring { border: 2px solid var(--accent); background: rgba(15, 138, 118, .18); }

@@ -464,7 +464,29 @@
      does not: its eastern side across the Thames is the A282, so that is
      asked for too. Where a gap remains, the ends are joined and the fact is
      reported rather than hidden.                                             */
-  var RING_ROAD = { london: ["M25", "A282"] };
+  /* Ring roads that stand in for a city's edge, with a box that comfortably
+     contains each. The box is a cheap gate: an address outside it cannot be
+     inside the road, so the road is never fetched for one. Only an address
+     inside the box is tested against the traced ring itself.                 */
+  var RING_ROADS = [
+    { city: "London", area: "England", refs: ["M25", "A282"],
+      box: [51.20, -0.62, 51.78, 0.36] }
+  ];
+
+  /* Keyed by name as well, for a city named by hand. */
+  var RING_ROAD = {};
+  RING_ROADS.forEach(function (r) { RING_ROAD[r.city.toLowerCase()] = r.refs; });
+
+  /* Worth tracing a ring road for this place at all? */
+  function ringRoadNear(place) {
+    if (!place || typeof place.lat !== "number" || typeof place.lon !== "number") return null;
+    for (var i = 0; i < RING_ROADS.length; i++) {
+      var b = RING_ROADS[i].box;
+      if (place.lat >= b[0] && place.lat <= b[2] &&
+          place.lon >= b[1] && place.lon <= b[3]) return RING_ROADS[i];
+    }
+    return null;
+  }
 
   /* As many points as the border may keep. Every one of them is walked for
      each point of a route tested against it, and a few thousand costs
@@ -782,6 +804,39 @@
         };
         nameCache[cacheKey] = city;      /* failures are not kept: they retry */
         return city;
+      });
+  }
+
+  /* The city for a place, taking a ring road as the edge wherever the place
+     falls inside one.
+
+     An address inside the M25 is in London however the address service labels
+     it — Watford, Croydon and Cricklewood alike — and the distance is measured
+     from the motorway, not from a council boundary somewhere inside it. The
+     box is checked first so that no address outside the south-east ever costs
+     a request, and the traced ring decides it after that.                    */
+  function cityWithRing(place, announce) {
+    var entry = ringRoadNear(place);
+    if (!entry) return cityOf(place);
+
+    if (announce) busy("Tracing the " + entry.refs.join(" and ") + " — a moment the first time");
+    return ringBoundary(entry.refs, place)
+      .then(function (ring) {
+        if (!inShape(place.lat, place.lon, ring.shape)) {
+          if (announce) busy(null);
+          return cityOf(place);                 /* near it, but outside it */
+        }
+        if (announce) busy("Inside the " + ring.ref + " — measured from its edge", true);
+        return {
+          name: entry.city, area: entry.area || null,
+          shape: ring.shape, fromRing: ring.ref,
+          ringTraced: ring.traced, ringClosedByHand: ring.closedByHand,
+          ringTried: true, ringAuto: true
+        };
+      })
+      .catch(function () {
+        if (announce) busy(null);
+        return cityOf(place);                   /* the road could not be traced */
       });
   }
 
@@ -1318,9 +1373,16 @@
         var city = cities[spec[0]];
         if (!city || !city.shape) return;
         var tone = borderUnused ? "#93a1ac" : spec[1];
+        /* A ring road is drawn heavier and solid. It is not one boundary among
+           several — it is the line the measuring starts from, and every
+           reading of the map depends on seeing where it runs.                 */
+        var isRing = !!city.fromRing && !borderUnused;
         var layer = L.geoJSON(city.shape, {
-          style: { color: tone, weight: 1.5, opacity: borderUnused ? .5 : .75,
-                   dashArray: "5 5", fill: !borderUnused, fillOpacity: .06, fillColor: tone }
+          style: { color: tone,
+                   weight: isRing ? 3.5 : 1.5,
+                   opacity: borderUnused ? .5 : (isRing ? .95 : .75),
+                   dashArray: isRing ? null : "5 5",
+                   fill: !borderUnused, fillOpacity: isRing ? .10 : .06, fillColor: tone }
         }).addTo(mapState.drawn).bindTooltip(spec[2] + ": " + (city.name || "border") +
           (city.fromRing ? " — traced along the " + city.fromRing : "") +
           (borderUnused ? " — your start is not inside it, so nothing is deducted from it" : ""));
@@ -1449,10 +1511,13 @@
     $("mapLegend").querySelector(".is-from").hidden = !places.from;
     $("mapLegend").querySelector(".is-to").hidden = !places.to;
     $("mapLegend").querySelector(".is-border").hidden = !drewBorder;
+    var homeRing = !borderUnused && cities.from && cities.from.fromRing;
     $("mapLegend").querySelector(".is-border").innerHTML =
-      "<span class='key key--border" + (borderUnused ? " key--border-off" : "") + "'></span>" +
+      "<span class='key key--border" +
+        (borderUnused ? " key--border-off" : homeRing ? " key--border-ring" : "") + "'></span>" +
       (borderUnused ? "Your city's border — your start is outside it"
-                    : "Your city's border");
+       : homeRing ? "The " + cities.from.fromRing + " — your city's edge, and where the count starts"
+       : "Your city's border");
     $("mapLegend").querySelector(".is-edge").hidden = !hasEdge;
     $("mapLegend").querySelector(".is-limit").hidden = !at;
     renderBorderCheck();
@@ -2235,9 +2300,13 @@
            here must not sink the calculation. */
         return (cityConfirmed && cities.from
                   ? Promise.resolve(cities.from)
-                  : cityOf(places.from)
+                  : cityWithRing(places.from, true)
                ).then(function (home) {
-          return cityOf(places.to).then(function (away) { return [home, away]; });
+          /* The far end is asked the same question. Two addresses inside the
+             M25 are both in London, so the journey stays within one city and
+             nothing is counted — which is the whole point of taking the
+             motorway as the boundary.                                        */
+          return cityWithRing(places.to, false).then(function (away) { return [home, away]; });
         });
       })
       .then(function (pair) {
@@ -2575,7 +2644,8 @@
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
-    segmentsDiffer: segmentsDiffer
+    segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
+    cityWithRing: cityWithRing
   };
 
   if (document.readyState === "loading") {
