@@ -324,11 +324,20 @@
   ];
   var nearbyReason = null;          /* why the last search found nothing */
 
-  /* The eight-farsakh mark. Deliberately outside the palette of the two
-     prayers — green shortens, amber does not — because it is neither: it is
-     the measurement that decides whether the journey qualifies at all.
-     Kept in step with .key--limit in qasr.css.                              */
-  var MILESTONE = "#3f6ea8";
+  /* Everything drawn on the map takes its colour from the stylesheet, so the
+     page and the map change together when the theme does, and no colour is
+     written down twice — which a lint test used to have to guard.           */
+  function paint(token) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(token);
+    return (v || "").trim() || "#000000";
+  }
+
+  /* Light tiles under a light page, dark under a dark one. The stylesheet
+     names which set, so the theme is decided in one place. */
+  function tileUrl() {
+    var set = paint("--map-tiles").replace(/["']/g, "") || "light_all";
+    return "https://{s}.basemaps.cartocdn.com/" + set + "/{z}/{x}/{y}{r}.png";
+  }
 
   /* Overpass is asked first, because it answers the question directly — every
      city and town within the radius, with the population tag where it exists.
@@ -1319,7 +1328,7 @@
     }
     mapState.map = L.map("map", { scrollWheelZoom: false, attributionControl: true })
                     .setView([30, 10], 2);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    mapState.tiles = L.tileLayer(tileUrl(), {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(mapState.map);
@@ -1333,7 +1342,7 @@
      place is now filled; nothing else on the map is.                         */
   function pin(at, colour, label) {
     L.circleMarker(at, {
-      radius: 7, color: "#ffffff", weight: 2.5, fillColor: colour, fillOpacity: 1
+      radius: 7, color: paint("--map-paper"), weight: 2.5, fillColor: colour, fillOpacity: 1
     }).addTo(mapState.drawn).bindTooltip(label);
   }
 
@@ -1461,11 +1470,11 @@
        but it is drawn as what it is: grey, unfilled, and labelled unused.    */
     var borderUnused = !!(borderCheck && borderCheck.ok === false && borderCheck.outside);
     var drewBorder = false;
-    [["from", "#0f8a76", "Your city"]]
+    [["from", paint("--map-border"), "Your city"]]
       .forEach(function (spec) {
         var city = cities[spec[0]];
         if (!city || !city.shape) return;
-        var tone = borderUnused ? "#93a1ac" : spec[1];
+        var tone = borderUnused ? paint("--map-faint") : spec[1];
         /* A ring road is drawn heavier and solid. It is not one boundary among
            several — it is the line the measuring starts from, and every
            reading of the map depends on seeing where it runs.                 */
@@ -1485,11 +1494,11 @@
       });
 
     if (places.from) {
-      pin([places.from.lat, places.from.lon], "#0a6455", places.from.label.split(",")[0] + " — start");
+      pin([places.from.lat, places.from.lon], paint("--map-start"), places.from.label.split(",")[0] + " — start");
       seen.push(L.latLngBounds([[places.from.lat, places.from.lon]]));
     }
     if (places.to) {
-      pin([places.to.lat, places.to.lon], "#8a5a06", places.to.label.split(",")[0] + " — destination");
+      pin([places.to.lat, places.to.lon], paint("--map-dest"), places.to.label.split(",")[0] + " — destination");
       seen.push(L.latLngBounds([[places.to.lat, places.to.lon]]));
     }
 
@@ -1520,14 +1529,14 @@
 
       if (head && head.length > 1) {
         L.polyline(head, {
-          color: says.changes ? "#b0740d" : "#93a1ac", weight: 4, opacity: .85,
+          color: says.changes ? paint("--map-full") : paint("--map-faint"), weight: 4, opacity: .85,
           dashArray: "3 7"
         }).addTo(mapState.drawn).bindTooltip(says.head + " — " +
           ((cities.from && cities.from.name) || "your city"));
       }
       if (counted) {
         L.polyline(counted, {
-          color: says.changes ? "#0f8a76" : "#b0740d", weight: 5, opacity: .9,
+          color: says.changes ? paint("--map-shorten") : paint("--map-full"), weight: 5, opacity: .9,
           dashArray: straight ? "6 8" : null
         }).addTo(mapState.drawn).bindTooltip(says.tail);
 
@@ -1540,9 +1549,11 @@
              qasr.css; the legend must show what the map shows.               */
           var beginMark = says.changes
             ? L.circleMarker(counted[0],
-                { radius: 8, color: "#b0740d", weight: 4, fillColor: "#ffffff", fillOpacity: 1 })
+                { radius: 8, color: paint("--map-full"), weight: 4,
+                  fillColor: paint("--map-paper"), fillOpacity: 1 })
             : L.circleMarker(counted[0],
-                { radius: 6, color: "#ffffff", weight: 2, fillColor: "#b0740d", fillOpacity: 1 });
+                { radius: 6, color: paint("--map-paper"), weight: 2,
+                  fillColor: paint("--map-full"), fillOpacity: 1 });
           beginMark
             .addTo(mapState.drawn)
             .bindTooltip(says.beginLabel || ("Counting starts here — the " +
@@ -1563,14 +1574,14 @@
            the two were being read as the same thing. Shape and colour both
            say so, so that neither has to be relied on alone.
 
-           MILESTONE is repeated in qasr.css as .key--limit: the legend must
-           carry the same mark as the map.                                   */
+           The colour is --milestone in the stylesheet, which .key--limit
+           uses too: one source, so legend and map cannot drift apart.     */
         L.marker(at, {
           keyboard: false,
           icon: L.divIcon({
             className: "mark-limit",
             html: "<svg viewBox='0 0 18 18' width='18' height='18' aria-hidden='true'>" +
-                  "<path d='M4 4 L14 14 M14 4 L4 14' stroke='" + MILESTONE +
+                  "<path d='M4 4 L14 14 M14 4 L4 14' stroke='" + paint("--milestone") +
                   "' stroke-width='3.2' stroke-linecap='round'/></svg>",
             iconSize: [18, 18], iconAnchor: [9, 9]
           })
@@ -1584,7 +1595,7 @@
     var hasEdge = !drewBorder && m && m.edgeKm > 0 && line;
     if (hasEdge) {
       L.circle(line[0], {
-        radius: m.edgeKm * 1000, color: "#64737f", weight: 1,
+        radius: m.edgeKm * 1000, color: paint("--ink-mute"), weight: 1,
         dashArray: "4 6", fill: false
       }).addTo(mapState.drawn).bindTooltip("Edge of town — " + fmtKm(m.edgeKm) + " out");
     }
@@ -2474,8 +2485,58 @@
     renderRoutes();
   }
 
+  /* ---- light or dark ------------------------------------------------------
+     Three states, and the reader's own choice must beat the system's in both
+     directions: someone on a dark phone may still want this page on paper.
+     Nothing stored means the system decides.                                 */
+  function theme() {
+    return document.documentElement.getAttribute("data-theme") ||
+      (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark" : "light");
+  }
+
+  function setTheme(next) {
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("qasr.theme", next); } catch (e) {}
+    labelTheme();
+    /* The map is drawn rather than styled, so it has to be told. */
+    if (mapState.tiles) mapState.tiles.setUrl(tileUrl());
+    if (mapState.map) {
+      mapState.fitted = null;
+      renderMap(lastResult ? metricsFor(lastResult) : null);
+    }
+  }
+
+  function labelTheme() {
+    var btn = $("themeToggle");
+    if (!btn) return;
+    var dark = theme() === "dark";
+    $("themeLabel").textContent = dark ? "Light" : "Dark";
+    btn.setAttribute("aria-label", dark ? "Switch to the light theme" : "Switch to the dark theme");
+  }
+
   function init() {
     if (!$("qasrForm")) return;   /* nothing to wire — the engine is still exported below */
+
+    labelTheme();
+    if ($("themeToggle")) {
+      $("themeToggle").addEventListener("click", function () {
+        setTheme(theme() === "dark" ? "light" : "dark");
+      });
+    }
+    /* Following the system, until the reader says otherwise. */
+    if (window.matchMedia) {
+      var watch = window.matchMedia("(prefers-color-scheme: dark)");
+      if (watch.addEventListener) {
+        watch.addEventListener("change", function () {
+          if (!document.documentElement.getAttribute("data-theme")) {
+            setTheme(watch.matches ? "dark" : "light");
+          } else {
+            labelTheme();
+          }
+        });
+      }
+    }
 
     attachAutocomplete("fromInput", "fromList", "from", "fromHint");
     attachAutocomplete("toInput", "toList", "to", "toHint");

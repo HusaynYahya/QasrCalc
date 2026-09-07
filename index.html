@@ -6,8 +6,16 @@
 <meta name="description" content="Qasr calculator — enter where you are travelling from and to, and find out whether you pray shortened (qasr) or full, according to the rulings of Sayyid Ali al-Sistani." />
 <meta name="theme-color" content="#f4f7f8" />
 <title>Qasr Calculator · Rulings of Sayyid al-Sistani</title>
-<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=52" />
-<link rel="stylesheet" href="qasr.css?v=52" />
+<script>
+  /* Before anything is painted, so a reader who chose dark never sees the
+     page flash white on the way to it. */
+  try {
+    var t = localStorage.getItem("qasr.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { /* a private window refuses; the system preference then decides */ }
+</script>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css?v=53" />
+<link rel="stylesheet" href="qasr.css?v=53" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%234db6a4' stroke-width='7'%3E%3Cpath d='M20 72V38a30 30 0 0 1 60 0v34'/%3E%3Cline x1='12' y1='80' x2='88' y2='80'/%3E%3C/g%3E%3C/svg%3E" />
 </head>
 <body>
@@ -18,6 +26,9 @@
     <p class="eyebrow">Ahkam of travel</p>
     <h1>Qasr Calculator</h1>
     <p class="lede">Where you shorten your prayers, and where you do not — per the rulings of <strong>Sayyid al-Sistani</strong>.</p>
+    <button type="button" class="themeToggle" id="themeToggle" aria-live="polite">
+      <span class="themeToggle__mark" aria-hidden="true">◐</span><span id="themeLabel">Dark</span>
+    </button>
   </div>
 </header>
 
@@ -305,8 +316,8 @@
   </div>
 </footer>
 
-<script src="lib/leaflet/leaflet.js?v=52" defer></script>
-<script src="fiqh.js?v=52" defer></script>
-<script src="qasr.js?v=52" defer></script>
+<script src="lib/leaflet/leaflet.js?v=53" defer></script>
+<script src="fiqh.js?v=53" defer></script>
+<script src="qasr.js?v=53" defer></script>
 </body>
 </html>

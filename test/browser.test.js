@@ -304,6 +304,73 @@ async function shot(page, name) {
     await page.close();
   });
 
+  await test("the page can be turned dark, and stays dark", async function () {
+    var page = await open(browser, base);
+    var light = await page.evaluate(function () {
+      return getComputedStyle(document.body).backgroundColor;
+    });
+    await page.click("#themeToggle");
+    await page.waitForTimeout(250);
+    var dark = await page.evaluate(function () {
+      return { bg: getComputedStyle(document.body).backgroundColor,
+               attr: document.documentElement.getAttribute("data-theme"),
+               label: document.getElementById("themeLabel").textContent };
+    });
+    assert.strictEqual(dark.attr, "dark");
+    assert.notStrictEqual(dark.bg, light, "the page did not change colour");
+    assert.strictEqual(dark.label, "Light", "the button should now offer the way back");
+
+    /* And it survives a reload, which is the whole point of remembering it. */
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(400);
+    assert.strictEqual(
+      await page.evaluate(function () { return document.documentElement.getAttribute("data-theme"); }),
+      "dark", "the choice was forgotten on reload");
+    await shot(page, "06-dark");
+    await page.close();
+  });
+
+  await test("dark ink is light enough to read on dark paper", async function () {
+    var page = await open(browser, base);
+    await page.click("#themeToggle");
+    await page.waitForTimeout(250);
+    var seen = await page.evaluate(function () {
+      function lum(c) {
+        var m = /rgba?\((\d+), ?(\d+), ?(\d+)/.exec(c);
+        if (!m) return null;
+        var v = [1, 2, 3].map(function (i) {
+          var x = +m[i] / 255;
+          return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+      }
+      var body = lum(getComputedStyle(document.body).backgroundColor);
+      var out = [];
+      document.querySelectorAll("h1, .lede, .block__title, label, .hint, .q__text b")
+        .forEach(function (el) {
+          var l = lum(getComputedStyle(el).color);
+          if (l === null) return;
+          var ratio = (Math.max(l, body) + 0.05) / (Math.min(l, body) + 0.05);
+          if (ratio < 4.5) out.push(el.className || el.tagName);
+        });
+      return out;
+    });
+    assert.deepStrictEqual(seen, [], "too faint to read against the page: " + seen.join(", "));
+    await page.close();
+  });
+
+  await test("the map takes dark tiles when the page is dark", async function () {
+    var page = await open(browser, base);
+    await page.click("#themeToggle");
+    await page.waitForTimeout(400);
+    var url = await page.evaluate(function () {
+      var img = document.querySelector("#map .leaflet-tile-pane img");
+      return img ? img.src : "";
+    });
+    assert.ok(/dark_all/.test(url), "the tiles are still the light ones: " + url);
+    await page.close();
+  });
+
   await browser.close();
   site.server.close();
   console.log("\n" + passed + " passed, " + failed + " failed\n");

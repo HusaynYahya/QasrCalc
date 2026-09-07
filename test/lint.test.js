@@ -110,15 +110,33 @@ test("the scan would have caught the bug it was written for", function () {
    stops them drifting apart. */
 console.log("\nThe map and its legend agree");
 
-test("the eight-farsakh mark is the same colour in both files", function () {
+test("no colour is written into the drawing code", function () {
+  /* The map used to carry its own hexes, matched by hand against the ones in
+     the stylesheet — which a test had to police, and which made a second
+     theme impossible without a second set of them. Every drawn colour is now
+     a token read from the stylesheet, so light and dark are one change in
+     one file, and the guard is simply that no hex is left. */
   var js = fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8");
+  var hexes = (js.match(/"#[0-9a-fA-F]{6}"/g) || [])
+    .filter(function (h) { return h !== '"#000000"'; });   /* the fallback */
+  assert.deepStrictEqual(hexes, [],
+    "colours still written into qasr.js: " + hexes.join(", "));
+  assert.ok(/function paint\(/.test(js), "the token reader has gone");
+});
+
+test("the map has a colour for every theme the stylesheet offers", function () {
   var css = fs.readFileSync(path.join(__dirname, "..", "qasr.css"), "utf8");
-  var inJs = /var MILESTONE = "(#[0-9a-fA-F]{3,8})"/.exec(js);
-  var inCss = /--milestone:\s*(#[0-9a-fA-F]{3,8})/.exec(css);
-  assert.ok(inJs, "MILESTONE is not declared in qasr.js");
-  assert.ok(inCss, "--milestone is not declared in qasr.css");
-  assert.strictEqual(inJs[1].toLowerCase(), inCss[1].toLowerCase(),
-    "the map draws " + inJs[1] + " and the legend " + inCss[1]);
+  var js = fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8");
+  var wanted = (js.match(/paint\("(--[a-z-]+)"\)/g) || []).map(function (m) {
+    return /paint\("(--[a-z-]+)"\)/.exec(m)[1];
+  }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+  assert.ok(wanted.length >= 6, "the map reads suspiciously few tokens");
+  wanted.forEach(function (token) {
+    var light = new RegExp(":root \\{[\\s\\S]*?" + token + ":");
+    assert.ok(light.test(css), token + " is read by the map but not defined for the light theme");
+    var dark = new RegExp('\\[data-theme="dark"\\][\\s\\S]*?' + token + ":");
+    assert.ok(dark.test(css), token + " is read by the map but not defined for the dark theme");
+  });
 });
 
 test("that colour is neither of the two prayer colours", function () {

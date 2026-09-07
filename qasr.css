@@ -30,6 +30,17 @@
   --hair: rgba(22, 33, 43, 0.12);
   --danger: #b3261e;
 
+  /* What is drawn on the map. Read from here by qasr.js rather than written
+     twice, so a change of theme moves the map with the page. */
+  --map-start:   #0a6455;
+  --map-dest:    #8a5a06;
+  --map-shorten: #0f8a76;
+  --map-full:    #b0740d;
+  --map-faint:   #93a1ac;
+  --map-border:  #0f8a76;
+  --map-paper:   #ffffff;
+  --map-tiles:   "light_all";
+
   --font-head: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --font-label: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -781,3 +792,100 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
 
 /* A label pinned to the map must not run off the edge of it. */
 .leaflet-tooltip.tip-start { max-width: 170px; white-space: normal; line-height: 1.35; }
+
+/* ---- dark ---------------------------------------------------------------
+   The same page after dark, not a different one: the two prayer colours keep
+   their meanings and are lifted until they read on a dark ground, and the ink
+   and paper swap. Three states — the system's preference, and an explicit
+   choice either way, which must win over it in both directions. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+}
+
+:root[data-theme="dark"] {
+  --bg:        #11171c;
+  --bg-raise:  #182027;
+  --bg-sink:   #1e272f;
+
+  --accent:        #4ec5ac;
+  --accent-bright: #7bdcc6;
+  --accent-line:   rgba(78, 197, 172, 0.34);
+
+  --amber:        #e0a33a;
+  --amber-bright: #f3c46a;
+  --amber-line:   rgba(224, 163, 58, 0.34);
+  --milestone:    #7ba7dd;
+
+  --ink:       #e8eef2;
+  --ink-soft:  #c2ced7;
+  --ink-mute:  #93a3b0;
+  --ink-faint: #6c7d8a;
+
+  --hair: rgba(232, 238, 242, 0.14);
+  --danger: #f2837b;
+
+  --map-start:   #7bdcc6;
+  --map-dest:    #f3c46a;
+  --map-shorten: #4ec5ac;
+  --map-full:    #e0a33a;
+  --map-faint:   #6c7d8a;
+  --map-border:  #4ec5ac;
+  --map-paper:   #11171c;
+  --map-tiles:   "dark_all";
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #11171c;
+    --bg-raise:  #182027;
+    --bg-sink:   #1e272f;
+
+    --accent:        #4ec5ac;
+    --accent-bright: #7bdcc6;
+    --accent-line:   rgba(78, 197, 172, 0.34);
+
+    --amber:        #e0a33a;
+    --amber-bright: #f3c46a;
+    --amber-line:   rgba(224, 163, 58, 0.34);
+    --milestone:    #7ba7dd;
+
+    --ink:       #e8eef2;
+    --ink-soft:  #c2ced7;
+    --ink-mute:  #93a3b0;
+    --ink-faint: #6c7d8a;
+
+    --hair: rgba(232, 238, 242, 0.14);
+    --danger: #f2837b;
+
+    --map-start:   #7bdcc6;
+    --map-dest:    #f3c46a;
+    --map-shorten: #4ec5ac;
+    --map-full:    #e0a33a;
+    --map-faint:   #6c7d8a;
+    --map-border:  #4ec5ac;
+    --map-paper:   #11171c;
+    --map-tiles:   "dark_all";
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 6px 18px rgba(0, 0, 0, .35);
+  }
+}
+
+/* ---- the switch ---------------------------------------------------------- */
+.themeToggle {
+  position: absolute; top: 0; right: 0;
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem .8rem; cursor: pointer;
+  background: var(--bg-raise); color: var(--ink-soft);
+  border: 1px solid var(--hair); border-radius: 999px;
+  font-family: var(--font-label); font-size: .78rem;
+}
+.themeToggle:hover { border-color: var(--accent-line); color: var(--accent-bright); }
+.masthead .wrap { position: relative; }
+@media (max-width: 560px) {
+  .themeToggle span { display: none; }
+  .themeToggle { padding: .45rem .55rem; }
+}
