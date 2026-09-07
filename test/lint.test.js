@@ -59,6 +59,10 @@ function undeclaredConstants(file) {
   var declared = Object.create(null);
   var decl = new RegExp("(?:var|let|const|function)\\s+(" + NAME + ")\\b", "g"), d;
   while ((d = decl.exec(code))) declared[d[1]] = true;
+  /* "var A = 1, B = 2" declares B as much as A, and reading only the first
+     name reported B as undeclared. */
+  var more = new RegExp(",\\s*(" + NAME + ")\\s*=", "g");
+  while ((d = more.exec(code))) declared[d[1]] = true;
 
   var missing = [], seen = Object.create(null);
   var use = new RegExp("(.?)\\b(" + NAME + ")\\b(\\s*:)?", "g"), u;

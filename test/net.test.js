@@ -257,6 +257,38 @@ test("address, box, trace, inside, border, drawn — the whole way through", fun
   });
 });
 
+test("a city looked up twice is never the same object twice", function () {
+  /* The fault behind "your start is outside its own city": the cache handed
+     out one object, one caller hung a note on it and another swapped its
+     shape for a ring road's, so a London labelled M25 carried the council's
+     boundary and WD19 4QP fell outside it. */
+  var b = londonWorld();
+  var G = b.window.QasrEngine;
+  return G.cityWithRing({ lat: 51.6238, lon: -0.3892 }, false).then(function (first) {
+    first.note = "scribbled on by whoever got it first";
+    first.shape = null;
+    return G.cityWithRing({ lat: 51.6238, lon: -0.3892 }, false).then(function (second) {
+      assert.ok(!second.note, "the second caller inherited the first one's note");
+      assert.ok(second.shape, "the second caller inherited the first one's cleared shape");
+    });
+  });
+});
+
+test("a ring that is not a closed loop of believable size is refused", function () {
+  var G = londonWorld().window.QasrEngine;
+  var sound = { traced: true, closedByHand: false, areaKm2: 2200 };
+  assert.strictEqual(G.ringIsSound(sound), true, "the M25's own shape must pass");
+  assert.strictEqual(G.ringIsSound(null), false);
+  assert.strictEqual(G.ringIsSound({ traced: false, closedByHand: false, areaKm2: 2200 }), false,
+    "a hull thrown round the wreckage is not a ring road");
+  assert.strictEqual(G.ringIsSound({ traced: true, closedByHand: true, areaKm2: 2200 }), false,
+    "a loop closed by hand is not sound enough to become somebody's city");
+  assert.strictEqual(G.ringIsSound({ traced: true, closedByHand: false, areaKm2: 4 }), false,
+    "four square kilometres is not a city");
+  assert.strictEqual(G.ringIsSound({ traced: true, closedByHand: false, areaKm2: 900000 }), false,
+    "most of England is not a city either");
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

@@ -231,8 +231,16 @@
       : Promise.resolve(null);
     function add(city, first) {
       if (!city || !city.name) return;
-      if (found.some(function (c) { return c.name === city.name; })) return;
-      if (first) found.unshift(city); else found.push(city);
+      var at = -1;
+      found.forEach(function (c, i) { if (c.name === city.name) at = i; });
+      if (at >= 0) {
+        /* Two answers for one name. The one measured from a ring road wins:
+           it is the border actually in use, and the other would quietly put
+           the council's boundary back.                                       */
+        if (city.fromRing && !found[at].fromRing) found[at] = city;
+        else return;
+      } else if (first) found.unshift(city);
+      else found.push(city);
       if (onFound) onFound(found);
     }
 
@@ -242,7 +250,11 @@
       .then(function (big) {
         if (!big) return null;
         return cityByName(big.name).then(function (settlement) {
-          settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
+          /* Only if it really is elsewhere. Describing the city you are
+             standing in as "the largest nearby, 23 km away" is nonsense.    */
+          if (!inShape(place.lat, place.lon, settlement.shape)) {
+            settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
+          }
           return settlement;
         });
       })
@@ -490,6 +502,17 @@
   var RING_ROAD = {};
   RING_ROADS.forEach(function (r) { RING_ROAD[r.city.toLowerCase()] = r.refs; });
 
+  /* What a city's ring road may plausibly enclose. The M25 holds about 2,200
+     square kilometres. A figure far outside this range is not a ring road: it
+     is a chain that stitched wrongly, or a hull thrown round the wreckage,
+     and adopting it as somebody's city would be worse than not trying.      */
+  var RING_MIN_KM2 = 40, RING_MAX_KM2 = 25000;
+
+  function ringIsSound(ring) {
+    return !!ring && ring.traced === true && ring.closedByHand === false &&
+           ring.areaKm2 >= RING_MIN_KM2 && ring.areaKm2 <= RING_MAX_KM2;
+  }
+
   /* Worth tracing a ring road for this place at all? */
   function ringRoadNear(place) {
     if (!place || typeof place.lat !== "number" || typeof place.lon !== "number") return null;
@@ -682,7 +705,8 @@
       else ring[ring.length - 1] = ring[0].slice();     /* exactly closed */
       if (ring.length >= 4) {
         return { shape: { type: "Polygon", coordinates: [ring] },
-                 traced: true, closedByHand: !best.closed, points: ring.length };
+                 traced: true, closedByHand: !best.closed, points: ring.length,
+                 areaKm2: Math.round(ringAreaKm2(ring) * 10) / 10 };
       }
     }
 
@@ -694,7 +718,8 @@
     if (hull.length < 3) throw new Error("The " + ref + " does not enclose an area.");
     hull.push(hull[0].slice());
     return { shape: { type: "Polygon", coordinates: [hull] },
-             traced: false, closedByHand: false, points: hull.length };
+             traced: false, closedByHand: false, points: hull.length,
+             areaKm2: Math.round(ringAreaKm2(hull) * 10) / 10 };
   }
 
   /* "out geom" and not a bare "out": without it the relation comes back as a
@@ -755,10 +780,23 @@
 
   var nameCache = {};
 
+  /* A shallow copy is enough: the shape is only ever read, never edited. */
+  function copyCity(city) {
+    if (!city) return city;
+    var out = {};
+    Object.keys(city).forEach(function (k) { out[k] = city[k]; });
+    return out;
+  }
+
   function cityByName(name, mustContain) {
     var cacheKey = String(name).toLowerCase() + "|" + (mustContain
       ? mustContain.lat.toFixed(2) + "," + mustContain.lon.toFixed(2) : "");
-    if (nameCache[cacheKey]) return Promise.resolve(nameCache[cacheKey]);
+    /* A copy, never the cached object. Callers annotate what they get back —
+       a note here, a ring road there — and handing out one shared object let
+       those annotations pile up on each other: a London labelled "measured
+       from the M25" while carrying the council's boundary, and a start
+       address then reported as outside its own city.                        */
+    if (nameCache[cacheKey]) return Promise.resolve(copyCity(nameCache[cacheKey]));
     /* featureType=settlement confines the answer to cities, towns, villages
        and hamlets — never a county, a district or a region. The spelling is
        case-sensitive; "featuretype" is quietly ignored.
@@ -816,7 +854,7 @@
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
         nameCache[cacheKey] = city;      /* failures are not kept: they retry */
-        return city;
+        return copyCity(city);
       });
   }
 
@@ -835,6 +873,17 @@
     if (announce) busy("Tracing the " + entry.refs.join(" and ") + " — a moment the first time");
     return ringBoundary(entry.refs, place)
       .then(function (ring) {
+        /* Adopted only if it really is a closed loop of a believable size.
+           A road that would not stitch is reported, not quietly used: taking
+           a hull for London's edge is how an address inside the M25 ends up
+           declared outside its own city.                                    */
+        if (!ringIsSound(ring)) {
+          if (announce) busy(null);
+          return cityOf(place).then(function (city) {
+            city.ringUnsound = entry.refs.join(" and ");
+            return city;
+          });
+        }
         if (!inShape(place.lat, place.lon, ring.shape)) {
           if (announce) busy(null);
           return cityOf(place);                 /* near it, but outside it */
@@ -842,7 +891,7 @@
         if (announce) busy("Inside the " + ring.ref + " — measured from its edge", true);
         return {
           name: entry.city, area: entry.area || null,
-          shape: ring.shape, fromRing: ring.ref,
+          shape: ring.shape, fromRing: ring.ref, ringArea: ring.areaKm2,
           ringTraced: ring.traced, ringClosedByHand: ring.closedByHand,
           ringTried: true, ringAuto: true
         };
@@ -1397,7 +1446,8 @@
                    dashArray: isRing ? null : "5 5",
                    fill: !borderUnused, fillOpacity: isRing ? .10 : .06, fillColor: tone }
         }).addTo(mapState.drawn).bindTooltip(spec[2] + ": " + (city.name || "border") +
-          (city.fromRing ? " — traced along the " + city.fromRing : "") +
+          (city.fromRing ? " — traced along the " + city.fromRing +
+            (city.ringArea ? ", enclosing " + Math.round(city.ringArea) + " km²" : "") : "") +
           (borderUnused ? " — your start is not inside it, so nothing is deducted from it" : ""));
         seen.push(layer.getBounds());
         drewBorder = true;
@@ -2120,6 +2170,8 @@
         /* Only the starting city's border is drawn, so only it may be said to
            be on the map. */
         (slot !== "from" ? ""
+          : city.ringUnsound ? " — the " + city.ringUnsound + " did not come back as a closed ring, " +
+              "so its published boundary is used instead."
           : city.ringFailed ? " — the " + city.ringFailed + " could not be traced just now, " +
               "so its published boundary is outlined instead. Press Refresh to try again."
           : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
@@ -2667,7 +2719,7 @@
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
-    cityWithRing: cityWithRing
+    cityWithRing: cityWithRing, ringIsSound: ringIsSound
   };
 
   if (document.readyState === "loading") {
