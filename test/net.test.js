@@ -527,6 +527,29 @@ test("the reader's own city is still taken when they stand just outside it", fun
     });
 });
 
+test("a lookup that was refused does not report the city as missing", function () {
+  /* The address service allows one request a second and answers 429 when
+     pressed harder. That arrives with a reason of its own — wait and try
+     again — and an earlier draft of the guard above threw it away and said
+     "no city, town or village is published for this address" instead. A
+     reader whose lookup had merely been refused was told their city does not
+     exist, and went looking for another one rather than pressing Refresh. */
+  var b = browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return { ok: false, status: 429,
+               json: function () { return Promise.resolve({}); },
+               text: function () { return Promise.resolve(""); } };
+    }
+    return reply([]);
+  });
+  return b.window.QasrEngine.cityWithRing({ lat: 51.5074, lon: -0.9 }, false)
+    .then(function (city) {
+      assert.ok(!city.shape, "nothing was found, so nothing may be drawn");
+      assert.ok(/refusing requests/.test(city.reason || ""),
+        "expected the service's own reason, got: " + city.reason);
+    });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

@@ -170,7 +170,13 @@
       if (!city.name) {
         return isSettlement(city) ? city : {
           name: null, area: city.area, kind: city.kind, rank: city.rank, shape: null,
-          reason: "No city, town or village is published for this address."
+          /* An answer that never arrived already carries its own reason, and
+             it is not this one. Overwriting it told a reader whose lookup had
+             been refused for coming too fast that their city does not exist —
+             which sent them looking for another city instead of pressing
+             Refresh, and reported a rate limit as a gap in the map. */
+          reason: city.reason ||
+                  "No city, town or village is published for this address."
         };
       }
       if (isSettlement(city) && city.shape) return city;

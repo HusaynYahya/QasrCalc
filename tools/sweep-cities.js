@@ -28,6 +28,12 @@
    Nominatim allows one request a second and refuses a default User-Agent, so
    this waits its turn and names itself. Running it twice in quick succession
    will earn 403s and a page of nonsense; leave a few minutes between runs.
+
+   Read the reasons, not just the verdicts. A run that has been rate-limited
+   reports "no border published" for city after city, which looks exactly like
+   a finding and is not one — the reason beside it says the service refused
+   the request. If cities that resolved on an earlier run stop resolving
+   halfway down, that is the rate limit, not the map.
    ========================================================================== */
 "use strict";
 
