@@ -650,123 +650,56 @@ test("nothing to measure is not a complaint", function () {
   assert.strictEqual(G.cityTooBig({ name: "No border" }), false);
 });
 
-/* --- where the world is built on ------------------------------------------
+/* --- the built-up areas ---------------------------------------------------
    Shipped as a file rather than in the page, so it is checked as a file. */
-console.log("\nWhere the world is built on");
+console.log("\nThe built-up areas");
 
 var URBAN = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "urban-areas.json"), "utf8"));
-function builtAt(lat, lon) {
-  for (var i = 0; i < URBAN.areas.length; i++) {
-    var a = URBAN.areas[i], b = a.box;
-    if (lat < b[0] || lat > b[2] || lon < b[1] || lon > b[3]) continue;
-    if (G.inShape(lat, lon, a.shape)) return a;
-  }
-  return null;
+function urban(name) {
+  return URBAN.areas.filter(function (a) { return a.name === name; })[0];
 }
 
 test("it says where it came from", function () {
-  assert.ok(/Joint Research Centre/.test(URBAN.source), "the source is not named");
-  assert.ok(/2011\/833\/EU|reuse policy/.test(URBAN.source), "the licence is not named");
-  assert.ok(URBAN.areas.length > 1000 && URBAN.places.length > 1000,
-    "only " + URBAN.areas.length + " blobs — that is not the world");
+  assert.ok(/Australian Bureau of Statistics/.test(URBAN.source), "the source is not named");
+  assert.ok(/CC BY/.test(URBAN.source), "the licence is not named");
+  assert.ok(URBAN.areas.length >= 5, "only " + URBAN.areas.length + " built-up area(s) on file");
 });
 
-test("the cities this is for are all built on", function () {
-  [["London", 51.5074, -0.1278], ["Watford", 51.6238, -0.3892],
-   ["Toronto", 43.6534, -79.3841], ["Dubai", 25.2048, 55.2708],
-   ["Melbourne", -37.8136, 144.9631], ["Karbala", 32.6160, 44.0249],
-   ["Najaf", 31.9890, 44.3140], ["Qom", 34.6416, 50.8746],
-   ["Ras Al Khaimah", 25.8007, 55.9762]
+test("Melbourne is the built-up city, not the region", function () {
+  /* The bug: Greater Melbourne is 8,892 km² and holds Bunyip, 72 km out, so
+     72 km was deducted as home and the journey ruled full. */
+  var m = urban("Melbourne");
+  assert.ok(m, "Melbourne is not on file");
+  assert.ok(m.areaKm2 > 2000 && m.areaKm2 < 3500,
+    "Melbourne's built-up area came out at " + m.areaKm2 + " km²");
+  [["Melbourne CBD", -37.8136, 144.9631, true], ["Frankston", -38.1430, 145.1230, true],
+   ["Werribee", -37.9000, 144.6600, true],      ["Pakenham", -38.0700, 145.4850, true],
+   ["Doreen", -37.6030, 145.1470, false],       ["Whittlesea town", -37.5130, 145.1190, false],
+   ["Healesville", -37.6540, 145.5170, false],  ["Warburton", -37.7530, 145.6930, false],
+   ["Bunyip", -38.0900, 145.7100, false],       ["Geelong", -38.1499, 144.3617, false]
   ].forEach(function (c) {
-    assert.ok(builtAt(c[1], c[2]), c[0] + " is on no built-up ground at all");
+    assert.strictEqual(G.inShape(c[1], c[2], m.shape), c[3],
+      c[0] + " came out " + (c[3] ? "outside" : "inside") + " built-up Melbourne");
   });
 });
 
-test("open country and open water are not built on", function () {
-  assert.strictEqual(builtAt(53.0000, -1.9000), null, "open Derbyshire is built up");
-  assert.strictEqual(builtAt(25.1700, 55.0100), null, "the Gulf is built up");
-  assert.strictEqual(builtAt(24.8000, 56.1200), null, "Hatta is built up");
+test("every one of them is small enough to be a city", function () {
+  /* Otherwise the guard would fire on the very shape meant to satisfy it. */
+  URBAN.areas.forEach(function (a) {
+    assert.strictEqual(G.cityTooBig({ shape: a.shape }), false,
+      a.name + " is " + a.areaKm2 + " km², which the guard would still refuse");
+  });
 });
 
-test("each blob carries a box that holds it", function () {
-  URBAN.areas.forEach(function (a, i) {
+test("each carries a box that holds it", function () {
+  URBAN.areas.forEach(function (a) {
     a.shape.coordinates.forEach(function (poly) {
       poly[0].forEach(function (p) {
         assert.ok(p[1] >= a.box[0] && p[1] <= a.box[2] && p[0] >= a.box[1] && p[0] <= a.box[3],
-          "blob " + i + " runs outside its own box at " + p + " — the lookup would skip it");
+          a.name + " runs outside its own box at " + p + " — the lookup would skip it");
       });
     });
   });
-});
-
-test("the widening is what puts a city's outer suburbs in it", function () {
-  /* The reason a built-up centre is widened before being stored. Without it
-     these are outside Dubai, which they plainly are not. */
-  [["Arabian Ranches", 25.05, 55.27], ["Motor City", 25.05, 55.24],
-   ["Dubai Silicon Oasis", 25.12, 55.38], ["Dubai Sports City", 25.04, 55.22]
-  ].forEach(function (c) {
-    assert.ok(builtAt(c[1], c[2]), c[0] + " fell outside the built-up ground of its own city");
-  });
-});
-
-/* --- one shape inside another --------------------------------------------- */
-console.log("\nCutting a boundary down to the city inside it");
-
-function box(s, w, n, e) {
-  return { type: "Polygon", coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] };
-}
-function km2(shape) {
-  var rings = shape.type === "Polygon" ? [shape.coordinates[0]]
-            : shape.coordinates.map(function (p) { return p[0]; });
-  return rings.reduce(function (n, r) { return n + G.ringAreaKm2(r); }, 0);
-}
-
-test("the overlap of two shapes is the part they share", function () {
-  var a = box(51.0, -1.0, 52.0, 0.0);
-  var b = box(51.5, -0.5, 52.5, 0.5);
-  var got = G.overlapShape(a, b);
-  assert.ok(got, "no overlap was found where the two plainly overlap");
-  /* The shared quarter: 51.5–52.0 by -0.5–0.0. */
-  assert.ok(G.inShape(51.75, -0.25, got), "the middle of the shared part is outside it");
-  assert.ok(!G.inShape(51.25, -0.75, got), "a part only the first shape holds is inside it");
-  assert.ok(!G.inShape(52.25, 0.25, got), "a part only the second shape holds is inside it");
-  var want = G.ringAreaKm2(box(51.5, -0.5, 52.0, 0.0).coordinates[0]);
-  var err = Math.abs(km2(got) - want) / want;
-  assert.ok(err < 0.05, "the overlap came to " + km2(got).toFixed(0) +
-    " km² where the shared part is " + want.toFixed(0));
-});
-
-test("a boundary reaching into the sea keeps only its land", function () {
-  /* What an administrative boundary does: half of it is water. The built-up
-     area is the landward half, and the overlap is the city.
-
-     Offset in both directions on purpose. Two shapes sharing an edge exactly
-     is a case this cannot answer — every point of that edge sits on the other
-     shape's own outline, where inside and outside are the same thing — and
-     two boundaries drawn by different people from different data never do. */
-  var admin = box(25.0, 54.9, 25.4, 55.4);
-  var built = box(24.9, 55.15, 25.5, 55.6);
-  var got = G.overlapShape(admin, built);
-  assert.ok(got, "nothing survived the cut");
-  assert.ok(G.inShape(25.2, 55.3, got), "the built-up part was cut away");
-  assert.ok(!G.inShape(25.2, 55.0, got), "the water is still inside the border");
-});
-
-test("shapes that do not touch have no overlap", function () {
-  assert.strictEqual(G.overlapShape(box(51, -1, 52, 0), box(40, 10, 41, 11)), null);
-  assert.strictEqual(G.overlapShape(null, box(51, -1, 52, 0)), null);
-});
-
-test("a shape wholly inside another comes back whole", function () {
-  /* Toronto's boundary lies inside its built-up area apart from the lake:
-     the answer is the boundary itself, not nothing. */
-  var small = box(51.4, -0.6, 51.6, -0.2);
-  var big = box(51.0, -1.0, 52.0, 0.5);
-  var got = G.overlapShape(small, big);
-  assert.ok(got, "the smaller shape vanished instead of being kept");
-  var err = Math.abs(km2(got) - G.ringAreaKm2(small.coordinates[0])) /
-            G.ringAreaKm2(small.coordinates[0]);
-  assert.ok(err < 0.05, "the smaller shape came back as " + km2(got).toFixed(0) + " km²");
 });
 
 test("the box that gates the lookup contains the whole ring", function () {
