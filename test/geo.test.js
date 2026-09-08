@@ -517,19 +517,25 @@ test("it stops where the map stops it", function () {
   });
 });
 
-test("it encloses what that boundary encloses, and its box holds it", function () {
+test("it is one line round the outside, not sixteen town outlines", function () {
+  /* The municipal boundaries between the sixteen are dropped before the
+     shape is kept, so a drawn boundary is the outside edge and nothing
+     else. One ring is what says the merge worked. */
   var e = gta();
-  /* Sixteen parts, one per area asked for, so the area is their sum. */
-  assert.strictEqual(e.shape.type, "MultiPolygon");
-  var area = e.shape.coordinates.reduce(function (n, poly) {
-    return n + G.ringAreaKm2(poly[0]);
-  }, 0);
+  assert.strictEqual(e.shape.type, "Polygon", "the GTA is back to separate parts");
+  assert.strictEqual(e.shape.coordinates.length, 1,
+    "the GTA carries " + e.shape.coordinates.length + " rings, so a line would show inside it");
+  var ring = e.shape.coordinates[0];
+  assert.deepStrictEqual(ring[0], ring[ring.length - 1], "the ring does not close");
+});
+
+test("it encloses what that boundary encloses, and its box holds it", function () {
+  var e = gta(), ring = e.shape.coordinates[0];
+  var area = G.ringAreaKm2(ring);
   assert.ok(area > 5000 && area < 6000, "the GTA came out at " + area.toFixed(0) + " km²");
-  e.shape.coordinates.forEach(function (poly) {
-    poly[0].forEach(function (p) {
-      assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
-        "the boundary runs outside its own box at " + p);
-    });
+  ring.forEach(function (p) {
+    assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
+      "the boundary runs outside its own box at " + p);
   });
 });
 

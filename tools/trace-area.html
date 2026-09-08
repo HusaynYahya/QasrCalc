@@ -21,10 +21,11 @@
 </head>
 <body>
 <h1>Trace an area</h1>
-<p>Some boundaries are not roads. The Greater Toronto Area is five
-administrative regions, and OpenStreetMap publishes each one, so this asks for
-them by name and puts them together. Nothing is drawn by hand and nothing is
-traced from a picture.</p>
+<p>Some boundaries are not roads. The Greater Toronto Area is a set of
+municipalities, and OpenStreetMap publishes each one, so this asks for them by
+name and puts them together. Where two of them meet, the line between them is
+dropped, leaving the outline round the whole. Nothing is drawn by hand and
+nothing is traced from a picture.</p>
 <p>One area per line, named as the map names it.</p>
 <textarea id="names" rows="17">City of Toronto, Ontario, Canada
 Regional Municipality of Peel, Ontario, Canada
@@ -119,6 +120,44 @@ function outers(shape) {
   return [];
 }
 
+/* The line round the outside of the lot, with the lines between them gone.
+
+   Two towns that touch are published from the same ways, so the edge one
+   walks west to east its neighbour walks east to west, to the corner. An edge
+   that appears both ways round is therefore a wall between two of them and
+   not part of the outside; what is left when those cancel is the outline, and
+   walking it end to end puts it back together as rings.
+
+   This is exact rather than approximate: it drops edges that match to the
+   last decimal and moves no point. If two boundaries ever stopped agreeing,
+   the leftovers would not close into rings and the count below would say so
+   rather than quietly drawing a wall. */
+function dissolve(rings) {
+  var live = {}, out = [];
+  rings.forEach(function (r) {
+    for (var i = 0; i < r.length - 1; i++) {
+      var a = r[i].join(","), b = r[i + 1].join(",");
+      if (live[b + "|" + a]) { delete live[b + "|" + a]; continue; }   /* a wall */
+      live[a + "|" + b] = [r[i], r[i + 1]];
+    }
+  });
+  var edges = Object.keys(live).map(function (k) { return live[k]; });
+  var from = {};
+  edges.forEach(function (e) { var k = e[0].join(","); (from[k] = from[k] || []).push(e); });
+  edges.forEach(function (seed) {
+    if (seed.done) return;
+    var loop = [seed[0]], cur = seed;
+    while (cur && !cur.done) {
+      cur.done = true;
+      loop.push(cur[1]);
+      cur = (from[cur[1].join(",")] || []).filter(function (e) { return !e.done; })[0];
+    }
+    if (loop.length > 3) out.push(loop);
+  });
+  return { loops: out, walls: (rings.reduce(function (n, r) { return n + r.length - 1; }, 0)
+                              - edges.length) };
+}
+
 var CHECKS = [
   ["Toronto",43.6532,-79.3832,1],["Mississauga",43.5890,-79.6441,1],["Brampton",43.7315,-79.7624,1],
   ["Vaughan",43.8361,-79.4983,1],["Markham",43.8561,-79.3370,1],["Newmarket",44.0592,-79.4613,1],
@@ -176,9 +215,18 @@ document.getElementById("go").addEventListener("click", function () {
       btn.disabled = false;
       return;
     }
+    var merged = dissolve(parts);
+    say("");
+    say("dropped " + merged.walls + " edge(s) where two of them met");
+    if (!merged.loops.length) {
+      say("nothing closed into a ring — do not send it.", "bad");
+      btn.disabled = false;
+      return;
+    }
+
     /* Thinned to a hundred metres: far below anything that could move a
        ruling, and it takes tens of thousands of points down to hundreds. */
-    var thin = parts.map(function (r) {
+    var thin = merged.loops.map(function (r) {
       var t = G.simplifyLine(r, 0.1);
       if (t.length > 2 && (t[0][0] !== t[t.length-1][0] || t[0][1] !== t[t.length-1][1])) {
         t.push(t[0].slice());
