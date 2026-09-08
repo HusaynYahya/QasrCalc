@@ -410,6 +410,64 @@ test("a ring that is not a closed loop of believable size is refused", function 
     "most of England is not a city either");
 });
 
+section("A border that belongs to something that is not the city");
+
+/* Najaf, as the address service actually answers it: no city, town or
+   village anywhere in the address, and a quarter's polygon of about one
+   square kilometre returned alongside. Recorded from a live reverse lookup
+   at 32.0000, 44.3350. */
+function najafWorld() {
+  var quarter = {
+    type: "Polygon",
+    coordinates: [[[44.330, 31.997], [44.340, 31.997], [44.340, 32.003],
+                   [44.330, 32.003], [44.330, 31.997]]]
+  };
+  return browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return reply({
+        addresstype: "quarter", place_rank: 16, name: "حي السعد",
+        display_name: "حي السعد, Al-Najaf Central Subdistrict, Al-Najaf Governorate, Iraq",
+        address: { quarter: "حي السعد", subdistrict: "Al-Najaf Central Subdistrict",
+                   county: "Al-Najaf District", state: "Al-Najaf Governorate",
+                   country: "Iraq", country_code: "iq" },
+        geojson: quarter
+      });
+    }
+    return reply([]);
+  });
+}
+
+test("a quarter's border is not drawn as the city's", function () {
+  /* It was. OpenStreetMap has no city-level entry at that address and Najaf
+     itself is only a point, so the quarter came back and was kept — one
+     square kilometre, drawn as the border, with no name beside it because
+     the address had no city in it either. A border that small is crossed a
+     minute after setting off, so nearly the whole journey counted and a trip
+     under eight farsakh could be reported as over it. */
+  return najafWorld().window.QasrEngine.cityWithRing({ lat: 32.0, lon: 44.335 }, false)
+    .then(function (city) {
+      assert.ok(!city.shape, "the quarter's polygon must not be kept as the city's border");
+      assert.ok(city.reason, "and the reader must be told why there is none");
+    });
+});
+
+test("a settlement's own border is still kept when the name is missing", function () {
+  /* The guard must not throw away a real city boundary for want of a label. */
+  var square = { type: "Polygon", coordinates: [[[44.30, 31.95], [44.40, 31.95],
+                 [44.40, 32.05], [44.30, 32.05], [44.30, 31.95]]] };
+  var b = browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return reply({ addresstype: "city", place_rank: 16, address: { country: "Iraq" },
+                     geojson: square });
+    }
+    return reply([]);
+  });
+  return b.window.QasrEngine.cityWithRing({ lat: 32.0, lon: 44.35 }, false)
+    .then(function (city) {
+      assert.ok(city.shape, "a city's own boundary must survive having no name");
+    });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

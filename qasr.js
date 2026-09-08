@@ -157,7 +157,22 @@
 
   function cityOf(place) {
     return cityAt(place, 10).then(function (city) {
-      if (!city.name) return city;
+      /* No city, town or village anywhere in the address.
+
+         Something still came back, and its border came with it — in Najaf a
+         quarter of one square kilometre, حي السعد, because OpenStreetMap has
+         no city-level entry at that address and Najaf itself is only a point.
+         Drawing that quarter as the city was wrong twice over: it is not the
+         city's border, and the page had no name to put beside it, so it was
+         shown as nobody's border at all. It is dropped, and the reader is
+         told there is none, which is the truth and leaves the deduction in
+         their hands.                                                        */
+      if (!city.name) {
+        return isSettlement(city) ? city : {
+          name: null, area: city.area, kind: city.kind, rank: city.rank, shape: null,
+          reason: "No city, town or village is published for this address."
+        };
+      }
       if (isSettlement(city) && city.shape) return city;
 
       /* Named, but the shape belongs to something larger or smaller. Look the
