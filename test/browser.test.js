@@ -143,6 +143,26 @@ async function stub(page, log) {
     var sides = [way([S, W], [S, E]), way([S, E], [N, E]),
                  way([N, E], [N, W]), way([N, W], [S, W])];
     var elements = [];
+    /* Picking roads off the map: whichever side of the square the tap is
+       nearest is the road returned, so four taps make the loop. */
+    var m = /way\(around:\d+,(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
+    if (m) {
+      var la = parseFloat(m[1]), lo = parseFloat(m[2]);
+      var names = ["south side", "east side", "north side", "west side"];
+      var best = 0, bestD = Infinity;
+      sides.forEach(function (w, i) {
+        var g = w.geometry;
+        var d = Math.min(
+          Math.hypot(g[0].lat - la, g[0].lon - lo),
+          Math.hypot(g[1].lat - la, g[1].lon - lo),
+          Math.hypot((g[0].lat + g[1].lat) / 2 - la, (g[0].lon + g[1].lon) / 2 - lo));
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      var w = sides[best];
+      return route.fulfill({ status: 200, contentType: "application/json",
+        body: JSON.stringify({ elements: [{ type: "way", id: 900 + best,
+          geometry: w.geometry, tags: { highway: "primary", name: names[best] } }] }) });
+    }
     if (/"ref"="B1"/.test(q)) {
       elements = [{ type: "relation", members: sides }];
     } else if (/"ref"="B99"/.test(q)) {
@@ -210,7 +230,15 @@ async function shot(page, name) {
   if (!SHOTS) return;
   var dir = path.join(__dirname, "shots");
   if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-  await page.screenshot({ path: path.join(dir, name + ".png"), fullPage: true });
+  /* The picture is a debugging aid, never an assertion, so it must not be
+     able to fail a test. A full-page capture refuses on a tall page that is
+     still settling; the visible window is worth more than nothing. */
+  try {
+    await page.screenshot({ path: path.join(dir, name + ".png"), fullPage: true });
+  } catch (e) {
+    try { await page.screenshot({ path: path.join(dir, name + ".png") }); }
+    catch (e2) { console.log("       (no screenshot for " + name + ": " + e2.message.split("\n")[0] + ")"); }
+  }
 }
 
 (async function () {
@@ -421,6 +449,71 @@ async function shot(page, name) {
     assert.ok(/do not close|gap/.test(msg), "the refusal does not say why: " + msg);
     var hint = await page.textContent("#fromHint");
     assert.ok(!/B99/.test(hint), "a border that could not close was adopted anyway: " + hint);
+    await page.close();
+  });
+
+  await test("a border can be picked road by road off the map", async function () {
+    /* Four taps, one per side of the square, and the roads collected go
+       through ringShape — the same stitching the M25 gets. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    assert.ok(await page.evaluate(function () {
+      return document.getElementById("map").className.indexOf("is-picking") >= 0;
+    }), "the map does not say it is picking");
+
+    /* The midpoint of each side of the square the Overpass stub serves. */
+    var S = 51.2885, N = 51.7115, W = -0.4603, E = 0.2203;
+    var taps = [[S, (W + E) / 2], [(S + N) / 2, E], [N, (W + E) / 2], [(S + N) / 2, W]];
+    for (var i = 0; i < taps.length; i++) {
+      await page.evaluate(function (t) {
+        window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+      }, taps[i]);
+      await page.waitForTimeout(400);
+    }
+    var msg = await page.textContent("#pickMsg");
+    assert.ok(/4 roads picked/.test(msg), "four taps did not make four roads: " + msg);
+    assert.ok(/close into a loop/.test(msg), "the four sides did not close: " + msg);
+
+    assert.ok(await page.isVisible("#pickUse"), "the border cannot be used");
+    await page.click("#pickUse");
+    await page.waitForTimeout(500);
+    var hint = await page.textContent("#fromHint");
+    assert.ok(/border you picked/.test(hint), "the picked border was not adopted: " + hint);
+    /* Start picking scrolls the map into view; a full-page capture cannot be
+       taken while that is still animating. */
+    await page.evaluate(function () { window.scrollTo(0, 0); });
+    await page.waitForTimeout(700);
+    await shot(page, "08-picked-border");
+    await page.close();
+  });
+
+  await test("a road tapped twice is put back, and three sides will not close", async function () {
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    var S = 51.2885, N = 51.7115, W = -0.4603, E = 0.2203;
+    var taps = [[S, (W + E) / 2], [(S + N) / 2, E], [N, (W + E) / 2]];
+    for (var i = 0; i < taps.length; i++) {
+      await page.evaluate(function (t) {
+        window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+      }, taps[i]);
+      await page.waitForTimeout(400);
+    }
+    assert.ok(/3 roads picked/.test(await page.textContent("#pickMsg")));
+    assert.ok(/not a closed loop yet/.test(await page.textContent("#pickMsg")),
+      "three sides of a square must not count as closed");
+    assert.ok(!(await page.isVisible("#pickUse")), "an unclosed loop was offered as a border");
+
+    /* Tapping the same road again takes it off. */
+    await page.evaluate(function (t) {
+      window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+    }, taps[2]);
+    await page.waitForTimeout(400);
+    assert.ok(/2 roads picked/.test(await page.textContent("#pickMsg")),
+      "tapping a picked road again did not take it off");
     await page.close();
   });
 

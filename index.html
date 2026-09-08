@@ -84,6 +84,16 @@
               into the loop they make, so nothing is drawn by hand &mdash; and roads that do not
               close into a loop are refused rather than joined up for you. London already uses
               the M25 and A282.</p>
+
+            <label id="pickLabel">Or pick the roads on the map, one tap each</label>
+            <div class="citypick__row">
+              <button type="button" class="btn btn--small" id="pickStart">Start picking</button>
+              <button type="button" class="btn btn--small" id="pickUndo" hidden>Undo</button>
+              <button type="button" class="btn btn--small" id="pickClear" hidden>Clear</button>
+              <button type="button" class="btn btn--small" id="pickUse" hidden>Use as my border</button>
+            </div>
+            <p class="hint" id="pickMsg">Tap each road that makes up the ring. They are joined
+              as you go, and the border can be used once they close into a loop.</p>
           </div>
         </div>
       </div>

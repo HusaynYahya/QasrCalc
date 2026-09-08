@@ -436,6 +436,10 @@ input::placeholder { color: var(--ink-faint); }
   gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem;
 }
 .maptools__hint { margin: 0; font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute); }
+/* Picking roads off the map. The cursor says the map is answering a
+   different question while it is on. */
+.map.is-picking { cursor: copy; }
+#pickLabel { display: block; margin-top: .9rem; }
 .maptools__opt {
   display: inline-flex; align-items: center; gap: .4rem; cursor: pointer;
   font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute);

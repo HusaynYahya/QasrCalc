@@ -1588,6 +1588,60 @@
 
   /* "out geom" and not a bare "out": without it the relation comes back as a
      list of member ids, with no coordinates to draw or measure.              */
+  /* One asker for every Overpass question, trying each host in turn. */
+  function overpassAsk(query, hosts, why) {
+    hosts = hosts || OVERPASS;
+    if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
+    return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
+      .then(function (r) {
+        if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
+        return r.json();
+      })
+      .catch(function (err) { return overpassAsk(query, hosts.slice(1), err && err.message); });
+  }
+
+  /* How far a point lies from a line, in kilometres. Flat-earth within the
+     few hundred metres this is ever asked about, and the cosine keeps
+     longitude honest away from the equator. */
+  function pointToLineKm(lat, lon, line) {
+    var kx = Math.cos(lat * Math.PI / 180) * 111.32, ky = 111.32;
+    var best = Infinity;
+    for (var i = 1; i < line.length; i++) {
+      var ax = (line[i - 1][0] - lon) * kx, ay = (line[i - 1][1] - lat) * ky;
+      var bx = (line[i][0] - lon) * kx,     by = (line[i][1] - lat) * ky;
+      var dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy;
+      var t = len > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len)) : 0;
+      var px = ax + dx * t, py = ay + dy * t;
+      var d = Math.sqrt(px * px + py * py);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
+  /* The road nearest a tap. Only roads a town is bounded by are offered —
+     a footpath or a driveway is not a border, and there are hundreds of them
+     under any given tap. */
+  function roadAt(lat, lon, radiusM) {
+    var r = radiusM || 60;
+    var query = "[out:json][timeout:25];way(around:" + r + "," + lat.toFixed(6) + "," +
+      lon.toFixed(6) + ")[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|" +
+      "unclassified|residential)$\"];out geom;";
+    return overpassAsk(query).then(function (data) {
+      var best = null;
+      ((data && data.elements) || []).forEach(function (el) {
+        var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });
+        if (line.length < 2) return;
+        var d = pointToLineKm(lat, lon, line);
+        if (!best || d < best.km) {
+          best = { id: el.id, km: d, line: line,
+                   name: (el.tags && (el.tags.ref || el.tags.name)) || "an unnamed road" };
+        }
+      });
+      if (!best) throw new Error("No road there. Tap the road itself, and zoom in if it is fiddly.");
+      return best;
+    });
+  }
+
   function ringBoundary(refs, near) {
     var wanted = (Array.isArray(refs) ? refs : String(refs || "").split(","))
       .map(function (r) { return String(r).trim().toUpperCase().replace(/[^A-Z0-9 .\/-]/g, ""); })
@@ -1624,17 +1678,7 @@
       }).join("") +
       ");out skel geom;";
 
-    function ask(hosts, why) {
-      if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
-      return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
-        .then(function (r) {
-          if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
-          return r.json();
-        })
-        .catch(function (err) { return ask(hosts.slice(1), err && err.message); });
-    }
-
-    return ask(OVERPASS).then(function (data) {
+    return overpassAsk(query).then(function (data) {
       var out = ringShape(data, ref);
       out.ref = ref;
       keep(key, out);
@@ -2159,6 +2203,11 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
     }).addTo(mapState.map);
     mapState.drawn = L.layerGroup().addTo(mapState.map);
+    /* Picked roads live in their own layer: renderMap clears its own on
+       every draw, and a road picked three taps ago must survive that. */
+    mapState.picks = L.layerGroup().addTo(mapState.map);
+    /* The browser test taps roads through this; nothing in the page reads it. */
+    window.__qasrMap = mapState.map;
     return true;
   }
 
@@ -2907,6 +2956,79 @@
   }
 
   /* Take a city as the one whose border the count starts from. */
+  /* ---- a border picked road by road off the map ---------------------------
+     The same trace as naming a road number, with the reader pointing instead
+     of typing: each tap asks the map which road is under it, and the roads
+     collected are handed to ringShape — the very function that stitches the
+     M25 — so a border picked here is built exactly as one traced by name.
+
+     For the reader whose town is ringed by roads with no single number, or
+     whose idea of leaving town follows three roads and a bypass.            */
+  var picking = false, picked = [];
+
+  function pickedRing() {
+    if (picked.length < 2) return null;
+    try {
+      /* Shaped as Overpass would answer, so ringShape needs no special case. */
+      return ringShape({ elements: picked.map(function (w) {
+        return { geometry: w.line.map(function (p) { return { lon: p[0], lat: p[1] }; }) };
+      }) }, "the roads you picked");
+    } catch (e) { return null; }
+  }
+
+  function renderPicks() {
+    if (!mapState.picks) return;
+    mapState.picks.clearLayers();
+    picked.forEach(function (w) {
+      L.polyline(w.line.map(function (p) { return [p[1], p[0]]; }), {
+        color: paint("--map-hadd"), weight: 5, opacity: .95
+      }).addTo(mapState.picks).bindTooltip(w.name);
+    });
+    var ring = pickedRing();
+    var sound = ring && ringIsSound({ traced: ring.traced, closedByHand: ring.closedByHand,
+                                      areaKm2: ring.areaKm2 });
+    var msg = $("pickMsg");
+    if (!picking && !picked.length) {
+      msg.textContent = "Tap each road that makes up the ring. They are joined as you go, " +
+        "and the border can be used once they close into a loop.";
+      msg.className = "hint";
+    } else if (!picked.length) {
+      msg.textContent = "Tap the first road. Zoom in if the roads are close together — " +
+        "the nearest one to the tap is the one taken.";
+      msg.className = "hint";
+    } else {
+      var n = picked.length + " road" + (picked.length === 1 ? "" : "s") + " picked";
+      msg.textContent = sound
+        ? n + " — they close into a loop of about " + Math.round(ring.areaKm2) +
+          " km². Use it as your border, or keep tapping."
+        : n + " — not a closed loop yet" +
+          (ring && ring.areaKm2 ? ", so far reaching about " + Math.round(ring.areaKm2) + " km²" : "") +
+          ". Keep tapping the roads that complete the ring.";
+      msg.className = "hint" + (sound ? " hint--ok" : "");
+    }
+    $("pickUndo").hidden = !picked.length;
+    $("pickClear").hidden = !picked.length;
+    $("pickUse").hidden = !sound;
+    $("pickStart").textContent = picking ? "Stop picking" : (picked.length ? "Pick more" : "Start picking");
+    var el = $("map");
+    if (el) el.className = "map" + (picking ? " is-picking" : "");
+  }
+
+  function pickRoadAt(latlng) {
+    $("pickMsg").textContent = "Looking for the road there…";
+    $("pickMsg").className = "hint";
+    return roadAt(latlng.lat, latlng.lng).then(function (road) {
+      var already = -1;
+      picked.forEach(function (w, i) { if (w.id === road.id) already = i; });
+      /* Tapping a road already picked takes it off again. */
+      if (already >= 0) picked.splice(already, 1); else picked.push(road);
+      renderPicks();
+    }).catch(function (err) {
+      $("pickMsg").textContent = err.message;
+      $("pickMsg").className = "hint hint--warn";
+    });
+  }
+
   function useCity(city, byHand) {
     cities.from = city;
     cityConfirmed = !!byHand;
@@ -3466,6 +3588,7 @@
     /* Tapping the map sets whichever end the toggle names. */
     if (mapState.map) {
       mapState.map.on("click", function (e) {
+        if (picking) { pickRoadAt(e.latlng); return; }
         var slot = document.querySelector("input[name='target']:checked").value;
         $("mapToolHint").textContent = "Looking up that point…";
         addressAt(e.latlng.lat, e.latlng.lng).then(function (place) {
@@ -3563,6 +3686,41 @@
         busy(null);
         say(err.message, true);
       });
+    });
+
+    $("pickStart").addEventListener("click", function () {
+      picking = !picking;
+      $("mapToolHint").textContent = picking
+        ? "Tap the roads that ring your city" : "Tap the map to set a location";
+      renderPicks();
+      if (picking) $("map").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    $("pickUndo").addEventListener("click", function () { picked.pop(); renderPicks(); });
+
+    $("pickClear").addEventListener("click", function () { picked = []; renderPicks(); });
+
+    $("pickUse").addEventListener("click", function () {
+      var ring = pickedRing();
+      if (!ring || !ringIsSound({ traced: ring.traced, closedByHand: ring.closedByHand,
+                                  areaKm2: ring.areaKm2 })) return;
+      var was = cities.from;
+      picking = false;
+      $("mapToolHint").textContent = "Tap the map to set a location";
+      useCity({
+        name: (was && was.name) || "the roads you picked",
+        area: was ? was.area : null,
+        shape: ring.shape,
+        /* showCity reads this as "the ... is outlined on the map as its
+           edge", so it has to be a singular thing. The count belongs in the
+           picking message, where it is being counted. */
+        fromRing: "border you picked",
+        ringArea: ring.areaKm2,
+        ringTraced: ring.traced,
+        ringClosedByHand: ring.closedByHand,
+        ringTried: true
+      }, true);
+      renderPicks();
     });
 
     $("ringInput").addEventListener("keydown", function (e) {
@@ -3775,7 +3933,8 @@
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
-    cityWithRing: cityWithRing, ringIsSound: ringIsSound
+    cityWithRing: cityWithRing, ringIsSound: ringIsSound,
+    pointToLineKm: pointToLineKm, roadAt: roadAt
   };
 
   if (document.readyState === "loading") {
