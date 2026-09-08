@@ -365,13 +365,46 @@
     });
   }
 
+  function outerRings(shape) {
+    return !shape ? []
+      : shape.type === "Polygon" ? [shape.coordinates[0]]
+      : shape.type === "MultiPolygon"
+        ? shape.coordinates.map(function (p) { return p[0]; }) : [];
+  }
+
   function cityTooBig(city) {
     if (!city || !city.shape || city.fromRing) return false;
-    var rings = city.shape.type === "Polygon" ? [city.shape.coordinates[0]]
-              : city.shape.type === "MultiPolygon"
-                ? city.shape.coordinates.map(function (p) { return p[0]; }) : [];
+    var rings = outerRings(city.shape);
     if (!rings.length) return false;
     return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0) > CITY_MAX_KM2;
+  }
+
+  /* The same doubt, the other way round.
+
+     CITY_MAX_KM2 caught a region being counted as a city and said so. Nothing
+     caught the opposite, and the opposite happens: asked for Najaf, the
+     address service answers with a polygon of one square kilometre; asked for
+     Jakarta, with a square kilometre of South Jakarta. A border that small is
+     crossed within a minute of setting off, so nearly the whole journey is
+     counted, and a journey genuinely under eight farsakh can be reported as
+     over it — shortening a prayer that is due in full. That is the worse of
+     the two errors and it was the one being made in silence.
+
+     Only where the answer claims to be a settlement in its own right
+     [rank 16 to 18: a city, or a town of any size]. A village really is two
+     square kilometres, and telling its residents their village looks too
+     small to be a village would be noise. Advisory, like its counterpart:
+     the reader is asked to look, and nothing is changed for them.           */
+  var CITY_MIN_KM2 = 10;
+
+  function cityTooSmall(city) {
+    if (!city || !city.shape || city.fromRing) return false;
+    /* Unranked answers are left alone: without knowing what the boundary
+       claims to be there is no reason to doubt its size. */
+    if (typeof city.rank !== "number" || city.rank < 16 || city.rank > 18) return false;
+    var rings = outerRings(city.shape);
+    if (!rings.length) return false;
+    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0) < CITY_MIN_KM2;
   }
 
   /* Hadd al-tarakhkhus, as a distance.
@@ -2468,11 +2501,7 @@
   }
 
   function shapeAreaKm2(shape) {
-    var rings = !shape ? []
-      : shape.type === "Polygon" ? [shape.coordinates[0]]
-      : shape.type === "MultiPolygon"
-        ? shape.coordinates.map(function (p) { return p[0]; }) : [];
-    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
+    return outerRings(shape).reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
   }
 
   function cityByName(name, mustContain) {
@@ -2600,6 +2629,11 @@
               : (a.city || a.town || a.village || a.municipality ||
                  (row.display_name || "").split(",")[0]),
           area: a.state || a.county || a.country || null,
+          /* What the boundary claims to be. Kept because cityTooSmall has to
+             tell a city published as a square kilometre from a village that
+             genuinely is one. */
+          kind: row.addresstype || null,
+          rank: typeof row.place_rank === "number" ? row.place_rank : null,
           fromAggregate: fromAggregate,
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
@@ -4163,11 +4197,9 @@
   }
 
   function cityAreaKm2(city) {
-    var rings = !city || !city.shape ? []
-      : city.shape.type === "Polygon" ? [city.shape.coordinates[0]]
-      : city.shape.type === "MultiPolygon"
-        ? city.shape.coordinates.map(function (p) { return p[0]; }) : [];
-    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
+    return outerRings(city && city.shape).reduce(function (n, r) {
+      return n + ringAreaKm2(r);
+    }, 0);
   }
 
   function showCity(slot, hintId, lead) {
@@ -4208,6 +4240,19 @@
           "rather than a city: towns an hour's drive out fall inside it, and all of that " +
           "would be deducted as still being at home. Pick the smaller place you would call " +
           "leaving town, or set the distance to your city's edge by hand below.";
+        hint.className = "hint hint--warn";
+      }
+      /* And the other way: too small to be the city it is named for. Same
+         treatment — said plainly, nothing changed behind the reader. */
+      if (slot === "from" && cityTooSmall(city)) {
+        hint.innerHTML = lead + " <b>" + city.name + "</b>" +
+          (city.area && city.area !== city.name ? ", " + city.area : "") +
+          " — but the border published under that name encloses only about " +
+          Math.round(cityAreaKm2(city)).toLocaleString("en-GB") + " km², which is smaller " +
+          "than the city it is named for: it is likely a district or a council ward inside " +
+          "it, so you would be counted as having left town while still in it, and the " +
+          "journey would come out longer than it is. Check the border on the map, and set " +
+          "the distance to your city's edge by hand below if it is wrong.";
         hint.className = "hint hint--warn";
       }
     } else {
@@ -4862,6 +4907,7 @@
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
     HADD_TARAKHKHUS_KM: HADD_TARAKHKHUS_KM,
     CITY_MAX_KM2: CITY_MAX_KM2, cityTooBig: cityTooBig,
+    CITY_MIN_KM2: CITY_MIN_KM2, cityTooSmall: cityTooSmall,
     urbanAreaAt: urbanAreaAt,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,

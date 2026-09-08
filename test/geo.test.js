@@ -650,6 +650,56 @@ test("nothing to measure is not a complaint", function () {
   assert.strictEqual(G.cityTooBig({ name: "No border" }), false);
 });
 
+/* --- and a "city" that is really a ward ----------------------------------- */
+console.log("\nCities too small to be cities");
+
+test("Najaf published as one square kilometre is refused", function () {
+  /* Measured, not imagined: asked for Najaf, the address service answers
+     with a polygon of about 1 km². A border that small is crossed within a
+     minute, so nearly the whole journey counts and a trip under eight
+     farsakh can be reported as over it — a prayer shortened that is due in
+     full. The worse of the two errors, and the silent one. */
+  assert.strictEqual(G.cityTooSmall(boxCity(1, { rank: 16 })), true);
+  assert.strictEqual(G.cityTooSmall(boxCity(1, { rank: 18 })), true,
+    "a town published as a square kilometre is as doubtful as a city");
+});
+
+test("real cities and real villages are both left alone", function () {
+  [["New Delhi", 44, 16], ["Paris", 105, 16], ["Manchester", 116, 16],
+   ["Doha", 211, 16]].forEach(function (c) {
+    assert.strictEqual(G.cityTooSmall(boxCity(c[1], { rank: c[2] })), false,
+      c[0] + " at " + c[1] + " km² was called a ward");
+  });
+  /* A village really is two square kilometres. Telling its residents it
+     looks too small to be a village would be noise, so the doubt is only
+     raised for what claims to be a city or a town. */
+  assert.strictEqual(G.cityTooSmall(boxCity(2, { rank: 19 })), false,
+    "a village must not be second-guessed for being village-sized");
+  assert.strictEqual(G.cityTooSmall(boxCity(1, { rank: 25 })), false,
+    "a quarter must not be second-guessed either");
+});
+
+test("a ring road is exempt, however small", function () {
+  assert.strictEqual(G.cityTooSmall(boxCity(1, { rank: 16, fromRing: "M25" })), false,
+    "a border chosen deliberately must not be second-guessed");
+});
+
+test("an unranked answer is not doubted", function () {
+  /* Without knowing what the boundary claims to be there is no reason to
+     call its size wrong. */
+  assert.strictEqual(G.cityTooSmall(boxCity(1)), false);
+  assert.strictEqual(G.cityTooSmall(null), false);
+  assert.strictEqual(G.cityTooSmall({ name: "No border", rank: 16 }), false);
+});
+
+test("the two doubts cannot both be raised at once", function () {
+  [1, 10, 44, 2999, 3001, 8892].forEach(function (km2) {
+    var c = boxCity(km2, { rank: 16 });
+    assert.ok(!(G.cityTooBig(c) && G.cityTooSmall(c)),
+      km2 + " km² was called both a region and a ward");
+  });
+});
+
 /* --- the built-up areas ---------------------------------------------------
    Shipped as a file rather than in the page, so it is checked as a file. */
 console.log("\nThe built-up areas");
