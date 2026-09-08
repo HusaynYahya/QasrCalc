@@ -49,8 +49,31 @@ test("a qualifying journey changes prayer, and says where", function () {
   assert.ok(s.begin && /begins/i.test(s.begin), "the point itself must be labelled");
   assert.ok(s.beginLabel && s.beginLabel.length < 40,
     "the label written on the map must be short enough to fit on it: " + s.beginLabel);
-  assert.ok(/about/.test(s.beginLabel),
-    "the map's own label must still say the point is approximate");
+  /* Leaving the waṭan the border is not where the prayer changes, so the mark
+     on it must not say it is. It is where the counting starts, which is a
+     published line and exact — "about" belongs to the ḥadd, further out. */
+  assert.strictEqual(s.atHadd, true);
+  assert.ok(/count/i.test(s.beginLabel),
+    "the border mark must say what it is — where the counting starts: " + s.beginLabel);
+  assert.ok(!/begins/i.test(s.beginLabel),
+    "the border mark must not claim the shortening begins there: " + s.beginLabel);
+});
+
+test("leaving the waṭan, the border and the ḥadd are told apart", function () {
+  /* The two were written on the same point: the border mark said the
+     shortening began there and the gold circle said it began at its far
+     edge. They are different measurements — the eight farsakh is counted
+     from the border [1755], the prayer changes at the ḥadd [1756]. */
+  var s = G.prayerStates(measure("QASR", "haddAlTarakhkhus"));
+  assert.ok(/counting starts/i.test(s.begin), "the border must be named as the count's start");
+  assert.ok(/farsakh/i.test(s.begin), "and as what the farsakh is measured from");
+  assert.ok(/further out/i.test(s.begin), "the ḥadd must be placed beyond it, not on it");
+
+  /* Not leaving the waṭan, the town limit is both, and one mark carries it. */
+  var t = G.prayerStates(measure("QASR", "onLeavingTheTown"));
+  assert.strictEqual(t.atHadd, false);
+  assert.ok(/begins/i.test(t.beginLabel),
+    "leaving a place that is not the waṭan, the border mark is where it begins");
 });
 
 test("it points at leaving town, and admits the map cannot draw the real line", function () {
@@ -58,8 +81,10 @@ test("it points at leaving town, and admits the map cannot draw the real line", 
   assert.ok(/tarakhkhu/i.test(s.begin), "the criterion should be named");
   assert.ok(/judged by eye|a little beyond/i.test(s.begin),
     "the map shows the town's edge, not the line itself — it must say so");
-  assert.ok(!/farsakh/i.test(s.begin),
-    "the eight farsakh is not where the shortening begins and must not be named here");
+  /* The farsakh may be named here — it is what the border is for — but only
+     as the thing measured from it, never as the point of change. */
+  assert.ok(!/farsakh[^.]*begins/i.test(s.begin),
+    "the eight farsakh must never be given as where the shortening begins");
 });
 
 test("leaving a place that is not your watan says so plainly", function () {

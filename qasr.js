@@ -2197,6 +2197,7 @@
       return {
         changes: false,
         both: false,
+        atHadd: false,
         head: doubted
           ? "Pray in full — the shortening is doubted, so it does not begin"
           : "Inside your city — not counted",
@@ -2207,20 +2208,39 @@
     }
 
     var both = leg === "JAMA";
+
+    /* Two measurements, and the border is only the first of them.
+
+       The eight farsakh is counted from the town border [1755]: that is what
+       the mark on the border is, and it is a published line, so it is exact
+       and is not labelled "about". Where the prayer changes is a separate
+       question with a separate answer. Leaving somewhere that is not his
+       waṭan it is the town limit too, and the one mark carries both. Leaving
+       his waṭan it is ḥadd al-tarakhkhuṣ, further out and judged by eye, and
+       the two must not be written on the same point — the border mark said
+       "shortening begins here" while the gold circle said it began at its
+       far edge, and both were on the map at once. */
+    var atHadd = !!(begins && begins.where === "haddAlTarakhkhus");
     return {
       changes: true,
       both: both,
+      atHadd: atHadd,
       head: "Pray in full — still in town",
       tail: both
         ? "From here pray both — shortened, then full — to the destination"
         : "Pray shortened from here to the destination",
       /* Two lengths: one to write on the map, one for prose. The full
          sentence was being pinned to the map and ran off the edge of it. */
-      beginLabel: both ? "Both prayers begin about here" : "Shortening begins about here",
-      begin: (both ? "Both prayers begin about here" : "Shortened prayer begins about here") +
-        (begins && begins.where === "haddAlTarakhkhus"
-          ? " — at ḥadd al-tarakhkhuṣ, where the town is lost to sight. The map can only show the town's edge; the line itself is judged by eye, a little beyond it."
-          : " — on leaving the town.")
+      beginLabel: atHadd
+        ? "Counting starts here — the border"
+        : (both ? "Both prayers begin about here" : "Shortening begins about here"),
+      begin: atHadd
+        ? "Counting starts here, at the town border — this is where the eight farsakh is " +
+          "measured from. " + (both ? "Both prayers begin" : "Shortened prayer begins") +
+          " further out, at ḥadd al-tarakhkhuṣ, where the town is lost to sight: the far " +
+          "edge of the gold circle, judged by eye and not a line on the ground."
+        : (both ? "Both prayers begin about here" : "Shortened prayer begins about here") +
+          " — on leaving the town, which is also where the counting starts."
     };
   }
 
@@ -2446,7 +2466,8 @@
           })
         }).addTo(mapState.drawn).bindTooltip("Eight farsakh — " + fmtKm(m.limitKm) +
           (m.roundTrip ? " counted, outward and back" : "") +
-          ". This is what qualifies the journey; the shortening already began at the town's edge.");
+          ". This is what qualifies the journey, and is not where the shortening begins" +
+          (says.atHadd ? " — that was back at ḥadd al-tarakhkhuṣ." : " — that was on leaving town."));
       }
     }
 
@@ -2478,6 +2499,11 @@
     $("mapLegend").querySelector(".is-fullroute").hidden = !(line && !shortensHere);
     $("mapLegend").querySelector(".is-begin").hidden = !(line && shortensHere && m && m.edgeKm > 0);
     $("mapLegend").querySelector(".is-hadd").hidden = !drewHadd;
+    $("mapLegend").querySelector(".is-begin").innerHTML =
+      "<span class='key key--begin'></span>" +
+      (m && prayerStates(m).atHadd
+        ? "<b>Counting starts here</b> — the border, where the eight <i>farsakh</i> is measured from"
+        : "<b>Shortening begins here</b>");
     $("mapLegend").querySelector(".is-head").hidden = !(line && m && m.edgeKm > 0);
     $("mapLegend").querySelector(".is-head").textContent = "";
     $("mapLegend").querySelector(".is-head").innerHTML =
