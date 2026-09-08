@@ -319,10 +319,14 @@ input::placeholder { color: var(--ink-faint); }
   background: var(--bg-sink);
 }
 .leaflet-container { background: var(--bg-sink); font-family: var(--font-label); }
-/* Only the tiles, never the drawing over them: the route, the border and the
-   marks keep the colours the legend names for them, and a filter over the
-   whole map would have turned the green border pink on a dark page. */
-.leaflet-tile-pane { filter: var(--map-tiles); }
+/* Only when the tiles are OpenStreetMap's, which come in one style and no
+   dark one, so a dark page has to make its own. Mapbox draws a dark map
+   already and inverting it would undo it.
+
+   And only the tiles, never the drawing over them: the route, the border and
+   the marks keep the colours the legend names for them, where a filter over
+   the whole map would have turned the green border pink on a dark page. */
+[data-tiles="osm"] .leaflet-tile-pane { filter: var(--map-tiles); }
 .leaflet-control-attribution {
   background: rgba(255, 255, 255, .88) !important;
   color: var(--ink-faint) !important;

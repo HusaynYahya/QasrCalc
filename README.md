@@ -217,6 +217,20 @@ the eight *farsakh* falls along the route. That last mark shows
 where the distance lands, not where shortening begins — once a journey qualifies,
 the shortening runs from the town limit onwards.
 
+Tiles come from **Mapbox** where `config.js` carries a public token, and from
+**OpenStreetMap** where it does not. Both are real answers rather than one being
+a stopgap: Mapbox draws a proper dark map and a cleaner light one, and
+OpenStreetMap needs no account and no billing relationship for a page whose point
+is that anyone can read it. The page is complete either way — a token buys polish,
+not function. They were CARTO's until CARTO began stamping "API KEY REQUIRED"
+diagonally across every tile served without a key, which the map drew without
+complaint because the request still succeeded.
+
+A Mapbox token belongs in `config.js`, is public by nature — it goes to the
+browser like every Mapbox web map's does — and should carry **URL restrictions**
+set on the token itself, so a copy lifted from the page cannot be spent elsewhere.
+A secret `sk.` token must never go there.
+
 Leaflet is vendored rather than pulled from a CDN, so the page has no third-party
 script dependency; only the tiles come over the network. It lives in `lib/`, not
 `vendor/`, because GitHub Pages runs Jekyll, and Jekyll leaves `vendor/` out of

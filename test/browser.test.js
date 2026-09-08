@@ -228,7 +228,7 @@ async function stub(page, log) {
   var PIXEL = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     "base64");
-  await page.route("**tile.openstreetmap.org/**", function (route) {
+  await page.route(/tile\.openstreetmap\.org|api\.mapbox\.com/, function (route) {
     route.fulfill({ status: 200, contentType: "image/png", body: PIXEL });
   });
 }
@@ -789,33 +789,54 @@ async function shot(page, name) {
     await page.close();
   });
 
-  await test("the map's tiles are darkened when the page is dark", async function () {
-    /* There used to be a dark set of tiles to ask for, and this looked for
-       its name in the URL. OpenStreetMap serves one style and no dark one, so
-       the dark page inverts the tiles itself and the filter is the thing to
-       check. The filter must land on the tiles alone: over the whole map it
-       would take the route and the border with it, and the green border would
-       come out pink under the legend that calls it green. */
+  await test("the map goes dark with the page, however its tiles are made", async function () {
+    /* Two ways of getting a dark map, and which one is in use depends on
+       whether config.js carries a Mapbox token. Mapbox draws a dark style, so
+       the page asks for a different one and filters nothing. OpenStreetMap
+       serves one style and no dark one, so the page inverts it. Asserting on
+       either alone would fail the moment the token was added or taken away,
+       which is what happened to the version of this test before it.
+
+       What must hold either way: the light page does not filter its tiles,
+       the dark page is darker by one means or the other, the drawing over the
+       map is never filtered — a filter over the whole map would turn the
+       green border pink under a legend that calls it green — and the tiles
+       never come from the service that stamps API KEY REQUIRED across them. */
     var page = await open(browser, base);
-    var before = await page.evaluate(function () {
-      return getComputedStyle(document.querySelector("#map .leaflet-tile-pane")).filter;
-    });
-    assert.ok(before === "none" || !before, "the light page must not filter its tiles: " + before);
+    var look = function () {
+      return page.evaluate(function () {
+        var pane = document.querySelector("#map .leaflet-tile-pane");
+        var over = document.querySelector("#map .leaflet-overlay-pane");
+        return { how: document.documentElement.getAttribute("data-tiles"),
+                 tiles: getComputedStyle(pane).filter,
+                 overlay: over ? getComputedStyle(over).filter : "none",
+                 src: (pane.querySelector("img") || {}).src || "" };
+      });
+    };
+
+    var light = await look();
+    assert.ok(light.tiles === "none" || !light.tiles,
+      "the light page must not filter its tiles: " + light.tiles);
+    assert.ok(light.how === "mapbox" || light.how === "osm",
+      "the page must say which tiles it is drawing: " + light.how);
 
     await page.click("#themeToggle");
-    await page.waitForTimeout(400);
-    var after = await page.evaluate(function () {
-      var pane = document.querySelector("#map .leaflet-tile-pane");
-      var over = document.querySelector("#map .leaflet-overlay-pane");
-      return { tiles: getComputedStyle(pane).filter,
-               overlay: getComputedStyle(over).filter,
-               src: (document.querySelector("#map .leaflet-tile-pane img") || {}).src || "" };
-    });
-    assert.ok(/invert/.test(after.tiles), "the tiles are not darkened: " + after.tiles);
-    assert.ok(after.overlay === "none" || !after.overlay,
-      "the drawing over the map must keep its own colours: " + after.overlay);
-    assert.ok(!/cartocdn/.test(after.src),
-      "the tiles still come from the service that stamps API KEY REQUIRED on them: " + after.src);
+    await page.waitForTimeout(500);
+    var dark = await look();
+
+    if (dark.how === "mapbox") {
+      assert.ok(/dark/.test(dark.src),
+        "Mapbox has a dark style and the dark page must ask for it: " + dark.src);
+      assert.ok(dark.tiles === "none" || !dark.tiles,
+        "a map already drawn dark must not be inverted on top: " + dark.tiles);
+    } else {
+      assert.ok(/invert/.test(dark.tiles),
+        "with no dark style to ask for, the tiles must be inverted: " + dark.tiles);
+    }
+    assert.ok(dark.overlay === "none" || !dark.overlay,
+      "the drawing over the map must keep its own colours: " + dark.overlay);
+    assert.ok(!/cartocdn/.test(dark.src),
+      "the tiles still come from the service that stamps API KEY REQUIRED on them: " + dark.src);
     await page.close();
   });
 

@@ -87,7 +87,7 @@ const num = t => { const m=String(t).match(/-?[\d.]+/); return m?parseFloat(m[0]
       }
       if (u.includes('osrm')) return rt.fulfill({status:200,contentType:'application/json',body:JSON.stringify({code:'Ok',
         routes:[{distance:roadKm*1000, duration:roadKm*50, geometry:{coordinates:line(from,to,40)}}]})});
-      if (u.includes('tile.openstreetmap.org')) return rt.fulfill({status:200,contentType:'image/png',body:TILE});
+      if (u.includes('tile.openstreetmap.org') || u.includes('api.mapbox.com')) return rt.fulfill({status:200,contentType:'image/png',body:TILE});
       return rt.abort();
     });
 

@@ -323,6 +323,9 @@
 </footer>
 
 <script src="lib/leaflet/leaflet.js?v=58" defer></script>
+<!-- Before the engine, which reads it for a Mapbox token and falls back to
+     OpenStreetMap's tiles when there is none. defer keeps the order. -->
+<script src="config.js?v=58" defer></script>
 <script src="fiqh.js?v=58" defer></script>
 <script src="qasr.js?v=58" defer></script>
 </body>

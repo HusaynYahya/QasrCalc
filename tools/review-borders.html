@@ -99,12 +99,13 @@ resident can. This shows them one at a time and writes down what you say.</p>
   <pre id="out" hidden></pre>
 </div>
 
-<p class="msg">Map by Leaflet; tiles, boundaries and geocoding by
-OpenStreetMap / Nominatim.</p>
+<p class="msg">Map by Leaflet, tiles by Mapbox or OpenStreetMap; boundaries and
+geocoding by OpenStreetMap / Nominatim.</p>
 
 </div>
 
 <script src="../lib/leaflet/leaflet.js"></script>
+<script src="../config.js"></script>
 <!-- The page's own lookup, so what is reviewed here is exactly what a reader
      would be shown: the same cityWithRing, the same ring roads, the same
      guards. Reviewing a copy of the logic would prove nothing about the page. -->
@@ -127,8 +128,19 @@ function remember() {
 var queue = [], at = 0, current = null;
 
 var map = L.map("map", { scrollWheelZoom: true });
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+/* The same tiles the page itself draws, from the same config: reviewing a
+   border over a different map than the reader sees would be reviewing the
+   wrong thing. Mapbox where a token is set, OpenStreetMap where none is. */
+var cfg = window.QasrConfig || {};
+if (/^pk\./.test((cfg.mapboxToken || "").trim())) {
+  L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/" + (cfg.mapboxLight || "light-v11") +
+              "/tiles/512/{z}/{x}/{y}{r}?access_token=" + encodeURIComponent(cfg.mapboxToken.trim()),
+    { maxZoom: 19, tileSize: 512, zoomOffset: -1,
+      attribution: "&copy; Mapbox &copy; OpenStreetMap contributors" }).addTo(map);
+} else {
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+}
 map.setView([20, 0], 2);
 var drawn = L.layerGroup().addTo(map);
 

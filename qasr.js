@@ -482,22 +482,55 @@
     return (v || "").trim() || "#000000";
   }
 
-  /* OpenStreetMap's own tiles.
+  /* Where the map's tiles come from.
 
-     They used to be CARTO's, in a light set and a dark one chosen by the
-     stylesheet. CARTO now stamps "API KEY REQUIRED" diagonally across every
-     tile it serves without a key — the request still succeeds and the map
-     still draws, which is why this went unnoticed until someone looked at
-     it — so the map came with an advertisement printed through the middle of
-     the city being measured.
+     They used to be CARTO's, in a light set and a dark one. CARTO now stamps
+     "API KEY REQUIRED" diagonally across every tile it serves without a key —
+     the request still succeeds and the map still draws, which is why nothing
+     broke and nobody noticed: the map simply came with an advertisement
+     printed through the middle of the city being measured.
 
-     OpenStreetMap serves one style and no dark one, so the dark page inverts
-     it in CSS instead; --map-tiles carries that filter now rather than a
-     style name, and the theme is still decided in one place. Their tile
-     policy asks for identification, which a browser gives by sending the
-     page it is drawing on.                                                   */
+     Mapbox where a token is set in config.js, and OpenStreetMap where none
+     is. Both are real answers rather than one being a stopgap: Mapbox draws a
+     proper dark map and a cleaner light one, and OpenStreetMap needs no
+     account, no token and no billing relationship for a page whose whole
+     point is that it can be read by anyone. The page is complete either way,
+     so a reader who never sets a token loses nothing but some polish.
+
+     Mapbox's tiles are 512 pixels where Leaflet assumes 256, which is what
+     tileSize and zoomOffset below are for; getting that wrong shows the map
+     at the wrong zoom rather than failing, so it is worth saying plainly. */
+  function mapbox() {
+    var c = window.QasrConfig || {};
+    return typeof c.mapboxToken === "string" && /^pk\./.test(c.mapboxToken.trim())
+         ? c : null;
+  }
+
   function tileUrl() {
-    return "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    var c = mapbox();
+    if (!c) return "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    var dark = document.documentElement.getAttribute("data-theme") === "dark" ||
+               (!document.documentElement.getAttribute("data-theme") &&
+                window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var style = (dark ? c.mapboxDark : c.mapboxLight) || (dark ? "dark-v11" : "light-v11");
+    return "https://api.mapbox.com/styles/v1/mapbox/" + style +
+           "/tiles/512/{z}/{x}/{y}{r}?access_token=" + encodeURIComponent(c.mapboxToken.trim());
+  }
+
+  function tileOptions() {
+    return mapbox()
+      ? { maxZoom: 19, tileSize: 512, zoomOffset: -1,
+          attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> ' +
+                       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }
+      : { maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' };
+  }
+
+  /* Which of the two is in use, said out loud on the root element, because
+     only one of them needs the stylesheet to invert it for a dark page —
+     Mapbox has a dark map of its own and inverting it would undo it. */
+  function markTiles() {
+    document.documentElement.setAttribute("data-tiles", mapbox() ? "mapbox" : "osm");
   }
 
   /* Overpass is asked first, because it answers the question directly — every
@@ -3148,10 +3181,8 @@
     }
     mapState.map = L.map("map", { scrollWheelZoom: false, attributionControl: true })
                     .setView([30, 10], 2);
-    mapState.tiles = L.tileLayer(tileUrl(), {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapState.map);
+    markTiles();
+    mapState.tiles = L.tileLayer(tileUrl(), tileOptions()).addTo(mapState.map);
     mapState.drawn = L.layerGroup().addTo(mapState.map);
     /* Picked roads live in their own layer: renderMap clears its own on
        every draw, and a road picked three taps ago must survive that. */
