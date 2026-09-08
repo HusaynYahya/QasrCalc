@@ -306,6 +306,36 @@
      claim. Nothing is forced: the distance is shown and the reader chooses.  */
   var NEAR_CITY_KM = 75;
 
+  /* The largest a fetched "city" may be before it is not one.
+
+     OpenStreetMap tags Melbourne as place=city and gives it 8,892 km² — that
+     is Greater Melbourne, the metropolitan region, farmland and all. Bunyip
+     is 72 km from the CBD and inside it, so the whole 72 km was being
+     deducted as "still in town" and the journey ruled full. Sydney, Brisbane
+     and Perth are tagged the same way.
+
+     A boundary that large is not "the end of the city or village" [1704]. It
+     is not the great-city case either: 1704 fn.2 puts Tehran outside that and
+     measures from the end of the whole city — a city, not a statistical
+     division with fields between its towns.
+
+     3,000 km² is above any city this is likely to meet honestly — Toronto is
+     630, New York 1,223, Los Angeles 1,302 — and below the regions that cause
+     this. It is a prompt, never a correction: passing it makes the page say
+     so and ask the reader to choose, because which boundary is "your city" is
+     a judgement of custom and not one to make behind their back. Ring roads
+     are exempt, being a border chosen on purpose rather than found.         */
+  var CITY_MAX_KM2 = 3000;
+
+  function cityTooBig(city) {
+    if (!city || !city.shape || city.fromRing) return false;
+    var rings = city.shape.type === "Polygon" ? [city.shape.coordinates[0]]
+              : city.shape.type === "MultiPolygon"
+                ? city.shape.coordinates.map(function (p) { return p[0]; }) : [];
+    if (!rings.length) return false;
+    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0) > CITY_MAX_KM2;
+  }
+
   /* Hadd al-tarakhkhus, as a distance.
 
      It is not really one. The limit is sight-based — the point at which the
@@ -3008,6 +3038,14 @@
     });
   }
 
+  function cityAreaKm2(city) {
+    var rings = !city || !city.shape ? []
+      : city.shape.type === "Polygon" ? [city.shape.coordinates[0]]
+      : city.shape.type === "MultiPolygon"
+        ? city.shape.coordinates.map(function (p) { return p[0]; }) : [];
+    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
+  }
+
   function showCity(slot, hintId, lead) {
     var city = cities[slot], hint = $(hintId);
     if (city && city.ringPending) {
@@ -3031,6 +3069,19 @@
           : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";
+      /* Too large to be a city, so say so rather than quietly counting the
+         whole of it as home. The reader decides; nothing is changed for
+         them. */
+      if (slot === "from" && cityTooBig(city)) {
+        hint.innerHTML = lead + " <b>" + city.name + "</b>" +
+          (city.area && city.area !== city.name ? ", " + city.area : "") +
+          " — but the border published under that name encloses about " +
+          Math.round(cityAreaKm2(city)).toLocaleString("en-GB") + " km², which is a region " +
+          "rather than a city: towns an hour's drive out fall inside it, and all of that " +
+          "would be deducted as still being at home. Pick the smaller place you would call " +
+          "leaving town, or set the distance to your city's edge by hand below.";
+        hint.className = "hint hint--warn";
+      }
     } else {
       hint.textContent = city && city.reason
         ? city.reason + (slot === "from" ? " No border is drawn, and the deduction stays as you left it." : "")
@@ -3638,6 +3689,7 @@
     inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm,
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
     HADD_TARAKHKHUS_KM: HADD_TARAKHKHUS_KM,
+    CITY_MAX_KM2: CITY_MAX_KM2, cityTooBig: cityTooBig,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,

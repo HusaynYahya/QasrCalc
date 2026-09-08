@@ -551,6 +551,47 @@ test("it encloses what that boundary encloses, and its box holds it", function (
   });
 });
 
+/* --- a "city" that is really a region ------------------------------------- */
+console.log("\nCities too large to be cities");
+
+function boxCity(km2, extra) {
+  /* A square of about the given area, at Melbourne's latitude. */
+  var side = Math.sqrt(km2), lat = -37.81, lon = 144.96;
+  var dLat = side / 111, dLon = side / (111 * Math.cos(lat * Math.PI / 180));
+  var ring = [[lon, lat], [lon + dLon, lat], [lon + dLon, lat + dLat],
+              [lon, lat + dLat], [lon, lat]];
+  var c = { name: "Somewhere", shape: { type: "Polygon", coordinates: [ring] } };
+  Object.keys(extra || {}).forEach(function (k) { c[k] = extra[k]; });
+  return c;
+}
+
+test("Greater Melbourne's 8,892 km² is refused as a city", function () {
+  /* The bug this exists for: Bunyip is 72 km from the CBD and inside that
+     polygon, so the whole 72 km was deducted and the journey ruled full. */
+  assert.strictEqual(G.cityTooBig(boxCity(8892)), true);
+});
+
+test("real cities are left alone", function () {
+  [["Toronto", 630], ["New York", 1223], ["Los Angeles", 1302],
+   ["Houston", 1651], ["a big one", 2900]].forEach(function (c) {
+    assert.strictEqual(G.cityTooBig(boxCity(c[1])), false,
+      c[0] + " at " + c[1] + " km² was called a region");
+  });
+});
+
+test("a ring road is exempt, however large", function () {
+  /* The GTA line is 4,580 km² and was chosen on purpose, not found. */
+  assert.strictEqual(G.cityTooBig(boxCity(4580, { fromRing: "GTA boundary" })), false,
+    "a border chosen deliberately must not be second-guessed");
+  assert.strictEqual(G.cityTooBig(boxCity(4580)), true,
+    "the same size found by lookup should still be questioned");
+});
+
+test("nothing to measure is not a complaint", function () {
+  assert.strictEqual(G.cityTooBig(null), false);
+  assert.strictEqual(G.cityTooBig({ name: "No border" }), false);
+});
+
 test("the box that gates the lookup contains the whole ring", function () {
   var entry = m25(), b = entry.box;
   entry.shape.coordinates[0].forEach(function (p) {
