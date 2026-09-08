@@ -1,0 +1,890 @@
+[
+ {
+  "asked": "London",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "London, England, United Kingdom",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 2.3081698581911776,
+    "dropped": [
+     "boundary:fire 2km"
+    ]
+   },
+   {
+    "label": "London, Tulare, California, United States",
+    "n": 2,
+    "keptWhat": "place:village",
+    "worst": 0.955307374178819,
+    "dropped": [
+     "boundary:census 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Birmingham",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Birmingham, West Midlands, England, United Kingdom",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 3.8354054529499777,
+    "dropped": [
+     "place:city 4km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Manchester",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Glasgow",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Dublin",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Paris",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Paris, Île-de-France, France",
+    "n": 3,
+    "keptWhat": "place:city",
+    "worst": 2.159147605443914,
+    "dropped": [
+     "boundary:administrative 2km",
+     "boundary:administrative 2km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Berlin",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Madrid",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Madrid, Santa Fe, New Mexico, United States",
+    "n": 2,
+    "keptWhat": "place:hamlet",
+    "worst": 0.5899651100912536,
+    "dropped": [
+     "place:locality 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Rome",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Istanbul",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Istanbul Taksim Square, Gümüşsuyu, Beyoğlu, Istanbul, Turkey",
+    "n": 2,
+    "keptWhat": "place:square",
+    "worst": 0,
+    "dropped": [
+     "place:square 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Moscow",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Moscow, Russia",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 13.91265869479889,
+    "dropped": [
+     "place:state 14km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Cairo",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Cairo, Egypt",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 31.447459398657887,
+    "dropped": [
+     "boundary:administrative 31km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Riyadh",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Riyadh, Khartoum, Khartoum State, Sudan",
+    "n": 2,
+    "keptWhat": "place:neighbourhood",
+    "worst": 0.15544302828586246,
+    "dropped": [
+     "boundary:administrative 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Jeddah",
+  "before": 4,
+  "after": 3,
+  "groups": [
+   {
+    "label": "Jeddah Corniche Circuit, Jeddah, Governorate of Jidda, Mecca, Saudi Arabia",
+    "n": 2,
+    "keptWhat": "highway:raceway",
+    "worst": 0.8184485323738819,
+    "dropped": [
+     "highway:raceway 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Doha",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Doha, Qatar",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 3.3529430592349385,
+    "dropped": [
+     "place:state 3km"
+    ]
+   },
+   {
+    "label": "Doha, Capital, Kuwait",
+    "n": 2,
+    "keptWhat": "place:suburb",
+    "worst": 2.5309527884076943,
+    "dropped": [
+     "boundary:administrative 3km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Kuwait City",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Dubai",
+  "before": 8,
+  "after": 5,
+  "groups": [
+   {
+    "label": "Dubai, United Arab Emirates",
+    "n": 4,
+    "keptWhat": "place:city",
+    "worst": 100.06183198239982,
+    "dropped": [
+     "place:state 28km",
+     "boundary:administrative 24km",
+     "place:state 100km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Abu Dhabi",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Abu Dhabi, United Arab Emirates",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 74.19080190637084,
+    "dropped": [
+     "place:state 74km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Sharjah",
+  "before": 8,
+  "after": 4,
+  "groups": [
+   {
+    "label": "Sharjah, United Arab Emirates",
+    "n": 5,
+    "keptWhat": "place:city",
+    "worst": 93.35011710744853,
+    "dropped": [
+     "place:state 90km",
+     "place:state 93km",
+     "place:state 29km",
+     "place:state 86km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Baghdad",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Baghdad International Airport, Al-Mansour Subdistrict, Al-Mansour Municipality, Baghdad, Iraq",
+    "n": 2,
+    "keptWhat": "aeroway:terminal",
+    "worst": 0.666669669872782,
+    "dropped": [
+     "aeroway:aerodrome 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Karbala",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Najaf",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Tehran",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Mashhad",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Mashhad, District 3, Mashhad County, Razavi Khorasan, Iran",
+    "n": 3,
+    "keptWhat": "railway:stop",
+    "worst": 0.2080556697786446,
+    "dropped": [
+     "railway:stop 0km",
+     "railway:stop 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Qom",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Qom, Iran",
+    "n": 2,
+    "keptWhat": "place:province",
+    "worst": 105.45589493346017,
+    "dropped": [
+     "waterway:river 105km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Karachi",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Lahore",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Mumbai",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Mumbai CSMT, A Ward, Mumbai, Mumbai City District, Maharashtra, India",
+    "n": 2,
+    "keptWhat": "railway:station",
+    "worst": 0.10945883482880306,
+    "dropped": [
+     "building:train_station 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Delhi",
+  "before": 8,
+  "after": 5,
+  "groups": [
+   {
+    "label": "Delhi, India",
+    "n": 3,
+    "keptWhat": "place:city",
+    "worst": 3.7517174498886106,
+    "dropped": [
+     "place:city 4km",
+     "place:state 0km"
+    ]
+   },
+   {
+    "label": "Delhi, Delaware, New York, United States",
+    "n": 2,
+    "keptWhat": "place:village",
+    "worst": 0,
+    "dropped": [
+     "place:village 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Hyderabad",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Dhaka",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Dhaka, Bihar, India",
+    "n": 2,
+    "keptWhat": "place:town",
+    "worst": 3.7355279265740324,
+    "dropped": [
+     "boundary:administrative 4km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Kuala Lumpur",
+  "before": 8,
+  "after": 4,
+  "groups": [
+   {
+    "label": "Kuala Lumpur, Bukit Bintang, Malaysia",
+    "n": 5,
+    "keptWhat": "railway:stop",
+    "worst": 0.14367844806061594,
+    "dropped": [
+     "railway:stop 0km",
+     "railway:station 0km",
+     "railway:stop 0km",
+     "railway:stop 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Singapore",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Singapore",
+    "n": 3,
+    "keptWhat": "place:city",
+    "worst": 8.294397936078195,
+    "dropped": [
+     "place:country 8km",
+     "place:island 6km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Jakarta",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Jakarta LRT, Pulo Gadung, Jakarta, Java, Indonesia",
+    "n": 2,
+    "keptWhat": "railway:light_rail",
+    "worst": 0.5416780609925359,
+    "dropped": [
+     "railway:light_rail 1km"
+    ]
+   },
+   {
+    "label": "Jakarta LRT, Cempaka Putih, Jakarta, Java, Indonesia",
+    "n": 2,
+    "keptWhat": "railway:light_rail",
+    "worst": 1.3931127799018228,
+    "dropped": [
+     "railway:light_rail 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Sydney",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Melbourne",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Melbourne, Victoria, Australia",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 0.20997291665500664,
+    "dropped": [
+     "place:suburb 0km"
+    ]
+   },
+   {
+    "label": "Melbourne, South Derbyshire, Derbyshire, England, United Kingdom",
+    "n": 2,
+    "keptWhat": "place:town",
+    "worst": 0.008488640618470778,
+    "dropped": [
+     "place:village 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Perth",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Perth, Western Australia, Australia",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 0.4971347885133661,
+    "dropped": [
+     "railway:station 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Auckland",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Auckland, New Zealand",
+    "n": 2,
+    "keptWhat": "boundary:administrative",
+    "worst": 0,
+    "dropped": [
+     "boundary:administrative 0km"
+    ]
+   },
+   {
+    "label": "Auckland Airport, Māngere-Ōtāhuhu, Auckland, New Zealand",
+    "n": 2,
+    "keptWhat": "place:quarter",
+    "worst": 0.7030044734667011,
+    "dropped": [
+     "aeroway:aerodrome 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Toronto",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Montreal",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Montreal, Camden, Missouri, United States",
+    "n": 2,
+    "keptWhat": "place:hamlet",
+    "worst": 0.08521948653741564,
+    "dropped": [
+     "boundary:census 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Vancouver",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Vancouver, Esther Short, Clark, Washington, United States",
+    "n": 2,
+    "keptWhat": "railway:station",
+    "worst": 0.0027590843814062735,
+    "dropped": [
+     "building:train_station 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "New York",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "New York, United States",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 311.3636277269431,
+    "dropped": [
+     "place:state 311km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Chicago",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Chicago, Near North Side, Cook County, Illinois, United States",
+    "n": 2,
+    "keptWhat": "railway:station",
+    "worst": 0.6275575110506425,
+    "dropped": [
+     "railway:station 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Los Angeles",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Los Angeles, California, United States",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 29.271316932663055,
+    "dropped": [
+     "place:county 29km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Houston",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Detroit",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Lagos",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Lagos, São Gonçalo de Lagos, Faro, Portugal",
+    "n": 3,
+    "keptWhat": "railway:stop",
+    "worst": 0.012878723062238596,
+    "dropped": [
+     "railway:stop 0km",
+     "railway:stop 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Nairobi",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Nairobi, Nairobi County, Kenya",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 1.9681210080189686,
+    "dropped": [
+     "boundary:yes 2km"
+    ]
+   },
+   {
+    "label": "Nairobi, Solai ward, Rongai, Nakuru, Kenya",
+    "n": 2,
+    "keptWhat": "place:village",
+    "worst": 22.198426814649473,
+    "dropped": [
+     "place:village 22km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Johannesburg",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Johannesburg, Kern, California, United States",
+    "n": 2,
+    "keptWhat": "place:hamlet",
+    "worst": 0.7088413422087402,
+    "dropped": [
+     "boundary:census 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Sao Paulo",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "São Paulo, Brazil",
+    "n": 2,
+    "keptWhat": "place:municipality",
+    "worst": 247.25107019421677,
+    "dropped": [
+     "place:state 247km"
+    ]
+   },
+   {
+    "label": "São Paulo Botanical Garden, Água Funda, São Paulo, Brazil",
+    "n": 2,
+    "keptWhat": "place:locality",
+    "worst": 0,
+    "dropped": [
+     "place:locality 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Tokyo",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Damascus",
+  "before": 8,
+  "after": 6,
+  "groups": [
+   {
+    "label": "Damascus, Clackamas, Oregon, United States",
+    "n": 2,
+    "keptWhat": "place:village",
+    "worst": 2.44486792225237,
+    "dropped": [
+     "boundary:census 2km"
+    ]
+   },
+   {
+    "label": "Damascus, Montgomery, Maryland, United States",
+    "n": 2,
+    "keptWhat": "place:town",
+    "worst": 2.1928207162581703,
+    "dropped": [
+     "boundary:statistical 2km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Beirut",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Beirut, Lebanon",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 2.2311966522955666,
+    "dropped": [
+     "place:state 2km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Amman",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Muscat",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Manama",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Isfahan",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Isfahan Shahid Beheshti International Airport, شهرک مسکونی کارکنان پایگاه هشتم شکاری, دهستان قهاب شمالی, Isfahan County, Isfahan, Iran",
+    "n": 2,
+    "keptWhat": "aeroway:aerodrome",
+    "worst": 0,
+    "dropped": [
+     "military:airfield 0km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Shiraz",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Basra",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Kufa",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Kufar, Nagrieta, Paonta Sahib, Himachal Pradesh, India",
+    "n": 2,
+    "keptWhat": "place:hamlet",
+    "worst": 1.3488025364481546,
+    "dropped": [
+     "place:hamlet 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Kadhimiya",
+  "before": 8,
+  "after": 8,
+  "groups": []
+ },
+ {
+  "asked": "Samarra",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Samarra, Badgaon Dhasan Tahsil, Madhya Pradesh, India",
+    "n": 2,
+    "keptWhat": "place:village",
+    "worst": 0.7932012430574824,
+    "dropped": [
+     "boundary:administrative 1km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Watford",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Watford, Hertfordshire, England, United Kingdom",
+    "n": 2,
+    "keptWhat": "place:town",
+    "worst": 1.887480354002486,
+    "dropped": [
+     "boundary:administrative 2km"
+    ]
+   }
+  ]
+ },
+ {
+  "asked": "Cambridge",
+  "before": 8,
+  "after": 7,
+  "groups": [
+   {
+    "label": "Cambridge, Cambridgeshire, England, United Kingdom",
+    "n": 2,
+    "keptWhat": "place:city",
+    "worst": 1.6524936770771315,
+    "dropped": [
+     "boundary:administrative 2km"
+    ]
+   }
+  ]
+ }
+]

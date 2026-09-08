@@ -752,6 +752,90 @@ test("each carries a box that holds it", function () {
   });
 });
 
+/* --- the suggestion list --------------------------------------------------- */
+console.log("\nWhat the suggestion list offers");
+
+function feature(name, key, value, extra) {
+  var p = { name: name, country: "United Arab Emirates", osm_key: key, osm_value: value };
+  Object.keys(extra || {}).forEach(function (k) { p[k] = extra[k]; });
+  return p;
+}
+
+test("a label is built without repeating itself", function () {
+  assert.strictEqual(
+    G.photonLabel({ name: "Dubai Marina", state: "Dubai", country: "United Arab Emirates" }),
+    "Dubai Marina, Dubai, United Arab Emirates");
+  /* The name and the state being the same word must not print it twice. */
+  assert.strictEqual(
+    G.photonLabel({ name: "Dubai", state: "Dubai", country: "United Arab Emirates" }),
+    "Dubai, United Arab Emirates");
+});
+
+test("a settlement outranks the region drawn round it", function () {
+  assert.ok(G.suggestRank(feature("Dubai", "place", "city")) <
+            G.suggestRank(feature("Dubai", "place", "state")),
+    "the city must beat the emirate");
+  assert.ok(G.suggestRank(feature("Dubai", "place", "city")) <
+            G.suggestRank(feature("Dubai", "boundary", "administrative")),
+    "the city must beat an administrative boundary");
+  assert.ok(G.suggestRank(feature("Dubai Marina", "place", "suburb")) <
+            G.suggestRank(feature("Dubai", "place", "state")),
+    "a quarter of a city is still a place someone lives");
+});
+
+test("four answers of one name are offered once, and as the settlement", function () {
+  /* Recorded from the search: the city node, the emirate, the municipality's
+     boundary, and — mis-tagged as a state — a node out at Hatta, a hundred
+     and thirty kilometres east with another emirate in between. All four
+     reduce to the same line, so the reader was choosing blind. */
+  var rows = [
+    { label: "Dubai, United Arab Emirates", rank: G.suggestRank(feature("Dubai", "place", "city")),
+      lat: 25.2647, lon: 55.2924 },
+    { label: "Dubai, United Arab Emirates", rank: G.suggestRank(feature("Dubai", "place", "state")),
+      lat: 25.0791, lon: 55.4797 },
+    { label: "Dubai, United Arab Emirates", rank: G.suggestRank(feature("Dubai", "boundary", "administrative")),
+      lat: 25.0743, lon: 55.1886 },
+    { label: "Dubai, United Arab Emirates", rank: G.suggestRank(feature("Dubai", "place", "state")),
+      lat: 24.8047, lon: 56.1461 },
+    { label: "Dubai Marina, Dubai, United Arab Emirates",
+      rank: G.suggestRank(feature("Dubai Marina", "place", "suburb")),
+      lat: 25.0786, lon: 55.1353 }
+  ];
+  var out = G.oneOfEachLabel(rows);
+  assert.strictEqual(out.length, 2, "expected one Dubai and the Marina, got " + out.length);
+  assert.strictEqual(out[0].lat, 25.2647, "the city node is the one to keep");
+  assert.ok(out[0].lon < 55.6, "Hatta is at 56.15 east and is not Dubai");
+  assert.strictEqual(out[1].label, "Dubai Marina, Dubai, United Arab Emirates",
+    "a place that is genuinely its own keeps its line");
+});
+
+test("the order the search chose is not disturbed", function () {
+  /* Only duplicates are touched. Reordering the rest would second-guess the
+     search about which answer is meant, which it knows better. */
+  var rows = [
+    { label: "A", rank: 2, lat: 0, lon: 0 },
+    { label: "B", rank: 0, lat: 1, lon: 1 },
+    { label: "C", rank: 1, lat: 2, lon: 2 }
+  ];
+  /* Joined rather than compared as arrays: the engine is loaded in a context
+     of its own, so the array it hands back has that context's prototype and
+     a strict deep comparison fails on realm rather than on content. */
+  assert.strictEqual(G.oneOfEachLabel(rows).map(function (r) { return r.label; }).join(","),
+    "A,B,C");
+});
+
+test("a duplicate keeps the place of its first appearance", function () {
+  var rows = [
+    { label: "A", rank: 1, lat: 0, lon: 0 },
+    { label: "B", rank: 2, lat: 1, lon: 1 },
+    { label: "B", rank: 0, lat: 9, lon: 9 },
+    { label: "C", rank: 1, lat: 2, lon: 2 }
+  ];
+  var out = G.oneOfEachLabel(rows);
+  assert.strictEqual(out.map(function (r) { return r.label; }).join(","), "A,B,C");
+  assert.strictEqual(out[1].lat, 9, "the better of the two Bs is the one kept");
+});
+
 /* --- Dubai ---------------------------------------------------------------- */
 console.log("\nDubai");
 

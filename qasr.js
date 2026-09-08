@@ -5084,7 +5084,10 @@
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
     pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear,
     snapStroke: snapStroke, roadsAlong: roadsAlong, thinStroke: thinStroke,
-    roadWeight: roadWeight
+    roadWeight: roadWeight,
+    /* The suggestion list's own rules, exported so they can be checked
+       against what the search really returns rather than against a copy. */
+    photonLabel: photonLabel, suggestRank: suggestRank, oneOfEachLabel: oneOfEachLabel
   };
 
   if (document.readyState === "loading") {
