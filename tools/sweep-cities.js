@@ -43,6 +43,14 @@ var vm = require("vm");
 
 var UA = "qasrcalc-sweep/1.0 (+https://github.com/HusaynYahya/QasrCalc)";
 
+/* Between cities, and after being refused. The second is long on purpose: a
+   refusal means the service wants to be left alone, and asking again a second
+   later is how a run turns into a page of false findings. */
+var GAP_MS = 1200;
+var BACKOFF_MS = 30000;
+
+var retries = Object.create(null);
+
 /* A point in the middle of each, and the name a reader would type. */
 var CITIES = [
   ["London", 51.5074, -0.1278],        ["Birmingham", 52.4862, -1.8904],
@@ -123,6 +131,9 @@ function spanKm(shape) {
 }
 
 function verdict(r) {
+  /* Before anything else, because a refusal masquerades as every other
+     answer: no name, no border, nothing to measure. */
+  if (wasRefused(r)) return "REFUSED by the address service — not a finding";
   if (r.error) return "asking failed: " + r.error;
   if (r.ring) return "drawn by hand (" + r.ring + ")";
   if (!r.hasShape) return "no border published" + (r.why ? " — " + r.why : "");
@@ -141,6 +152,13 @@ function verdict(r) {
 }
 
 function pad(s, n) { s = String(s); return s + " ".repeat(Math.max(0, n - s.length)); }
+
+/* The service's own words when it is refusing, so a refusal can be told from
+   an answer. Matched on the page's message rather than a status code because
+   that is all that reaches here — cityAt turns the response into a reason. */
+function wasRefused(r) {
+  return /refusing requests|returned 4\d\d|returned 5\d\d/.test((r.why || r.error || ""));
+}
 
 var out = [];
 (async function () {
@@ -165,12 +183,28 @@ var out = [];
       r.error = String((err && err.message) || err);
     }
     r.verdict = verdict(r);
+
+    /* A refusal is not a finding, and recording it as one is worse than
+       stopping: a rate-limited run reports city after city as having no
+       border, which reads exactly like a gap in the map. Wait properly and
+       ask again; say so on the way, so a slow run is not a mysterious one. */
+    if (wasRefused(r) && !r.retried) {
+      console.log(pad(asked, 15) + "refused — waiting " + (BACKOFF_MS / 1000) +
+                  "s and asking again");
+      await new Promise(function (go) { setTimeout(go, BACKOFF_MS); });
+      i--;                    /* the same city, once more */
+      CITIES[i].retried = true;
+      retries[asked] = true;
+      continue;
+    }
+    if (retries[asked]) r.retried = true;
+
     out.push(r);
     console.log(pad(asked, 15) + pad(r.got || "—", 22) +
                 pad(r.shapeKm2 == null ? "—" : r.shapeKm2 + " km²", 12) + r.verdict);
     /* Nominatim's terms: one request a second. The page's own queue paces
        itself, but a fresh city starts a fresh chain of lookups. */
-    await new Promise(function (go) { setTimeout(go, 1200); });
+    await new Promise(function (go) { setTimeout(go, GAP_MS); });
   }
 
   var doubted = out.filter(function (r) { return r.tooBig || r.tooSmall || r.holdsCentre === false; });
@@ -179,7 +213,11 @@ var out = [];
               out.filter(function (r) { return r.ring; }).length + " drawn by hand · " +
               quiet.length + " nothing obviously wrong · " +
               doubted.length + " doubted and said so · " +
-              out.filter(function (r) { return !r.error && !r.hasShape; }).length + " no border");
+              out.filter(function (r) { return !r.error && !r.hasShape && !wasRefused(r); }).length +
+              " no border" +
+              (out.filter(wasRefused).length
+                ? " · " + out.filter(wasRefused).length + " REFUSED (rerun those; not findings)"
+                : ""));
   console.log("\n\"Nothing obviously wrong\" means the centre falls inside and the area is\n" +
               "plausible. It does not mean the border is where a resident would put it.");
 
