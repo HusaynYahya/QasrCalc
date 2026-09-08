@@ -228,7 +228,7 @@ async function stub(page, log) {
   var PIXEL = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     "base64");
-  await page.route("**basemaps.cartocdn.com/**", function (route) {
+  await page.route("**tile.openstreetmap.org/**", function (route) {
     route.fulfill({ status: 200, contentType: "image/png", body: PIXEL });
   });
 }
@@ -789,15 +789,33 @@ async function shot(page, name) {
     await page.close();
   });
 
-  await test("the map takes dark tiles when the page is dark", async function () {
+  await test("the map's tiles are darkened when the page is dark", async function () {
+    /* There used to be a dark set of tiles to ask for, and this looked for
+       its name in the URL. OpenStreetMap serves one style and no dark one, so
+       the dark page inverts the tiles itself and the filter is the thing to
+       check. The filter must land on the tiles alone: over the whole map it
+       would take the route and the border with it, and the green border would
+       come out pink under the legend that calls it green. */
     var page = await open(browser, base);
+    var before = await page.evaluate(function () {
+      return getComputedStyle(document.querySelector("#map .leaflet-tile-pane")).filter;
+    });
+    assert.ok(before === "none" || !before, "the light page must not filter its tiles: " + before);
+
     await page.click("#themeToggle");
     await page.waitForTimeout(400);
-    var url = await page.evaluate(function () {
-      var img = document.querySelector("#map .leaflet-tile-pane img");
-      return img ? img.src : "";
+    var after = await page.evaluate(function () {
+      var pane = document.querySelector("#map .leaflet-tile-pane");
+      var over = document.querySelector("#map .leaflet-overlay-pane");
+      return { tiles: getComputedStyle(pane).filter,
+               overlay: getComputedStyle(over).filter,
+               src: (document.querySelector("#map .leaflet-tile-pane img") || {}).src || "" };
     });
-    assert.ok(/dark_all/.test(url), "the tiles are still the light ones: " + url);
+    assert.ok(/invert/.test(after.tiles), "the tiles are not darkened: " + after.tiles);
+    assert.ok(after.overlay === "none" || !after.overlay,
+      "the drawing over the map must keep its own colours: " + after.overlay);
+    assert.ok(!/cartocdn/.test(after.src),
+      "the tiles still come from the service that stamps API KEY REQUIRED on them: " + after.src);
     await page.close();
   });
 

@@ -482,11 +482,22 @@
     return (v || "").trim() || "#000000";
   }
 
-  /* Light tiles under a light page, dark under a dark one. The stylesheet
-     names which set, so the theme is decided in one place. */
+  /* OpenStreetMap's own tiles.
+
+     They used to be CARTO's, in a light set and a dark one chosen by the
+     stylesheet. CARTO now stamps "API KEY REQUIRED" diagonally across every
+     tile it serves without a key — the request still succeeds and the map
+     still draws, which is why this went unnoticed until someone looked at
+     it — so the map came with an advertisement printed through the middle of
+     the city being measured.
+
+     OpenStreetMap serves one style and no dark one, so the dark page inverts
+     it in CSS instead; --map-tiles carries that filter now rather than a
+     style name, and the theme is still decided in one place. Their tile
+     policy asks for identification, which a browser gives by sending the
+     page it is drawing on.                                                   */
   function tileUrl() {
-    var set = paint("--map-tiles").replace(/["']/g, "") || "light_all";
-    return "https://{s}.basemaps.cartocdn.com/" + set + "/{z}/{x}/{y}{r}.png";
+    return "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   }
 
   /* Overpass is asked first, because it answers the question directly — every
@@ -3139,7 +3150,7 @@
                     .setView([30, 10], 2);
     mapState.tiles = L.tileLayer(tileUrl(), {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapState.map);
     mapState.drawn = L.layerGroup().addTo(mapState.map);
     /* Picked roads live in their own layer: renderMap clears its own on

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Review the borders — Qasr Calculator</title>
+<link rel="stylesheet" href="../lib/leaflet/leaflet.css" />
+<style>
+  :root { --ink: #16212b; --paper: #f4f7f8; --line: rgba(22,33,43,.14);
+          --green: #0f8a76; --amber: #b8860b; --red: #b3261e; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         margin: 0; color: var(--ink); background: var(--paper); }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 1.2rem; }
+  h1 { font-size: 1.25rem; margin: 0 0 .3rem; }
+  .lede { margin: 0 0 1rem; color: #4a5b68; max-width: 62ch; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
+         margin-bottom: .8rem; }
+  .bar input { font: inherit; padding: .45rem .6rem; border: 1px solid var(--line);
+               border-radius: 8px; background: #fff; }
+  .count { color: #4a5b68; font-variant-numeric: tabular-nums; }
+
+  #map { height: 62vh; min-height: 380px; border: 1px solid var(--line);
+         border-radius: 10px; background: #fff; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px;
+          padding: .8rem 1rem; margin: .8rem 0; }
+  .city { font-size: 1.1rem; font-weight: 600; }
+  .facts { color: #4a5b68; font-size: .92rem; margin-top: .15rem; }
+  .facts b { font-variant-numeric: tabular-nums; }
+  .verdict { margin-top: .35rem; font-size: .92rem; }
+  .verdict.warn { color: var(--amber); }
+  .verdict.none { color: var(--red); }
+
+  .ask { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .7rem; }
+  button { font: inherit; padding: .55rem 1.1rem; border-radius: 999px; cursor: pointer;
+           border: 1px solid var(--line); background: #fff; color: var(--ink); }
+  button:hover { border-color: rgba(22,33,43,.32); }
+  button[disabled] { opacity: .45; cursor: default; }
+  .yes    { background: var(--green); color: #fff; border-color: transparent; }
+  .nearly { background: var(--amber); color: #fff; border-color: transparent; }
+  .no     { background: var(--red);   color: #fff; border-color: transparent; }
+  .key { opacity: .75; font-size: .85em; }
+  #note { flex: 1 1 22rem; min-width: 14rem; }
+
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .3rem .5rem; border-bottom: 1px solid var(--line); }
+  th { color: #4a5b68; font-weight: 600; }
+  td.v-yes { color: var(--green); } td.v-nearly { color: var(--amber); } td.v-no { color: var(--red); }
+  pre { background: #fff; border: 1px solid var(--line); border-radius: 8px;
+        padding: .7rem; overflow: auto; max-height: 240px; font-size: 12px; }
+  .msg { color: #4a5b68; }
+  .msg.bad { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Review the borders</h1>
+<p class="lede">Three cities are drawn by hand and checked by tests. Every other
+border is whatever OpenStreetMap publishes under the name, and no automatic
+check can tell whether it is where a resident would say the town ends — only a
+resident can. This shows them one at a time and writes down what you say.</p>
+
+<div class="bar">
+  <label>Or look at any city <input id="ask" placeholder="e.g. Karbala" size="18" /></label>
+  <button id="askGo">Show it</button>
+  <span class="count" id="count"></span>
+  <button id="skip">Skip</button>
+  <button id="back">Back</button>
+</div>
+
+<div id="map"></div>
+
+<div class="card">
+  <div class="city" id="name">Loading…</div>
+  <div class="facts" id="facts"></div>
+  <div class="verdict" id="auto"></div>
+
+  <div class="ask">
+    <button class="yes"    id="vYes"    disabled>Yes <span class="key">1</span></button>
+    <button class="nearly" id="vNearly" disabled>Nearly <span class="key">2</span></button>
+    <button class="no"     id="vNo"     disabled>No <span class="key">3</span></button>
+    <input id="note" placeholder="What is wrong with it? (optional)" />
+  </div>
+  <p class="msg" id="msg"></p>
+</div>
+
+<div class="card">
+  <div class="bar">
+    <strong style="flex:1">What you have said so far</strong>
+    <button id="dl">Download</button>
+    <button id="copy">Copy</button>
+    <button id="clear">Start again</button>
+  </div>
+  <table id="tally"><thead><tr><th>City</th><th>Border</th><th>Verdict</th><th>Note</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="4" class="msg">Nothing yet.</td></tr></tbody></table>
+  <pre id="out" hidden></pre>
+</div>
+
+<p class="msg">Map by Leaflet; tiles, boundaries and geocoding by
+OpenStreetMap / Nominatim.</p>
+
+</div>
+
+<script src="../lib/leaflet/leaflet.js"></script>
+<!-- The page's own lookup, so what is reviewed here is exactly what a reader
+     would be shown: the same cityWithRing, the same ring roads, the same
+     guards. Reviewing a copy of the logic would prove nothing about the page. -->
+<script src="../qasr.js"></script>
+<script>
+"use strict";
+var G = window.QasrEngine;
+var $ = function (id) { return document.getElementById(id); };
+
+/* Kept in the browser rather than in memory alone: a review of fifty cities is
+   not one sitting, and losing it to a stray reload would mean doing it twice. */
+var STORE = "qasr.review";
+var said = (function () {
+  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; }
+})();
+function remember() {
+  try { localStorage.setItem(STORE, JSON.stringify(said)); } catch (e) {}
+}
+
+var queue = [], at = 0, current = null;
+
+var map = L.map("map", { scrollWheelZoom: true });
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+map.setView([20, 0], 2);
+var drawn = L.layerGroup().addTo(map);
+
+function msg(t, bad) {
+  $("msg").textContent = t || "";
+  $("msg").className = "msg" + (bad ? " bad" : "");
+}
+
+function areaKm2(shape) {
+  if (!shape) return null;
+  var rings = shape.type === "Polygon" ? [shape.coordinates[0]]
+            : shape.type === "MultiPolygon" ? shape.coordinates.map(function (p) { return p[0]; })
+            : [];
+  return rings.reduce(function (n, r) { return n + G.ringAreaKm2(r); }, 0);
+}
+
+/* How far across it reaches. Area alone misses a boundary stretched down a
+   valley to take in one outlying village, which is the fault worth seeing. */
+function spanKm(shape) {
+  var b = L.geoJSON(shape).getBounds();
+  return Math.max(
+    G.haversineKm({ lat: b.getSouth(), lon: b.getWest() }, { lat: b.getSouth(), lon: b.getEast() }),
+    G.haversineKm({ lat: b.getSouth(), lon: b.getWest() }, { lat: b.getNorth(), lon: b.getWest() })
+  );
+}
+
+function show(city, asked, place) {
+  current = { asked: asked, got: city.name || null, lat: place.lat, lon: place.lon,
+              ring: city.fromRing || null,
+              km2: city.shape ? Math.round(areaKm2(city.shape)) : null,
+              spanKm: city.shape ? Math.round(spanKm(city.shape)) : null };
+
+  drawn.clearLayers();
+  L.circleMarker([place.lat, place.lon], { radius: 6, color: "#b3261e", weight: 2,
+    fillColor: "#b3261e", fillOpacity: .9 })
+    .bindTooltip("the point asked about", { direction: "top" }).addTo(drawn);
+
+  $("name").textContent = (city.name || "— not named —") +
+    (city.area && city.area !== city.name ? ", " + city.area : "");
+
+  if (city.shape) {
+    var layer = L.geoJSON(city.shape, { style: { color: "#0f8a76", weight: 2,
+      fillColor: "#0f8a76", fillOpacity: .12 } }).addTo(drawn);
+    map.fitBounds(layer.getBounds(), { padding: [24, 24] });
+    $("facts").innerHTML = "<b>" + current.km2.toLocaleString("en-GB") + "</b> km², " +
+      "reaching <b>" + current.spanKm + "</b> km across" +
+      (city.fromRing ? " — drawn by hand, from the " + city.fromRing : "");
+  } else {
+    map.setView([place.lat, place.lon], 11);
+    $("facts").textContent = "No border is published for it" +
+      (city.reason ? " — " + city.reason : ".");
+  }
+
+  var v = "", cls = "";
+  if (city.fromRing) { v = "Drawn by hand and checked by tests."; }
+  else if (!city.shape) { v = "Nothing to review: no border to draw."; cls = "none"; }
+  else if (G.cityTooBig(city)) { v = "The page calls this too big to be a city and warns the reader."; cls = "warn"; }
+  else if (G.cityTooSmall(city)) { v = "The page calls this too small to be a city and warns the reader."; cls = "warn"; }
+  else if (!G.inShape(place.lat, place.lon, city.shape)) { v = "The border does not contain the point it was found for."; cls = "warn"; }
+  else if (current.spanKm > 60) { v = "Unremarkable by area, but it reaches " + current.spanKm + " km across."; cls = "warn"; }
+  else { v = "Nothing automatic to complain about — which is why it needs an eye."; }
+  $("auto").textContent = v;
+  $("auto").className = "verdict" + (cls ? " " + cls : "");
+
+  var already = said[asked];
+  $("note").value = already ? (already.note || "") : "";
+  ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = !city.shape; });
+  msg(already ? "You already called this one “" + already.verdict + "”. Answering again replaces it." : "");
+  tally();
+}
+
+function load(asked, place) {
+  drawn.clearLayers();
+  $("name").textContent = "Asking about " + asked + "…";
+  $("facts").textContent = "";
+  $("auto").textContent = "";
+  ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = true; });
+  msg("");
+  return G.cityWithRing(place, false).then(function (city) {
+    show(city, asked, place);
+  }).catch(function (err) {
+    $("name").textContent = asked;
+    $("facts").textContent = "";
+    msg(err.message || String(err), true);
+  });
+}
+
+function step() {
+  $("count").textContent = queue.length
+    ? (at + 1) + " of " + queue.length + " · " + Object.keys(said).length + " answered"
+    : "";
+  if (!queue.length) return;
+  if (at >= queue.length) {
+    drawn.clearLayers();
+    $("name").textContent = "That is all of them.";
+    $("facts").textContent = Object.keys(said).length + " answered. Download or copy the list below.";
+    $("auto").textContent = "";
+    ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = true; });
+    return;
+  }
+  var c = queue[at];
+  load(c.asked, { lat: c.lat, lon: c.lon });
+}
+
+function answer(verdict) {
+  if (!current) return;
+  said[current.asked] = {
+    asked: current.asked, got: current.got, ring: current.ring,
+    km2: current.km2, spanKm: current.spanKm,
+    lat: current.lat, lon: current.lon,
+    verdict: verdict, note: $("note").value.trim() || null,
+    at: new Date().toISOString()
+  };
+  remember();
+  tally();
+  at++;
+  step();
+}
+
+function tally() {
+  var keys = Object.keys(said);
+  var body = $("rows");
+  if (!keys.length) {
+    body.innerHTML = '<tr><td colspan="4" class="msg">Nothing yet.</td></tr>';
+    $("out").hidden = true;
+    return;
+  }
+  body.innerHTML = "";
+  keys.sort().forEach(function (k) {
+    var s = said[k], tr = document.createElement("tr");
+    function cell(text, cls) {
+      var td = document.createElement("td");
+      td.textContent = text;
+      if (cls) td.className = cls;
+      tr.appendChild(td);
+    }
+    cell(s.asked);
+    cell((s.got || "—") + (s.km2 == null ? "" : " · " + s.km2.toLocaleString("en-GB") + " km²"));
+    cell(s.verdict, "v-" + s.verdict);
+    cell(s.note || "");
+    body.appendChild(tr);
+  });
+  $("out").hidden = true;
+}
+
+function asJson() {
+  return JSON.stringify(Object.keys(said).sort().map(function (k) { return said[k]; }), null, 1) + "\n";
+}
+
+/* --- wiring ------------------------------------------------------------- */
+$("vYes").addEventListener("click", function () { answer("yes"); });
+$("vNearly").addEventListener("click", function () { answer("nearly"); });
+$("vNo").addEventListener("click", function () { answer("no"); });
+$("skip").addEventListener("click", function () { at++; step(); });
+$("back").addEventListener("click", function () { at = Math.max(0, at - 1); step(); });
+
+$("askGo").addEventListener("click", function () {
+  var name = $("ask").value.trim();
+  if (!name) return;
+  /* Named by hand rather than taken from the list, so there is no point to
+     stand at: the search finds one, and its own middle is what is shown. */
+  msg("Looking for " + name + "…");
+  fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=en&q=" +
+        encodeURIComponent(name))
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      if (!rows || !rows.length) throw new Error("No city of that name was found.");
+      queue.splice(at, 0, { asked: name, lat: +rows[0].lat, lon: +rows[0].lon });
+      step();
+    })
+    .catch(function (e) { msg(e.message, true); });
+});
+$("ask").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); $("askGo").click(); }
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "1") $("vYes").click();
+  if (e.key === "2") $("vNearly").click();
+  if (e.key === "3") $("vNo").click();
+});
+
+$("dl").addEventListener("click", function () {
+  var blob = new Blob([asJson()], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "border-review.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$("copy").addEventListener("click", function () {
+  $("out").hidden = false;
+  $("out").textContent = asJson();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(asJson()).then(function () { msg("Copied."); },
+                                                 function () { msg("Select it and copy."); });
+  }
+});
+$("clear").addEventListener("click", function () {
+  if (!confirm("Throw away every answer so far?")) return;
+  said = {};
+  remember();
+  at = 0;
+  tally();
+  step();
+});
+
+/* The list the sweep uses, so the two tools are talking about the same
+   cities. Falling back to the three that are drawn by hand if it cannot be
+   read, which happens when this is opened from the file system rather than
+   served. */
+fetch("sweep-cities.json")
+  .then(function (r) { if (!r.ok) throw new Error("no list"); return r.json(); })
+  .then(function (list) {
+    queue = list.map(function (r) { return { asked: r.asked, lat: r.lat, lon: r.lon }; });
+    /* The ones nothing automatic complains about come first: they are the
+       ones this tool exists for. A border the page already doubts out loud
+       does not need a second opinion as urgently. */
+    queue.sort(function (x, y) {
+      var a = list.filter(function (r) { return r.asked === x.asked; })[0] || {};
+      var b = list.filter(function (r) { return r.asked === y.asked; })[0] || {};
+      var qa = a.verdict === "nothing obviously wrong" ? 0 : 1;
+      var qb = b.verdict === "nothing obviously wrong" ? 0 : 1;
+      return qa - qb;
+    });
+    step();
+  })
+  .catch(function () {
+    queue = [{ asked: "London", lat: 51.5074, lon: -0.1278 },
+             { asked: "Toronto", lat: 43.6532, lon: -79.3832 },
+             { asked: "Dubai", lat: 25.1972, lon: 55.2744 }];
+    msg("The sweep's list could not be read, so only the hand-drawn three are queued. " +
+        "Serve this folder over http rather than opening the file directly.", true);
+    step();
+  });
+
+tally();
+</script>
+</body>
+</html>
