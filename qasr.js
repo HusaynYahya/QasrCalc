@@ -328,13 +328,11 @@
      are exempt, being a border chosen on purpose rather than found.         */
   var CITY_MAX_KM2 = 3000;
 
-  /* The built-up area, for the cities whose published border is a region.
+  /* The built-up areas of the world's cities.
 
-     Kept out of the page and fetched the first time it is wanted, because
-     almost no reader needs it: it is a hundred kilobytes to settle a question
-     that only arises where OpenStreetMap calls a metropolitan region a city.
-     A failure to load is not an error — the reader is simply told the border
-     is too large and asked to choose, which is what happened before. */
+     Kept out of the page and fetched the first time a city is wanted. A
+     failure to load is not an error: the administrative boundary stands, as
+     it did before this existed. */
   var URBAN_FILE = "urban-areas.json";
   var urbanLoad = null;
 
@@ -345,14 +343,29 @@
           if (!r.ok) throw new Error("the urban areas returned " + r.status);
           return r.json();
         })
-        .then(function (d) { return (d && d.areas) || []; })
-        .catch(function () { urbanLoad = null; return []; });
+        .then(function (d) { return d || {}; })
+        .catch(function () { urbanLoad = null; return {}; });
     }
     return urbanLoad;
   }
 
+  /* The nearest built-up place to a point, for a name. The blobs are
+     dissolved and carry none — Dubai and Sharjah run into one another — so
+     the names are kept beside them as points. */
+  function urbanNameAt(place) {
+    return urbanAreas().then(function (d) {
+      var near = null, best = Infinity;
+      (d.places || []).forEach(function (p) {
+        var far = haversineKm({ lat: place.lat, lon: place.lon }, { lat: p[1], lon: p[2] });
+        if (far < best) { best = far; near = p[0]; }
+      });
+      return best <= 40 ? near : null;
+    });
+  }
+
   function urbanAreaAt(place) {
-    return urbanAreas().then(function (list) {
+    return urbanAreas().then(function (d) {
+      var list = d.areas || [];
       for (var i = 0; i < list.length; i++) {
         var a = list[i], b = a.box;
         /* The box first, as everywhere else here: a handful of comparisons
@@ -363,6 +376,37 @@
       }
       return null;
     });
+  }
+
+  /* Every built-up blob that could touch a shape — all of them, not just the
+     one the reader stands in. A city is rarely one blob: Melbourne's boundary
+     holds Frankston, Werribee and Pakenham, each built up and each separated
+     from the middle by open country, and taking only the blob under the
+     reader would put the four of them outside their own city. */
+  function urbanAreasIn(shape) {
+    var box = shapeBox(shape);
+    if (!box) return Promise.resolve([]);
+    return urbanAreas().then(function (d) {
+      return (d.areas || []).filter(function (a) {
+        var b = a.box;
+        return !(b[2] < box[0] || b[0] > box[2] || b[3] < box[1] || b[1] > box[3]);
+      });
+    });
+  }
+
+  function shapeBox(shape) {
+    var rings = ringsOfShape(shape);
+    if (!rings.length) return null;
+    var s, w, n, e;
+    rings.forEach(function (r) {
+      r.forEach(function (p) {
+        if (s === undefined || p[1] < s) s = p[1];
+        if (n === undefined || p[1] > n) n = p[1];
+        if (w === undefined || p[0] < w) w = p[0];
+        if (e === undefined || p[0] > e) e = p[0];
+      });
+    });
+    return [s, w, n, e];
   }
 
   function cityTooBig(city) {
@@ -1837,6 +1881,90 @@
     return kept;
   }
 
+  /* Where two shapes overlap, as a shape.
+
+     A city's administrative boundary is not the city: it takes in the
+     territorial water off the coast and the open country behind it, because
+     that is what the legal boundary is. Dubai's runs twelve kilometres out
+     into the Gulf and ninety-seven inland to Hatta. The built-up area is the
+     city and is neither, but on its own it does not know where one city stops
+     and the next begins — Dubai's runs continuously into Sharjah.
+
+     One inside the other is the answer to both: the built-up part of this
+     city and no other. Dubai 5,965 km² against 528; Ras al-Khaimah, which
+     publishes no city boundary at all, 3,765 against 68.
+
+     Built by walking each outline in short steps and keeping the stretches
+     that fall inside the other shape, then stitching what is kept — the same
+     stitcher that makes a ring road out of a heap of ways. Stepping at fifty
+     metres, under the eighty the stitcher will join across, so the stretches
+     meet where the two outlines cross.                                       */
+  var CLIP_STEP_KM = 0.05;
+
+  function ringsOfShape(shape) {
+    if (!shape) return [];
+    if (shape.type === "Polygon") return [shape.coordinates[0]];
+    if (shape.type === "MultiPolygon") return shape.coordinates.map(function (p) { return p[0]; });
+    return [];
+  }
+
+  function insideRuns(ring, other) {
+    var runs = [], run = null;
+    for (var i = 1; i < ring.length; i++) {
+      var a = ring[i - 1], b = ring[i];
+      var far = haversineKm({ lat: a[1], lon: a[0] }, { lat: b[1], lon: b[0] });
+      var steps = Math.max(1, Math.ceil(far / CLIP_STEP_KM));
+      for (var k = 0; k < steps; k++) {
+        var t0 = k / steps, t1 = (k + 1) / steps;
+        var p0 = [a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0];
+        var p1 = [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1];
+        if (inShape((p0[1] + p1[1]) / 2, (p0[0] + p1[0]) / 2, other)) {
+          if (!run) run = [p0];
+          run.push(p1);
+        } else if (run) { runs.push(run); run = null; }
+      }
+    }
+    if (run) runs.push(run);
+    return runs;
+  }
+
+  function overlapShape(a, b) {
+    if (!a || !b) return null;
+    /* Thinned first: the walk is per step of every outline, and a boundary
+       published to the metre costs a great deal of it for nothing. */
+    function thin(rings) {
+      return rings.map(function (r) {
+        var t = simplifyLine(r, 0.05);
+        if (t.length > 2 && !ptsMeet(t[0], t[t.length - 1])) t.push(t[0].slice());
+        return t;
+      }).filter(function (r) { return r.length >= 4; });
+    }
+    var ra = thin(ringsOfShape(a)), rb = thin(ringsOfShape(b));
+    if (!ra.length || !rb.length) return null;
+    var thinA = { type: "MultiPolygon", coordinates: ra.map(function (r) { return [r]; }) };
+    var thinB = { type: "MultiPolygon", coordinates: rb.map(function (r) { return [r]; }) };
+
+    var kept = [];
+    ra.forEach(function (r) { kept = kept.concat(insideRuns(r, thinB)); });
+    rb.forEach(function (r) { kept = kept.concat(insideRuns(r, thinA)); });
+    if (!kept.length) return null;
+
+    var loops = [];
+    stitchLines(kept).forEach(function (chain) {
+      if (chain.length < 4) return;
+      if (!ptsMeet(chain[0], chain[chain.length - 1])) return;   /* not a loop */
+      var ring = chain.slice();
+      ring[ring.length - 1] = ring[0].slice();
+      if (ringAreaKm2(ring) < 0.5) return;
+      loops.push(simplifyLine(ring, 0.05));
+    });
+    if (!loops.length) return null;
+    loops.forEach(function (r) {
+      if (!ptsMeet(r[0], r[r.length - 1])) r.push(r[0].slice());
+    });
+    return { type: "MultiPolygon", coordinates: loops.map(function (r) { return [r]; }) };
+  }
+
   /* The nearest one, where only one is wanted. */
   function roadAt(lat, lon, radiusM) {
     return roadsAt(lat, lon, radiusM).then(function (list) { return list[0]; });
@@ -2073,15 +2201,47 @@
       /* A region rather than a city. Where the built-up area is known, that
          is the city, and it is what the measuring runs from [1704]. Where it
          is not, the city is left as it came and showCity says so. */
-      if (!cityTooBig(city)) return city;
       return urbanAreaAt(place).then(function (urban) {
         if (!urban) return city;
-        city.regionKm2 = Math.round(cityAreaKm2(city));
-        city.shape = urban.shape;
-        city.fromUrban = urban.name;
-        city.urbanKm2 = urban.areaKm2;
+        /* Nowhere here is named as a settlement. Ras al-Khaimah answers with
+           Al Mamoura, a suburb of three square kilometres, and no city, town
+           or village at all — so the page had no name to show and took the
+           suburb as the border. The built-up area is the city and knows its
+           own name. */
+        if (!city || !city.name || !city.shape) {
+          return urbanNameAt(place).then(function (named) {
+            return { name: named || (city && city.name) || "your city",
+                     area: (city && city.area) || null,
+                     shape: urban.shape, fromUrban: named || "its built-up area",
+                     urbanKm2: Math.round(cityAreaKm2({ shape: urban.shape })),
+                     regionKm2: null };
+          });
+        }
+        /* Cut against every blob the boundary reaches, not just this one. */
+        return urbanAreasIn(city.shape).then(function (blobs) {
+          var all = { type: "MultiPolygon", coordinates: [] };
+          blobs.forEach(function (b) {
+            b.shape.coordinates.forEach(function (poly) { all.coordinates.push(poly); });
+          });
+          return finish(all.coordinates.length ? all : urban.shape);
+        });
+
+        function finish(against) {
+        var cut = overlapShape(city.shape, against);
+        if (!cut || !inShape(place.lat, place.lon, cut)) return city;
+        var was = Math.round(cityAreaKm2(city));
+        var now = Math.round(cityAreaKm2({ shape: cut }));
+        /* Only when it is a cut and not a disappearance. A built-up area that
+           barely touches the boundary would otherwise leave a reader in a
+           city of two streets. */
+        if (!now || now * 40 < was && now < 5) return city;
+        city.regionKm2 = was;
+        city.shape = cut;
+        city.fromUrban = city.name;
+        city.urbanKm2 = now;
         return city;
-      });
+        }
+      }).catch(function () { return city; });
     });
   }
 
@@ -3630,10 +3790,13 @@
           : city.ringFailed ? " — the " + city.ringFailed + " could not be traced just now, " +
               "so its published boundary is outlined instead. Press Refresh to try again."
           : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
-          : city.fromUrban ? " — the border published under that name encloses about " +
-              city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
-              "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
-              " km² is outlined instead."
+          : city.fromUrban ? (city.regionKm2
+              ? " — its built-up area is outlined on the map: " +
+                city.urbanKm2.toLocaleString("en-GB") + " km² of the " +
+                city.regionKm2.toLocaleString("en-GB") + " km² the boundary published under " +
+                "that name covers, the rest being open country and territorial water."
+              : " — nothing is published as a town here, so its built-up area of " +
+                city.urbanKm2.toLocaleString("en-GB") + " km² is outlined as the city.")
           : city.shape ? " — its border is outlined on the map."
           : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
@@ -4312,7 +4475,7 @@
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
     pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear,
     snapStroke: snapStroke, roadsAlong: roadsAlong, thinStroke: thinStroke,
-    roadWeight: roadWeight
+    roadWeight: roadWeight, overlapShape: overlapShape
   };
 
   if (document.readyState === "loading") {
