@@ -14,11 +14,17 @@
 
    To get the file, either open this in a browser and save the result:
 
-     https://overpass-api.de/api/interpreter?data=[out:json][timeout:90];(relation["ref"="M25"]["type"="route"]["route"="road"];relation["ref"="A282"]["type"="route"]["route"="road"];);out%20geom;
+     https://overpass-api.de/api/interpreter?data=[out:json][timeout:90];(relation["ref"="M25"]["type"="route"]["route"="road"](51.2,-0.65,51.8,0.4);relation["ref"="A282"]["type"="route"]["route"="road"](51.2,-0.65,51.8,0.4););out%20geom;
 
    or paste the same query into https://overpass-turbo.eu and export the raw
    data. Either gives a file of a megabyte or two; this reduces it to a few
    hundred coordinate pairs.
+
+   The bounding box in that query is not decoration. ref=M25 is not unique on
+   earth: without it the same query also returns an M25 in Cape Town, one in
+   Hungary, one in South Africa and a road in Malaysia, and they were being
+   stitched into the London ring. The box is checked again below, on every
+   point, so a query pasted from somewhere older cannot get them in.
    ========================================================================== */
 "use strict";
 
@@ -61,20 +67,89 @@ var raw = data.elements.reduce(function (n, el) {
   }, 0)) + ((el.geometry || []).length);
 }, 0);
 
-var ring;
-try {
-  ring = G.ringShape(data, "M25");
-} catch (err) {
-  console.error("could not build a ring from that file: " + err.message);
+/* Only the London ring. Every point is checked, not just the relation. */
+var LONDON = [51.2, -0.65, 51.8, 0.4];
+var pts = [];
+data.elements.forEach(function (el) {
+  (el.members || []).concat(el.geometry ? [el] : []).forEach(function (w) {
+    (w.geometry || []).forEach(function (p) {
+      if (p.lat >= LONDON[0] && p.lat <= LONDON[2] &&
+          p.lon >= LONDON[1] && p.lon <= LONDON[3]) pts.push([p.lon, p.lat]);
+    });
+  });
+});
+if (pts.length < 500) {
+  console.error("only " + pts.length + " point(s) fell inside London — wrong file, or the " +
+                "query had no bounding box and returned some other country's M25.");
   process.exit(1);
 }
 
-var edge = ring.shape.coordinates[0];
+/* The ring, as the median radius on each bearing from the middle of it.
+
+   It used to be stitched end to end, and that stopped working: the M25
+   relation carries over a thousand member ways now — both carriageways, the
+   slip roads and the spurs — and joining them nose to tail makes knots, not
+   a loop. The last ring built that way was out by up to six kilometres in
+   places, which moves where a journey crosses the border and so what is
+   counted.
+
+   A ring road is star-shaped about its own centre, so every bearing from
+   that centre meets it once. Taking the MEDIAN radius on each bearing lands
+   on the carriageway: both directions and every slip road sit at slightly
+   different radii on the same bearing, and a median ignores them where a
+   mean would be dragged off the road by each one.                          */
+var cx = pts.reduce(function (a, p) { return a + p[0]; }, 0) / pts.length;
+var cy = pts.reduce(function (a, p) { return a + p[1]; }, 0) / pts.length;
+var kx = Math.cos(cy * Math.PI / 180);
+var N = 1440, bins = [];
+for (var b = 0; b < N; b++) bins.push([]);
+pts.forEach(function (p) {
+  var dx = (p[0] - cx) * kx, dy = p[1] - cy;
+  var th = Math.atan2(dy, dx);
+  if (th < 0) th += 2 * Math.PI;
+  bins[Math.min(N - 1, Math.floor(th / (2 * Math.PI) * N))].push(Math.sqrt(dx * dx + dy * dy));
+});
+var full = [];
+for (b = 0; b < N; b++) {
+  if (!bins[b].length) continue;
+  bins[b].sort(function (x, y) { return x - y; });
+  var r = bins[b][Math.floor(bins[b].length / 2)];
+  var a = (b + 0.5) / N * 2 * Math.PI;
+  full.push([cx + Math.cos(a) * r / kx, cy + Math.sin(a) * r]);
+}
+full.push(full[0].slice());
+
+/* qasr.js's own thinning and area, so these cannot drift from the page. */
+var edge = G.simplifyLine(full, 0.1);
+if (edge[0][0] !== edge[edge.length - 1][0] || edge[0][1] !== edge[edge.length - 1][1]) {
+  edge.push(edge[0].slice());
+}
+edge = edge.map(function (p) {
+  return [Math.round(p[0] * 1e5) / 1e5, Math.round(p[1] * 1e5) / 1e5];
+});
+var ring = { shape: { type: "Polygon", coordinates: [edge] },
+             areaKm2: G.ringAreaKm2(edge), traced: true, closedByHand: false };
+
+/* How far the ring sits from the road it is meant to be. This is the check
+   the landmarks cannot make: every landmark can be on the right side while
+   the line between them wanders kilometres off the motorway. */
+var worst = 0, sum = 0;
+edge.forEach(function (p) {
+  var best = Infinity;
+  for (var i = 0; i < pts.length; i++) {
+    var v = G.haversineKm({ lat: p[1], lon: p[0] }, { lat: pts[i][1], lon: pts[i][0] });
+    if (v < best) best = v;
+  }
+  sum += best;
+  if (best > worst) worst = best;
+});
+var offMean = sum / edge.length;
 console.log("\nread          " + raw + " points from " + files.length + " file(s)");
-console.log("stitched      " + (ring.traced ? "into a loop" : "NOT into a loop — this is a hull, not the road"));
-console.log("closed        " + (ring.closedByHand ? "by hand, across a gap" : "by the road itself"));
+console.log("in London     " + pts.length + " of them");
 console.log("kept          " + edge.length + " points");
 console.log("encloses      " + Math.round(ring.areaKm2) + " km²   (the M25 holds about 2,200)");
+console.log("off the road  " + (offMean * 1000).toFixed(0) + " m on average, " +
+            (worst * 1000).toFixed(0) + " m at worst");
 
 /* The same places the tests use: none of them a borderline call. */
 var CHECKS = [
@@ -93,8 +168,10 @@ var wrong = CHECKS.filter(function (c) {
 console.log("landmarks     " + (CHECKS.length - wrong.length) + " of " + CHECKS.length + " correct" +
   (wrong.length ? "  — WRONG: " + wrong.map(function (c) { return c[0]; }).join(", ") : ""));
 
-var sound = ring.traced && !ring.closedByHand && !wrong.length &&
-            ring.areaKm2 > 1900 && ring.areaKm2 < 2600;
+/* Off-road distance is a condition, not a note: a ring can put all fifteen
+   landmarks on the right side and still wander kilometres from the motorway
+   between them, which is exactly what the stitched one did. */
+var sound = !wrong.length && ring.areaKm2 > 1900 && ring.areaKm2 < 2600 && worst < 0.25;
 console.log("\n" + (sound ? "This is usable." : "NOT usable — do not paste this in.") + "\n");
 
 var literal = "  var M25 = [\n" +
