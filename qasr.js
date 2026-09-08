@@ -4240,7 +4240,15 @@
               city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
               "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
               " km² is outlined instead."
-          : city.shape ? " — its border is outlined on the map."
+          /* Said plainly, because it is a weaker claim than the ones above
+             it. The M25 is the M25; this is whatever OpenStreetMap publishes
+             under the name, which is an administrative line drawn for
+             administrative reasons and coincides with the edge of town in
+             some countries and not others. The reader knows their own city
+             and the page does not, so the page should not sound as certain
+             as it did. */
+          : city.shape ? " — its border as published in OpenStreetMap is outlined on " +
+              "the map; that is an administrative line, and not always where the town ends."
           : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";

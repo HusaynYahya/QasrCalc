@@ -110,6 +110,45 @@ rather than leaving the city with none, since the text measures from the end of
 the whole city and not of a quarter [1704 fn.2]. It carries the settlement's own
 name, and the border check says where it came from.
 
+### How much to trust a border
+
+Three cities — London, Greater Toronto and Dubai — are drawn by hand, carried in
+the page and checked by tests. Every other city is resolved live from whatever
+polygon OpenStreetMap publishes under the name, so **the tests prove three cities
+and nothing else**. That is not a gap more hand-checking closes, because it is
+structural: OpenStreetMap publishes *administrative* boundaries, and whether one
+coincides with the edge of town varies by country. In France or Quebec the commune
+is the town. In Saudi Arabia the only polygon named Riyadh is a province of
+376,360 km².
+
+The page therefore doubts a border out loud in two directions. A boundary over
+`CITY_MAX_KM2` is a region rather than a city, and the reader is told so and asked
+to pick the smaller place; where a built-up area is known it is used instead. A
+boundary under `CITY_MIN_KM2` that claims to be a city or town is a district or a
+ward wearing the city's name, and the reader is told that too. Both are advisory:
+nothing is changed behind the reader, because which line is "your city" is theirs
+to judge.
+
+The second direction matters more than it looks. A border too large deducts
+distance that should have counted, so a journey that qualifies can be reported as
+full. A border too small is crossed a minute after setting off, so nearly the whole
+journey counts and a journey **under** eight *farsakh* can be reported as over it —
+a prayer shortened where it is due in full. That was happening silently: asked for
+Najaf, Nominatim answers with a quarter of one square kilometre, because it has no
+city-level entry there and Najaf itself is only a point with no boundary at all.
+
+`tools/sweep-cities.js` asks the page what it makes of four dozen cities at once
+and prints what came back; `tools/sweep-cities.json` is the last run, kept so the
+list can be read without waiting for the network. It needs the network and a few
+minutes, so it is not part of `npm test` — a rate limit should not fail a build
+for no fault of the code. It cannot prove any border is where a resident would
+draw it; what it does is turn "the others are probably fine" into a list you can
+read, and catch the day OpenStreetMap's answer for a city changes underneath the
+page.
+
+A border found by lookup says so on the page, in those words, rather than being
+presented with the same confidence as the M25.
+
 The distance counted always runs **from the city border to the destination**, and
 the page says on every calculation whether that actually happened. A green line
 under the map names the border and the distance deducted; an amber one names the

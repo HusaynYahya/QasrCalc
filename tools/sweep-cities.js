@@ -1,0 +1,185 @@
+/* ============================================================================
+   Ask the page what it thinks a city's border is, for a list of cities at
+   once, and report which answers are doubtful.
+
+     node tools/sweep-cities.js [--out cities.json]
+
+   London, Greater Toronto and Dubai are drawn by hand and checked by tests.
+   Every other city is resolved live, at the moment a reader types an address,
+   from whatever polygon OpenStreetMap publishes under the name — so the tests
+   prove three cities and nothing else, and there is no way to know the rest
+   are right without going and asking.
+
+   This asks. It runs the page's own cityWithRing over a list of cities, each
+   with a point a resident would call "in town", and reports what came back
+   and whether the page would have doubted it. It cannot prove a border is
+   where a resident would draw it; nothing but a resident can. What it does is
+   turn "the others are probably fine" into a list that can be read, and catch
+   the day OpenStreetMap's answer for a city changes underneath the page.
+
+   It is not part of npm test, and should not be: it needs the network, it
+   takes several minutes, and a rate limit would fail the build for no fault
+   of the code. Run it by hand, and read it.
+
+   tools/sweep-cities.json is the run of 8 September 2026, kept so the list can
+   be read without waiting for the network and so the next run has something to
+   differ from. It is a record, not a fixture: nothing asserts against it.
+
+   Nominatim allows one request a second and refuses a default User-Agent, so
+   this waits its turn and names itself. Running it twice in quick succession
+   will earn 403s and a page of nonsense; leave a few minutes between runs.
+   ========================================================================== */
+"use strict";
+
+var fs = require("fs");
+var path = require("path");
+var vm = require("vm");
+
+var UA = "qasrcalc-sweep/1.0 (+https://github.com/HusaynYahya/QasrCalc)";
+
+/* A point in the middle of each, and the name a reader would type. */
+var CITIES = [
+  ["London", 51.5074, -0.1278],        ["Birmingham", 52.4862, -1.8904],
+  ["Manchester", 53.4808, -2.2426],    ["Glasgow", 55.8642, -4.2518],
+  ["Dublin", 53.3498, -6.2603],        ["Paris", 48.8566, 2.3522],
+  ["Berlin", 52.5200, 13.4050],        ["Madrid", 40.4168, -3.7038],
+  ["Rome", 41.9028, 12.4964],          ["Istanbul", 41.0082, 28.9784],
+  ["Moscow", 55.7558, 37.6173],        ["Cairo", 30.0444, 31.2357],
+  ["Riyadh", 24.7136, 46.6753],        ["Jeddah", 21.4858, 39.1925],
+  ["Doha", 25.2854, 51.5310],          ["Kuwait City", 29.3759, 47.9774],
+  ["Dubai", 25.1972, 55.2744],         ["Baghdad", 33.3152, 44.3661],
+  ["Karbala", 32.6160, 44.0249],       ["Najaf", 32.0000, 44.3350],
+  ["Tehran", 35.6892, 51.3890],        ["Mashhad", 36.2605, 59.6168],
+  ["Qom", 34.6416, 50.8746],           ["Karachi", 24.8607, 67.0011],
+  ["Lahore", 31.5204, 74.3587],        ["Mumbai", 19.0760, 72.8777],
+  ["Delhi", 28.6139, 77.2090],         ["Hyderabad", 17.3850, 78.4867],
+  ["Dhaka", 23.8103, 90.4125],         ["Kuala Lumpur", 3.1390, 101.6869],
+  ["Singapore", 1.3521, 103.8198],     ["Jakarta", -6.2088, 106.8456],
+  ["Sydney", -33.8688, 151.2093],      ["Melbourne", -37.8136, 144.9631],
+  ["Perth", -31.9505, 115.8605],       ["Auckland", -36.8485, 174.7633],
+  ["Toronto", 43.6532, -79.3832],      ["Montreal", 45.5019, -73.5674],
+  ["Vancouver", 49.2827, -123.1207],   ["New York", 40.7128, -74.0060],
+  ["Chicago", 41.8781, -87.6298],      ["Los Angeles", 34.0522, -118.2437],
+  ["Houston", 29.7604, -95.3698],      ["Detroit", 42.3314, -83.0458],
+  ["Lagos", 6.5244, 3.3792],           ["Nairobi", -1.2921, 36.8219],
+  ["Johannesburg", -26.2041, 28.0473], ["Sao Paulo", -23.5505, -46.6333],
+  ["Tokyo", 35.6762, 139.6503]
+];
+
+/* The page, with just enough of a browser round it — the same stubs the
+   tests use, and a fetch that names itself. */
+function engine() {
+  var sandbox = {
+    window: {}, console: console, setTimeout: setTimeout, clearTimeout: clearTimeout,
+    document: { readyState: "complete", getElementById: function () { return null; },
+                addEventListener: function () {} },
+    localStorage: { getItem: function () { return null; }, setItem: function () {} },
+    fetch: function (url, opts) {
+      opts = opts || {};
+      opts.headers = Object.assign({}, opts.headers, { "User-Agent": UA });
+      return global.fetch(url, opts);
+    }
+  };
+  sandbox.globalThis = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "qasr.js"), "utf8"), sandbox);
+  return sandbox.window.QasrEngine;
+}
+
+var G = engine();
+
+function outerRings(shape) {
+  return !shape ? []
+    : shape.type === "Polygon" ? [shape.coordinates[0]]
+    : shape.type === "MultiPolygon" ? shape.coordinates.map(function (p) { return p[0]; })
+    : [];
+}
+function areaKm2(shape) {
+  return outerRings(shape).reduce(function (n, r) { return n + G.ringAreaKm2(r); }, 0);
+}
+/* How far the border reaches at its widest. Area alone misses a boundary
+   stretched forty kilometres down a valley to take in one outlying village,
+   which is exactly the shape of the Melbourne fault. */
+function spanKm(shape) {
+  var rings = outerRings(shape);
+  if (!rings.length) return null;
+  var lo = [Infinity, Infinity], hi = [-Infinity, -Infinity];
+  rings.forEach(function (r) {
+    r.forEach(function (c) {
+      lo[0] = Math.min(lo[0], c[0]); lo[1] = Math.min(lo[1], c[1]);
+      hi[0] = Math.max(hi[0], c[0]); hi[1] = Math.max(hi[1], c[1]);
+    });
+  });
+  return Math.max(
+    G.haversineKm({ lat: lo[1], lon: lo[0] }, { lat: lo[1], lon: hi[0] }),
+    G.haversineKm({ lat: lo[1], lon: lo[0] }, { lat: hi[1], lon: lo[0] })
+  );
+}
+
+function verdict(r) {
+  if (r.error) return "asking failed: " + r.error;
+  if (r.ring) return "drawn by hand (" + r.ring + ")";
+  if (!r.hasShape) return "no border published" + (r.why ? " — " + r.why : "");
+  /* What the reader is actually told comes first. An earlier draft of this
+     tool tested the area before the guards and reported Glasgow as having no
+     border at all, because its border rounds to nought square kilometres and
+     nought is falsy — hiding the fact that the page does warn about it. */
+  if (r.tooBig) return "TOO BIG, reader warned";
+  if (r.tooSmall) return "TOO SMALL, reader warned" +
+    (r.holdsCentre === false ? " (and it does not contain its own centre)" : "");
+  if (r.holdsCentre === false) return "WRONG: its own centre falls outside it";
+  if (r.shapeKm2 < 1) return "a border enclosing under a square kilometre";
+  if (r.spanKm > 60) return "reaches " + Math.round(r.spanKm) + " km across — look at it";
+  if (r.urban) return "region, replaced by its built-up area";
+  return "nothing obviously wrong";
+}
+
+function pad(s, n) { s = String(s); return s + " ".repeat(Math.max(0, n - s.length)); }
+
+var out = [];
+(async function () {
+  for (var i = 0; i < CITIES.length; i++) {
+    var c = CITIES[i], asked = c[0], place = { lat: c[1], lon: c[2] };
+    var r = { asked: asked, lat: c[1], lon: c[2] };
+    try {
+      var city = await G.cityWithRing(place, false);
+      r.got = city.name || null;
+      r.hasShape = !!city.shape;
+      r.ring = city.fromRing || null;
+      r.urban = city.fromUrban || null;
+      r.rank = typeof city.rank === "number" ? city.rank : null;
+      r.kind = city.kind || null;
+      r.shapeKm2 = city.shape ? Math.round(areaKm2(city.shape)) : null;
+      r.spanKm = city.shape ? Math.round(spanKm(city.shape)) : null;
+      r.holdsCentre = city.shape ? G.inShape(c[1], c[2], city.shape) : null;
+      r.tooBig = G.cityTooBig(city);
+      r.tooSmall = G.cityTooSmall(city);
+      if (!city.shape) r.why = city.reason || null;
+    } catch (err) {
+      r.error = String((err && err.message) || err);
+    }
+    r.verdict = verdict(r);
+    out.push(r);
+    console.log(pad(asked, 15) + pad(r.got || "—", 22) +
+                pad(r.shapeKm2 == null ? "—" : r.shapeKm2 + " km²", 12) + r.verdict);
+    /* Nominatim's terms: one request a second. The page's own queue paces
+       itself, but a fresh city starts a fresh chain of lookups. */
+    await new Promise(function (go) { setTimeout(go, 1200); });
+  }
+
+  var doubted = out.filter(function (r) { return r.tooBig || r.tooSmall || r.holdsCentre === false; });
+  var quiet = out.filter(function (r) { return r.verdict === "nothing obviously wrong"; });
+  console.log("\n" + out.length + " asked · " +
+              out.filter(function (r) { return r.ring; }).length + " drawn by hand · " +
+              quiet.length + " nothing obviously wrong · " +
+              doubted.length + " doubted and said so · " +
+              out.filter(function (r) { return !r.error && !r.hasShape; }).length + " no border");
+  console.log("\n\"Nothing obviously wrong\" means the centre falls inside and the area is\n" +
+              "plausible. It does not mean the border is where a resident would put it.");
+
+  var where = process.argv.indexOf("--out");
+  if (where > -1 && process.argv[where + 1]) {
+    fs.writeFileSync(process.argv[where + 1], JSON.stringify(out, null, 1) + "\n");
+    console.log("\nwritten to " + process.argv[where + 1]);
+  }
+})();
