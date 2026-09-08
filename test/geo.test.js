@@ -702,6 +702,66 @@ test("each carries a box that holds it", function () {
   });
 });
 
+/* --- Dubai ---------------------------------------------------------------- */
+console.log("\nDubai");
+
+function dubai() {
+  var e = G.RING_ROADS.filter(function (r) { return r.city === "Dubai"; })[0];
+  assert.ok(e && e.shape, "Dubai is not in the page");
+  return e;
+}
+
+test("it holds the city, islands and all", function () {
+  var shape = dubai().shape;
+  [["Downtown", 25.1972, 55.2744], ["Deira", 25.2700, 55.3200],
+   ["Marina", 25.0800, 55.1400],   ["Palm Jumeirah", 25.1124, 55.1390],
+   ["Al Barsha", 25.1100, 55.2000], ["Silicon Oasis", 25.1200, 55.3800],
+   ["Mirdif", 25.2200, 55.4200],   ["Arabian Ranches", 25.0500, 55.2700],
+   ["Motor City", 25.0500, 55.2400], ["Sports City", 25.0400, 55.2200],
+   ["International City", 25.1650, 55.4100], ["Jebel Ali", 25.0100, 55.1000],
+   ["Al Qusais", 25.2800, 55.3800], ["Investment Park", 24.9800, 55.1700],
+   ["the airport", 25.2532, 55.3657]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), true, c[0] + " came out outside Dubai");
+  });
+});
+
+test("it stops at the E611 and at the water", function () {
+  /* The two faults this boundary exists to fix: the published one runs
+     ninety-seven kilometres inland to Hatta and twelve out into the Gulf. */
+  var shape = dubai().shape;
+  [["Al Lisaili", 24.8600, 55.5000], ["Margham", 24.8000, 55.6500],
+   ["Hatta", 24.8000, 56.1200],      ["5 km offshore", 25.1200, 55.0800],
+   ["12 km offshore", 25.1700, 55.0100], ["25 km offshore", 25.2500, 54.9000],
+   ["Sharjah", 25.3463, 55.4209],    ["Abu Dhabi", 24.4539, 54.3773]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], shape), false, c[0] + " came out inside Dubai");
+  });
+});
+
+test("the islands are kept as parts of their own", function () {
+  /* Reclaimed ground is Dubai. A boundary cut to the coast that dropped the
+     islands would put the Palm out of the city it was built by. */
+  var e = dubai();
+  assert.strictEqual(e.shape.type, "MultiPolygon");
+  assert.ok(e.shape.coordinates.length >= 8,
+    "only " + e.shape.coordinates.length + " part(s) — the islands have been lost");
+  var area = e.shape.coordinates.reduce(function (n, poly) {
+    return n + G.ringAreaKm2(poly[0]);
+  }, 0);
+  assert.ok(area > 1100 && area < 1600, "Dubai came out at " + area.toFixed(0) + " km²");
+});
+
+test("its box holds every part of it", function () {
+  var e = dubai();
+  e.shape.coordinates.forEach(function (poly) {
+    poly[0].forEach(function (p) {
+      assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
+        "Dubai runs outside its own box at " + p);
+    });
+  });
+});
+
 test("the box that gates the lookup contains the whole ring", function () {
   var entry = m25(), b = entry.box;
   entry.shape.coordinates[0].forEach(function (p) {

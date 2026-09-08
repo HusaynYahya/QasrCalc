@@ -174,8 +174,11 @@ test("a city of the same name on another continent is not taken", function () {
 });
 
 test("the address service is asked in English", function () {
+  /* Somewhere with no boundary carried in the page: Dubai has one now, and a
+     city that is already known is never looked up at all. */
+  var SOMEWHERE = { lat: 25.2048, lon: 60.5000 };
   var b = browser(dubaiNetwork);
-  return b.window.QasrEngine.cityWithRing(DUBAI, false).then(function () {
+  return b.window.QasrEngine.cityWithRing(SOMEWHERE, false).then(function () {
     var asked = b.calls.filter(function (c) { return /nominatim/.test(c.url); });
     assert.ok(asked.length, "the address service was never asked");
     asked.forEach(function (c) {
