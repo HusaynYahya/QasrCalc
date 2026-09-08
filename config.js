@@ -15,22 +15,19 @@
    served from, so a token lifted from here cannot be spent somewhere else.
    A secret token — one beginning "sk." — must never go in this file.
 
-   GitHub's push protection treats any Mapbox token as a secret and refuses a
-   push containing one, whether it begins "pk." or "sk.", so the placeholder
-   is what lives in the repository. Two ways to have a real one:
+   The token below is committed on purpose. GitHub's push protection treats
+   any Mapbox token as a secret and refused it once; it was allowed through
+   deliberately, because a URL-restricted public token is not a secret and
+   hiding it would only mean the page could not draw its own map. Restricting
+   it is what does the work, not concealing it.
 
-     - Paste it here and keep the change out of git:
-           git update-index --skip-worktree config.js
-       Undo with --no-skip-worktree when this file itself needs changing.
-
-     - Or substitute it when deploying, and leave the repository alone.
-
-   If you would rather it simply were committed — which is defensible, since
-   a URL-restricted public token is not worth hiding — GitHub will let it
-   through once you allow it from the link in the rejected push.
+   To keep a token out of the repository instead, put the placeholder back
+   and either substitute the real one when deploying, or paste it here and
+   run  git update-index --skip-worktree config.js  so the change is never
+   committed.
    ========================================================================== */
 window.QasrConfig = {
-  mapboxToken: "",
+  mapboxToken: "pk.eyJ1IjoiaHVzYXlubSIsImEiOiJjbXQ2NXcwY2oxcDZqMnlzazdhczluMjlkIn0.vPJsfZMDoVqjWjvH-0cPww",
 
   /* Which Mapbox styles stand for the light page and the dark one. Mapbox
      draws a real dark map, so the dark theme no longer has to invert the
