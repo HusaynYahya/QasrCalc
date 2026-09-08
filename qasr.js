@@ -2008,20 +2008,26 @@
                    (r.place_rank >= lo && r.place_rank <= hi);
           });
         }
-        var settled = band(16, 20), finer = settled.length ? [] : band(21, 25);
-        var fromAggregate = false;
-        if (settled.length) withShape = settled;
-        else if (finer.length) withShape = finer;
-        else if (withShape.length) fromAggregate = true;
-        /* There is a Watford in Northamptonshire as well as Hertfordshire,
-           and a Cambridge on two continents. When we know where the reader
-           is, the right boundary is the one they stand inside.               */
+        /* Whether it holds the reader comes first, before any question of
+           rank. There is a Watford in Northamptonshire as well as in
+           Hertfordshire, a Cambridge on two continents, and a Paris in Texas
+           as well as in France — and the Texan one is published at settlement
+           rank where the French one is not. Ranking first therefore handed a
+           reader on the Île de la Cité the boundary of Paris, Lamar County,
+           and the containment filter, running afterwards and finding nothing
+           of the rank already settled on, left it there: every point of
+           central Paris came out outside its own city. */
         if (mustContain) {
           var holds = withShape.filter(function (r) {
             return inShape(mustContain.lat, mustContain.lon, r.geojson);
           });
           if (holds.length) withShape = holds;
         }
+        var settled = band(16, 20), finer = settled.length ? [] : band(21, 25);
+        var fromAggregate = false;
+        if (settled.length) withShape = settled;
+        else if (finer.length) withShape = finer;
+        else if (withShape.length) fromAggregate = true;
         /* The smallest of what is left. A city is the smallest published
            thing that still holds the reader: where an emirate and a
            municipality both do, the municipality is the city and the emirate

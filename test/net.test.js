@@ -135,6 +135,44 @@ test("a city published finer than settlement rank is still found", function () {
   });
 });
 
+test("a city of the same name on another continent is not taken", function () {
+  /* Paris, Texas is published at settlement rank; Paris, France is not.
+     Ranking before asking which one holds the reader handed somebody on the
+     Ile de la Cite the boundary of Paris, Lamar County — and every point of
+     central Paris then came out outside its own city. */
+  var FR={lat:48.8566,lon:2.3522};
+  function square(lat,lon,half){
+    return {type:"Polygon",coordinates:[[[lon-half,lat-half],[lon+half,lat-half],
+      [lon+half,lat+half],[lon-half,lat+half],[lon-half,lat-half]]]};
+  }
+  var b = browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return reply({ display_name:"Paris, France", lat:"48.8566", lon:"2.3522",
+        addresstype:"city", place_rank:16,
+        address:{ city:"Paris", country:"France" },
+        geojson:{ type:"Point", coordinates:[2.3522,48.8566] } });
+    }
+    return reply([
+      { place_rank:16, category:"boundary", type:"administrative",
+        display_name:"Paris, Lamar County, Texas, United States",
+        address:{ city:"Paris", state:"Texas" },
+        geojson: square(33.6609,-95.5555,0.06) },
+      { place_rank:15, category:"boundary", type:"administrative",
+        display_name:"Paris, Ile-de-France, France",
+        address:{ city:"Paris", country:"France" },
+        geojson: square(48.8566,2.3522,0.05) }
+    ]);
+  });
+  var G=b.window.QasrEngine;
+  return G.cityWithRing(FR,false).then(function (city) {
+    assert.ok(city.shape, "no boundary at all");
+    assert.strictEqual(G.inShape(FR.lat,FR.lon,city.shape), true,
+      "the reader came out outside their own city — the wrong Paris was taken");
+    assert.strictEqual(G.inShape(33.6609,-95.5555,city.shape), false,
+      "the Texan Paris was taken");
+  });
+});
+
 test("the address service is asked in English", function () {
   var b = browser(dubaiNetwork);
   return b.window.QasrEngine.cityWithRing(DUBAI, false).then(function () {
