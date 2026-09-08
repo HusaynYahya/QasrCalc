@@ -293,12 +293,10 @@ network.
 
 ## What the reader is told it is
 
-A beta notice sits above the form and again beside the verdict, and neither is
-dismissible: it is a statement about what the page is rather than a nag to be
-cleared. It is specific, because "may contain errors" tells nobody what to
-check — it names the two things that actually move the answer, the border and
-the road, says to look at the map before trusting the number, and points an
-unclear ruling at a scholar or at sistani.org.
+A beta notice sits above the form and again beside the verdict, in the same
+words both times, and neither is dismissible: it is a statement about what the
+page is rather than a nag to be cleared. **Consult your scholar and double-check
+before listening to this ruling.**
 
 ## Caveat
 
