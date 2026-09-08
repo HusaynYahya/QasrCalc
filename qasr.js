@@ -408,10 +408,13 @@
 
   /* Overpass is often busy, and a single host answering slowly should not cost
      the reader the option. Each is tried in turn.                            */
+  /* The mirrors first. overpass-api.de is the one everybody uses and the one
+     that queues: it will take a request and sit on it for half a minute at a
+     busy hour, which is not a failure it ever reports. It is kept, last. */
   var OVERPASS = [
-    "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter"
+    "https://overpass.private.coffee/api/interpreter",
+    "https://overpass-api.de/api/interpreter"
   ];
   var nearbyReason = null;          /* why the last search found nothing */
 
@@ -1596,7 +1599,53 @@
      the other two hosts are never tried, and the page waits on a road that is
      never coming. It looked from the outside like tapping a road did nothing
      at all.                                                                  */
-  var OVERPASS_WAIT_MS = 20000;
+  var OVERPASS_WAIT_MS = 25000;
+
+  /* Every host at once, and the first good answer wins.
+
+     Asked one after another, the waits add up: three hosts queueing behind a
+     busy hour is three deadlines end to end, and the reader is told nothing
+     until the last of them passes. A small question is worth asking everyone
+     — the answer arrives as fast as the fastest mirror rather than as slowly
+     as the order they happen to be listed in.
+
+     Only for small questions. Tracing a whole motorway is a megabyte and
+     minutes of somebody's server, and asking three of them for it at once to
+     throw two away is not a thing to do to a service given away free.       */
+  function overpassRace(query, waitMs) {
+    var wait = waitMs || OVERPASS_WAIT_MS;
+    return new Promise(function (yes, no) {
+      var left = OVERPASS.length, done = false, last = null;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        no(new Error(last || "No map server answered within " +
+                             Math.round(wait / 1000) + "s."));
+      }, wait);
+      OVERPASS.forEach(function (host) {
+        fetch(host + "?data=" + encodeURIComponent(query))
+          .then(function (r) {
+            if (!r.ok) throw new Error(host.split("/")[2] + " returned " + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            yes(data);
+          })
+          .catch(function (err) {
+            last = err && err.message;
+            left -= 1;
+            if (left === 0 && !done) {
+              done = true;
+              clearTimeout(timer);
+              no(new Error(last || "No map server answered."));
+            }
+          });
+      });
+    });
+  }
 
   function overpassAsk(query, waitMs, hosts, why) {
     hosts = hosts || OVERPASS;
@@ -1652,9 +1701,9 @@
     var query = "[out:json][timeout:25];way(around:" + r + "," + lat.toFixed(6) + "," +
       lon.toFixed(6) + ")[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|" +
       "unclassified|residential)$\"];out geom;";
-    /* A handful of ways within a few hundred metres. If that is slow the host
-       is in trouble, and the next one is worth more than the wait. */
-    return overpassAsk(query, 9000).then(function (data) {
+    /* A handful of ways within a few hundred metres: small enough to ask
+       every host at once, and the reader is waiting on it. */
+    return overpassRace(query, 15000).then(function (data) {
       var found = [];
       ((data && data.elements) || []).forEach(function (el) {
         var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });

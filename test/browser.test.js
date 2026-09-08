@@ -542,13 +542,14 @@ async function shot(page, name) {
     await page.close();
   });
 
-  await test("a map server that hangs is given up on, and the next one answers", async function () {
-    /* The fault that made picking look dead: the first host took the request
-       and never answered, so fetch never settled, the catch never ran, and
-       the other two hosts were never asked. The page waited for ever. */
+  await test("two map servers hanging do not hold up the third", async function () {
+    /* The fault that made picking look dead: a host took the request and
+       never answered, so fetch never settled and the rest were never asked.
+       Asked one after another the deadlines then added up, and the reader was
+       told nothing until every one of them had passed. They are asked at once
+       now, so two dead hosts cost nothing. */
     var page = await open(browser, base);
-    /* overpass-api.de is asked first: swallow it entirely. The stub set up in
-       open() still serves the other two. */
+    await page.route("**overpass.kumi.systems**", function () { /* never answered */ });
     await page.route("**overpass-api.de**", function () { /* never answered */ });
     await journey(page, "WD19 4QP", "University of Warwick");
     await page.click("#cityBtn");
@@ -557,12 +558,16 @@ async function shot(page, name) {
     await page.evaluate(function (t) {
       window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
     }, [S, (W + E) / 2]);
-    /* Nine seconds for the dead host, then a live one answers. */
+    /* The live host answers at once — not after the dead ones time out. */
+    var began = Date.now();
     await page.waitForFunction(
       "/road picked/.test(document.getElementById('pickMsg').textContent)",
       null, { timeout: 30000 });
+    var took = Date.now() - began;
     assert.ok(/1 road picked/.test(await page.textContent("#pickMsg")),
-      "the second host never got asked: " + (await page.textContent("#pickMsg")));
+      "the live host never got asked: " + (await page.textContent("#pickMsg")));
+    assert.ok(took < 6000,
+      "waited " + took + " ms — the hosts are being asked in turn, not at once");
     await page.close();
   });
 
