@@ -26,6 +26,7 @@ var SHOTS = process.argv.indexOf("--shots") >= 0;
 var CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
 
 var TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
+              ".json": "application/json",
               ".png": "image/png", ".svg": "image/svg+xml" };
 
 function serve() {

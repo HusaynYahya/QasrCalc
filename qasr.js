@@ -327,6 +327,43 @@
      are exempt, being a border chosen on purpose rather than found.         */
   var CITY_MAX_KM2 = 3000;
 
+  /* The built-up area, for the cities whose published border is a region.
+
+     Kept out of the page and fetched the first time it is wanted, because
+     almost no reader needs it: it is a hundred kilobytes to settle a question
+     that only arises where OpenStreetMap calls a metropolitan region a city.
+     A failure to load is not an error — the reader is simply told the border
+     is too large and asked to choose, which is what happened before. */
+  var URBAN_FILE = "urban-areas.json";
+  var urbanLoad = null;
+
+  function urbanAreas() {
+    if (!urbanLoad) {
+      urbanLoad = fetch(URBAN_FILE)
+        .then(function (r) {
+          if (!r.ok) throw new Error("the urban areas returned " + r.status);
+          return r.json();
+        })
+        .then(function (d) { return (d && d.areas) || []; })
+        .catch(function () { urbanLoad = null; return []; });
+    }
+    return urbanLoad;
+  }
+
+  function urbanAreaAt(place) {
+    return urbanAreas().then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var a = list[i], b = a.box;
+        /* The box first, as everywhere else here: a handful of comparisons
+           against a point, where the shape is a walk round thousands. */
+        if (place.lat < b[0] || place.lat > b[2] ||
+            place.lon < b[1] || place.lon > b[3]) continue;
+        if (inShape(place.lat, place.lon, a.shape)) return a;
+      }
+      return null;
+    });
+  }
+
   function cityTooBig(city) {
     if (!city || !city.shape || city.fromRing) return false;
     var rings = city.shape.type === "Polygon" ? [city.shape.coordinates[0]]
@@ -1705,7 +1742,20 @@
         ringTried: true, ringAuto: true
       });
     }
-    return cityOf(place);
+    return cityOf(place).then(function (city) {
+      /* A region rather than a city. Where the built-up area is known, that
+         is the city, and it is what the measuring runs from [1704]. Where it
+         is not, the city is left as it came and showCity says so. */
+      if (!cityTooBig(city)) return city;
+      return urbanAreaAt(place).then(function (urban) {
+        if (!urban) return city;
+        city.regionKm2 = Math.round(cityAreaKm2(city));
+        city.shape = urban.shape;
+        city.fromUrban = urban.name;
+        city.urbanKm2 = urban.areaKm2;
+        return city;
+      });
+    });
   }
 
   /* A readable address for a point on the map. Zoom 18 answers at street
@@ -3065,6 +3115,10 @@
           : city.ringFailed ? " — the " + city.ringFailed + " could not be traced just now, " +
               "so its published boundary is outlined instead. Press Refresh to try again."
           : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
+          : city.fromUrban ? " — the border published under that name encloses about " +
+              city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
+              "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
+              " km² is outlined instead."
           : city.shape ? " — its border is outlined on the map."
           : " — no published border to outline.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
@@ -3690,6 +3744,7 @@
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
     HADD_TARAKHKHUS_KM: HADD_TARAKHKHUS_KM,
     CITY_MAX_KM2: CITY_MAX_KM2, cityTooBig: cityTooBig,
+    urbanAreaAt: urbanAreaAt,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,

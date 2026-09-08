@@ -592,6 +592,58 @@ test("nothing to measure is not a complaint", function () {
   assert.strictEqual(G.cityTooBig({ name: "No border" }), false);
 });
 
+/* --- the built-up areas ---------------------------------------------------
+   Shipped as a file rather than in the page, so it is checked as a file. */
+console.log("\nThe built-up areas");
+
+var URBAN = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "urban-areas.json"), "utf8"));
+function urban(name) {
+  return URBAN.areas.filter(function (a) { return a.name === name; })[0];
+}
+
+test("it says where it came from", function () {
+  assert.ok(/Australian Bureau of Statistics/.test(URBAN.source), "the source is not named");
+  assert.ok(/CC BY/.test(URBAN.source), "the licence is not named");
+  assert.ok(URBAN.areas.length >= 5, "only " + URBAN.areas.length + " built-up area(s) on file");
+});
+
+test("Melbourne is the built-up city, not the region", function () {
+  /* The bug: Greater Melbourne is 8,892 km² and holds Bunyip, 72 km out, so
+     72 km was deducted as home and the journey ruled full. */
+  var m = urban("Melbourne");
+  assert.ok(m, "Melbourne is not on file");
+  assert.ok(m.areaKm2 > 2000 && m.areaKm2 < 3500,
+    "Melbourne's built-up area came out at " + m.areaKm2 + " km²");
+  [["Melbourne CBD", -37.8136, 144.9631, true], ["Frankston", -38.1430, 145.1230, true],
+   ["Werribee", -37.9000, 144.6600, true],      ["Pakenham", -38.0700, 145.4850, true],
+   ["Doreen", -37.6030, 145.1470, false],       ["Whittlesea town", -37.5130, 145.1190, false],
+   ["Healesville", -37.6540, 145.5170, false],  ["Warburton", -37.7530, 145.6930, false],
+   ["Bunyip", -38.0900, 145.7100, false],       ["Geelong", -38.1499, 144.3617, false]
+  ].forEach(function (c) {
+    assert.strictEqual(G.inShape(c[1], c[2], m.shape), c[3],
+      c[0] + " came out " + (c[3] ? "outside" : "inside") + " built-up Melbourne");
+  });
+});
+
+test("every one of them is small enough to be a city", function () {
+  /* Otherwise the guard would fire on the very shape meant to satisfy it. */
+  URBAN.areas.forEach(function (a) {
+    assert.strictEqual(G.cityTooBig({ shape: a.shape }), false,
+      a.name + " is " + a.areaKm2 + " km², which the guard would still refuse");
+  });
+});
+
+test("each carries a box that holds it", function () {
+  URBAN.areas.forEach(function (a) {
+    a.shape.coordinates.forEach(function (poly) {
+      poly[0].forEach(function (p) {
+        assert.ok(p[1] >= a.box[0] && p[1] <= a.box[2] && p[0] >= a.box[1] && p[0] <= a.box[3],
+          a.name + " runs outside its own box at " + p + " — the lookup would skip it");
+      });
+    });
+  });
+});
+
 test("the box that gates the lookup contains the whole ring", function () {
   var entry = m25(), b = entry.box;
   entry.shape.coordinates[0].forEach(function (p) {
