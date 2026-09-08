@@ -290,7 +290,7 @@ async function shot(page, name) {
     await page.close();
   });
 
-  await test("the hadd is drawn as a circle round where the road leaves town", async function () {
+  await test("the hadd is marked on the route where it falls", async function () {
     /* Two kilometres is about three pixels at the zoom that fits a journey,
        so this was first drawn as a dot and sat exactly under the amber ring
        that marks the border. A circle on the ground is the point: it has a
@@ -312,6 +312,42 @@ async function shot(page, name) {
     assert.ok(drawn.dashed, "the hadd circle is not dashed, so it reads as a hard line");
     assert.ok(drawn.legend, "the legend does not carry the hadd");
     await shot(page, "06-hadd");
+    await page.close();
+  });
+
+  await test("the hadd can be turned off, and stays off", async function () {
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    function gold() {
+      return page.evaluate(function () {
+        var g = getComputedStyle(document.documentElement)
+          .getPropertyValue("--map-hadd").trim().toLowerCase();
+        return { marks: [].slice.call(document.querySelectorAll("#map svg path"))
+          .filter(function (p) { return (p.getAttribute("stroke") || "").toLowerCase() === g; }).length,
+          legend: (function () { var li = document.querySelector(".legend li.is-hadd");
+            return !!li && !li.hidden; })() };
+      });
+    }
+    var on = await gold();
+    assert.strictEqual(on.marks, 1, "it should be drawn to begin with");
+
+    await page.uncheck("#showHadd");
+    await page.waitForTimeout(300);
+    var off = await gold();
+    assert.strictEqual(off.marks, 0, "unchecking it must take the mark off the map");
+    assert.strictEqual(off.legend, false, "and its legend row with it");
+
+    /* The ruling is untouched: the hadd never decided it. */
+    var verdict = (await page.textContent("#verdictLabel")).trim();
+    assert.ok(/shorten/i.test(verdict), "turning off a drawing changed the ruling: " + verdict);
+
+    /* Remembered across a reload, like the unit and the theme. A new page
+       would not test it: each one gets its own storage. */
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(500);
+    assert.strictEqual((await page.evaluate(function () {
+      return document.getElementById("showHadd").checked;
+    })), false, "the choice was not remembered");
     await page.close();
   });
 

@@ -320,6 +320,16 @@
      still counted from the town border, not from here [1755]. */
   var HADD_TARAKHKHUS_KM = 2;
 
+  /* Whether to draw it. Shown unless the reader turns it off, and remembered:
+     it is a second mark on a road that already carries several, and someone
+     who has settled where their own hadd falls does not want it redrawn every
+     journey. Turning it off hides the mark and its legend row and nothing
+     else — the ruling is unchanged, because the hadd never decided the
+     verdict [1755] and the counting never started there [1704]. */
+  var showHadd = (function () {
+    try { return localStorage.getItem("qasr.hadd") !== "off"; } catch (e) { return true; }
+  })();
+
   /* Photon's extent is [west, north, east, south], in degrees. */
   function extentKm2(e, lat) {
     if (!e || e.length < 4) return 0;
@@ -2332,7 +2342,8 @@
 
          Gold, hollow and dashed: a place on the road, not a prayer state,
          which is what the amber ring behind it is. */
-      var haddAt = m && m.qasrBegins && m.qasrBegins.where === "haddAlTarakhkhus" &&
+      var haddAt = showHadd &&
+                   m && m.qasrBegins && m.qasrBegins.where === "haddAlTarakhkhus" &&
                    says.changes && m.edgeKm > 0
                  ? walkTo(line, m.edgeKm + HADD_TARAKHKHUS_KM, scaleAll) : null;
       drewHadd = !!haddAt;
@@ -3597,6 +3608,17 @@
         });
       }
       recalc();
+    }
+
+    /* The hadd is a drawing, not a ruling, so turning it off only redraws. */
+    var haddBox = $("showHadd");
+    if (haddBox) {
+      haddBox.checked = showHadd;
+      haddBox.addEventListener("change", function () {
+        showHadd = this.checked;
+        try { localStorage.setItem("qasr.hadd", showHadd ? "on" : "off"); } catch (e) {}
+        if (mapState.map) renderMap(lastResult ? metricsFor(lastResult) : null);
+      });
     }
 
     Array.prototype.forEach.call(

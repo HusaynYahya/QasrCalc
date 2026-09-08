@@ -436,6 +436,11 @@ input::placeholder { color: var(--ink-faint); }
   gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem;
 }
 .maptools__hint { margin: 0; font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute); }
+.maptools__opt {
+  display: inline-flex; align-items: center; gap: .4rem; cursor: pointer;
+  font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute);
+}
+.maptools__opt input { cursor: pointer; }
 .seg--small { grid-template-columns: auto auto; }
 .seg--small span { padding: .45rem 1.1rem; font-size: .8rem; }
 
