@@ -145,6 +145,27 @@ async function stub(page, log) {
     var elements = [];
     /* Picking roads off the map: whichever side of the square the tap is
        nearest is the road returned, so four taps make the loop. */
+    /* A stroke asks for a box rather than a point: answer with a motorway
+       and a residential lane running beside it, so the test can check which
+       one a line drawn between them is taken to follow. */
+    var bb = /way\((-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
+    if (bb) {
+      var bs = parseFloat(bb[1]), bw = parseFloat(bb[2]);
+      var bn = parseFloat(bb[3]), be = parseFloat(bb[4]);
+      var midLon = (bw + be) / 2;
+      function down(lon, n) {
+        var out = [];
+        for (var k = 0; k <= n; k++) out.push({ lat: bs + (bn - bs) * k / n, lon: lon });
+        return out;
+      }
+      return route.fulfill({ status: 200, contentType: "application/json",
+        body: JSON.stringify({ elements: [
+          { type: "way", id: 700, geometry: down(midLon, 30),
+            tags: { highway: "motorway", ref: "M-TEST" } },
+          { type: "way", id: 701, geometry: down(midLon + 0.0006, 30),
+            tags: { highway: "residential", name: "Service Lane" } }
+        ] }) });
+    }
     var m = /way\(around:(\d+),(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
     if (m) {
       var radius = parseFloat(m[1]), la = parseFloat(m[2]), lo = parseFloat(m[3]);
@@ -568,6 +589,49 @@ async function shot(page, name) {
       "the live host never got asked: " + (await page.textContent("#pickMsg")));
     assert.ok(took < 6000,
       "waited " + took + " ms — the hosts are being asked in turn, not at once");
+    await page.close();
+  });
+
+  await test("drawing along a road follows it, and prefers the main one", async function () {
+    /* Drawn between a motorway and a service lane running alongside it, the
+       line is nearer the lane for part of its length. The road drawn along is
+       the motorway, and that is what must be taken. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    /* The pointer works in viewport coordinates: a map below the fold would
+       be drawn on somewhere else entirely. */
+    await page.locator("#map").scrollIntoViewIfNeeded();
+    /* At the zoom that frames Watford to Warwick a drag spans sixty-odd
+       kilometres, which is more map than may be asked for at once. Someone
+       drawing along a road is zoomed in; so is this. */
+    await page.evaluate(function () { window.__qasrMap.setView([51.5, -0.12], 13); });
+    await page.waitForTimeout(600);
+    var box = await page.locator("#map").boundingBox();
+
+    /* A real drag, with the button held down, straight down the map. */
+    var x = box.x + box.width / 2, y0 = box.y + box.height * 0.3;
+    await page.mouse.move(x, y0);
+    await page.mouse.down();
+    for (var i = 1; i <= 8; i++) {
+      await page.mouse.move(x + (i % 2 ? 1 : -1), y0 + i * (box.height * 0.05));
+      await page.waitForTimeout(30);
+    }
+    await page.mouse.up();
+
+    /* Polled rather than waited on, so a failure reports what the page
+       actually said — "that stroke covers 64 km" is a different bug from
+       silence, and a bare timeout tells them apart for nobody. */
+    var msg = "";
+    for (var w = 0; w < 60; w++) {
+      msg = await page.textContent("#pickMsg");
+      if (/road picked|No road runs|covers|did not answer|busy/.test(msg)) break;
+      await page.waitForTimeout(400);
+    }
+    assert.ok(/M-TEST/.test(msg), "the stroke did not follow the motorway: " + msg);
+    assert.ok(!/Service Lane/.test(msg),
+      "the stroke took the lane beside the road as well: " + msg);
     await page.close();
   });
 

@@ -551,6 +551,64 @@ test("it encloses what that boundary encloses, and its box holds it", function (
   });
 });
 
+/* --- drawing along a road ------------------------------------------------- */
+console.log("\nSnapping a drawn stroke to the roads under it");
+
+/* A motorway running north, a slip road forty metres east of it running
+   alongside, and a residential street crossing them both. */
+function road(id, name, kind, pts) { return { id: id, name: name, kind: kind, line: pts }; }
+function northSouth(lon, fromLat, toLat, n) {
+  var out = [];
+  for (var i = 0; i <= n; i++) out.push([lon, fromLat + (toLat - fromLat) * i / n]);
+  return out;
+}
+var M = road(1, "M25", "motorway", northSouth(-0.4000, 51.50, 51.60, 40));
+var SLIP = road(2, "slip road", "residential", northSouth(-0.39943, 51.52, 51.55, 20));
+var CROSS = road(3, "Mill Lane", "residential",
+  [[-0.42, 51.545], [-0.38, 51.545]]);
+
+test("a stroke along the motorway picks the motorway, not the slip beside it", function () {
+  /* Drawn down the middle, the slip road is nearer for much of the way — it
+     is forty metres east and the pen is never exact. Kind decides it. */
+  var stroke = northSouth(-0.39975, 51.53, 51.58, 30);
+  var got = G.snapStroke(stroke, [M, SLIP, CROSS]);
+  assert.ok(got.length, "the stroke matched no road at all");
+  assert.strictEqual(got[0].name, "M25",
+    "the stroke snapped to " + got[0].name + " rather than the main road under it");
+});
+
+test("a stroke along a street picks the street, not a motorway further off", function () {
+  /* The preference must not become an override: a motorway a quarter of a
+     kilometre away does not get to take a street from under the pen. */
+  var stroke = [[-0.4150, 51.5450], [-0.4120, 51.5450], [-0.4090, 51.5450], [-0.4060, 51.5450]];
+  var got = G.snapStroke(stroke, [M, SLIP, CROSS]);
+  assert.strictEqual(got[0].name, "Mill Lane",
+    "the stroke snapped to " + got[0].name + " rather than the road drawn on");
+});
+
+test("brushing past a road does not put it in the border", function () {
+  /* One point in passing is not drawing along it: a road has to win twice. */
+  var stroke = northSouth(-0.4000, 51.5449, 51.5650, 24);
+  var got = G.snapStroke(stroke, [M, CROSS]).map(function (r) { return r.name; });
+  assert.ok(got.indexOf("M25") >= 0, "the road drawn along is missing");
+  assert.strictEqual(got.indexOf("Mill Lane"), -1,
+    "a road crossed once was taken as drawn along");
+});
+
+test("a stroke nowhere near a road matches nothing", function () {
+  var stroke = northSouth(-0.2000, 51.52, 51.56, 20);
+  assert.strictEqual(G.snapStroke(stroke, [M, SLIP, CROSS]).length, 0,
+    "a stroke in open country matched a road");
+});
+
+test("the weights rank the roads a border is made of", function () {
+  assert.ok(G.roadWeight("motorway") < G.roadWeight("primary"),
+    "a motorway must outrank a primary");
+  assert.ok(G.roadWeight("primary") < G.roadWeight("residential"),
+    "a primary must outrank a residential street");
+  assert.strictEqual(G.roadWeight(undefined), 1, "an untagged road must not be favoured");
+});
+
 /* --- a "city" that is really a region ------------------------------------- */
 console.log("\nCities too large to be cities");
 

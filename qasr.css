@@ -438,7 +438,7 @@ input::placeholder { color: var(--ink-faint); }
 .maptools__hint { margin: 0; font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute); }
 /* Picking roads off the map. The cursor says the map is answering a
    different question while it is on. */
-.map.is-picking { cursor: copy; }
+.map.is-picking { cursor: crosshair; }
 #pickLabel { display: block; margin-top: .9rem; }
 /* The roads under a tap, for the reader to choose between. Built like the
    city list above it, because it is the same kind of question. */

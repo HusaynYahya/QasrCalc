@@ -1708,11 +1708,18 @@
       ((data && data.elements) || []).forEach(function (el) {
         var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });
         if (line.length < 2) return;
+        var tags = el.tags || {};
         found.push({ id: el.id, km: pointToLineKm(lat, lon, line), line: line,
-                     name: (el.tags && (el.tags.ref || el.tags.name)) || "an unnamed road" });
+                     kind: tags.highway,
+                     name: tags.ref || tags.name || "an unnamed road" });
       });
       if (!found.length) throw new Error("No road there.");
-      found.sort(function (a, b) { return a.km - b.km; });
+      /* Main roads first, as a stroke ranks them: the nearest thing to a tap
+         on a motorway is regularly its slip road. Distance still decides
+         between roads of a kind. */
+      found.sort(function (a, b) {
+        return a.km * roadWeight(a.kind) - b.km * roadWeight(b.kind);
+      });
       /* One entry per road: a long road comes back as many ways, and a list
          of six identical names is no choice at all. */
       var seen = {}, out = [];
@@ -1722,6 +1729,78 @@
         out.push(w);
       });
       return out.slice(0, 6);
+    });
+  }
+
+  /* Which road is the main one hereabouts.
+
+     A stroke drawn along a motorway passes within metres of its slip roads,
+     its service lanes and the streets it flies over, and the nearest of those
+     is often not the road being drawn. So distance is weighed by what kind of
+     road it is: a motorway wins from four times as far away as a residential
+     street. The weights are a scale of how much of a border a road is likely
+     to be, not of anything in the map.
+
+     It is a preference and not an override — the cap below keeps a motorway a
+     quarter of a kilometre off from stealing a street under the pen. */
+  var ROAD_WEIGHT = {
+    motorway: 0.25, trunk: 0.35, primary: 0.5, secondary: 0.7,
+    tertiary: 0.85, unclassified: 1, residential: 1.2
+  };
+  var SNAP_KM = 0.25;
+
+  function roadWeight(kind) {
+    return ROAD_WEIGHT[kind] || 1;
+  }
+
+  /* The roads a drawn stroke runs along.
+
+     Each point of the stroke picks the best road within a quarter kilometre
+     of it — nearest, weighed by kind — and the roads that win are the ones
+     drawn along. A road has to win twice to count, so that brushing past the
+     end of a side street on the way does not put it in the border. */
+  function snapStroke(stroke, roads) {
+    var wins = {}, order = [], byId = {};
+    (stroke || []).forEach(function (p) {
+      var best = null, bestScore = Infinity;
+      roads.forEach(function (road) {
+        var km = pointToLineKm(p[1], p[0], road.line);
+        if (km > SNAP_KM) return;
+        var score = km * roadWeight(road.kind);
+        if (score < bestScore) { bestScore = score; best = road; }
+      });
+      if (!best) return;
+      if (!wins[best.id]) { wins[best.id] = 0; order.push(best.id); byId[best.id] = best; }
+      wins[best.id] += 1;
+    });
+    var enough = stroke && stroke.length > 2 ? 2 : 1;
+    return order.filter(function (id) { return wins[id] >= enough; })
+                .map(function (id) { return byId[id]; });
+  }
+
+  /* Every road in a box, for a stroke: one question rather than one per
+     point of it. A stroke across a whole county is refused — that is a
+     megabyte of somebody's server for a line drawn by accident. */
+  function roadsInBox(s, w, n, e) {
+    var across = haversineKm({ lat: s, lon: w }, { lat: n, lon: e });
+    if (across > 90) {
+      return Promise.reject(new Error("That stroke covers " + Math.round(across) +
+        " km, which is more of the map than can be asked for at once. Zoom in and draw " +
+        "along one stretch of road at a time — the roads already picked are kept."));
+    }
+    var query = "[out:json][timeout:25];way(" + s.toFixed(5) + "," + w.toFixed(5) + "," +
+      n.toFixed(5) + "," + e.toFixed(5) + ")[\"highway\"~\"^(motorway|trunk|primary|" +
+      "secondary|tertiary|unclassified|residential)$\"];out geom;";
+    return overpassRace(query, 20000).then(function (data) {
+      var out = [];
+      ((data && data.elements) || []).forEach(function (el) {
+        var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });
+        if (line.length < 2) return;
+        var tags = el.tags || {};
+        out.push({ id: el.id, line: line, kind: tags.highway,
+                   name: tags.ref || tags.name || "an unnamed road" });
+      });
+      return out;
     });
   }
 
@@ -3070,7 +3149,77 @@
 
      For the reader whose town is ringed by roads with no single number, or
      whose idea of leaving town follows three roads and a bypass.            */
-  var picking = false, picked = [];
+  var picking = false, picked = [], stroke = null, strokeLine = null, justDrew = false;
+
+  /* Drawing along the roads, rather than tapping them one at a time.
+
+     Holding down and dragging paints a line; on letting go, every road the
+     line ran along is asked for at once — one question for the whole stroke
+     rather than one per point — and the roads it followed are added. The map
+     stops panning while picking, or a stroke would drag the map instead. */
+  function strokeBox(pts) {
+    var s = pts[0][1], n = pts[0][1], w = pts[0][0], e = pts[0][0];
+    pts.forEach(function (p) {
+      if (p[1] < s) s = p[1];
+      if (p[1] > n) n = p[1];
+      if (p[0] < w) w = p[0];
+      if (p[0] > e) e = p[0];
+    });
+    /* A little room round it: the pen is not exact and the roads it followed
+       may lie just outside the line drawn. */
+    var pad = 0.004;
+    return [s - pad, w - pad, n + pad, e + pad];
+  }
+
+  function beginStroke(latlng) {
+    if (!picking) return;
+    stroke = [[latlng.lng, latlng.lat]];
+    justDrew = false;
+  }
+
+  function growStroke(latlng) {
+    if (!picking || !stroke) return;
+    stroke.push([latlng.lng, latlng.lat]);
+    if (stroke.length < 2) return;
+    var line = stroke.map(function (p) { return [p[1], p[0]]; });
+    if (strokeLine) strokeLine.setLatLngs(line);
+    else strokeLine = L.polyline(line, { color: paint("--map-hadd"), weight: 3,
+                                         opacity: .8, dashArray: "3 4" })
+                       .addTo(mapState.picks);
+  }
+
+  function endStroke() {
+    var pts = stroke;
+    stroke = null;
+    if (strokeLine) { mapState.picks.removeLayer(strokeLine); strokeLine = null; }
+    if (!pts || pts.length < 3) return false;      /* a tap, not a stroke */
+    justDrew = true;
+    $("pickMsg").textContent = "Looking for the roads you drew along…";
+    $("pickMsg").className = "hint";
+    var box = strokeBox(pts);
+    roadsInBox(box[0], box[1], box[2], box[3]).then(function (roads) {
+      var found = snapStroke(pts, roads);
+      if (!found.length) {
+        $("pickMsg").textContent = "No road runs along that line. Draw closer to the road, " +
+          "and zoom in if it is fiddly.";
+        $("pickMsg").className = "hint hint--warn";
+        return;
+      }
+      found.forEach(function (road) {
+        if (!picked.some(function (w) { return w.id === road.id; })) picked.push(road);
+      });
+      clearCandidates();
+      renderPicks();
+      var names = found.map(function (r) { return r.name; });
+      $("pickMsg").textContent = "Added " + names.slice(0, 4).join(", ") +
+        (names.length > 4 ? " and " + (names.length - 4) + " more" : "") + ". " +
+        $("pickMsg").textContent;
+    }).catch(function (err) {
+      $("pickMsg").textContent = err.message;
+      $("pickMsg").className = "hint hint--warn";
+    });
+    return true;
+  }
 
   function pickedRing() {
     if (picked.length < 2) return null;
@@ -3095,12 +3244,13 @@
                                       areaKm2: ring.areaKm2 });
     var msg = $("pickMsg");
     if (!picking && !picked.length) {
-      msg.textContent = "Tap each road that makes up the ring. They are joined as you go, " +
-        "and the border can be used once they close into a loop.";
+      msg.textContent = "Draw along the roads that make up the ring, or tap them one at a " +
+        "time. They are joined as you go, and the border can be used once they close " +
+        "into a loop.";
       msg.className = "hint";
     } else if (!picked.length) {
-      msg.textContent = "Tap the first road. Zoom in if the roads are close together — " +
-        "the nearest one to the tap is the one taken.";
+      msg.textContent = "Draw along a road, or tap it. Drawing follows the road under the " +
+        "line and prefers the main one where several run together.";
       msg.className = "hint";
     } else {
       var n = picked.length + " road" + (picked.length === 1 ? "" : "s") + " picked";
@@ -3740,7 +3890,34 @@
 
     /* Tapping the map sets whichever end the toggle names. */
     if (mapState.map) {
+      /* A stroke drawn with the button held down, or a finger dragged.
+
+         The end of it is listened for on the document rather than on the map:
+         Leaflet sends mousedown and mousemove but was not sending mouseup at
+         all, so a stroke was begun, drawn, and never finished. A pointer that
+         leaves the map before it is let go would be lost the same way. */
+      mapState.map.on("mousedown", function (e) { beginStroke(e.latlng); });
+      mapState.map.on("mousemove", function (e) { growStroke(e.latlng); });
+      document.addEventListener("mouseup", function () { if (stroke) endStroke(); });
+
+      /* Touch is not mouse: Leaflet's own handlers keep the taps, so these
+         only need to draw, and to stop the page scrolling under the finger. */
+      var canvas = mapState.map.getContainer();
+      canvas.addEventListener("touchstart", function (ev) {
+        if (!picking || ev.touches.length !== 1) return;
+        beginStroke(mapState.map.mouseEventToLatLng(ev.touches[0]));
+      }, { passive: true });
+      canvas.addEventListener("touchmove", function (ev) {
+        if (!picking || !stroke || ev.touches.length !== 1) return;
+        ev.preventDefault();
+        growStroke(mapState.map.mouseEventToLatLng(ev.touches[0]));
+      }, { passive: false });
+      canvas.addEventListener("touchend", function () { if (stroke) endStroke(); });
+      canvas.addEventListener("touchcancel", function () { if (stroke) endStroke(); });
+
       mapState.map.on("click", function (e) {
+        /* The click Leaflet sends after a drag is not a tap. */
+        if (justDrew) { justDrew = false; return; }
         if (picking) { pickRoadAt(e.latlng); return; }
         var slot = document.querySelector("input[name='target']:checked").value;
         $("mapToolHint").textContent = "Looking up that point…";
@@ -3790,6 +3967,13 @@
     $("pickStart").addEventListener("click", function () {
       picking = !picking;
       clearCandidates();
+      /* The map must stop panning while a stroke is being drawn on it. */
+      if (mapState.map && mapState.map.dragging) {
+        if (picking) mapState.map.dragging.disable();
+        else mapState.map.dragging.enable();
+      }
+      if (!picking) { stroke = null;
+        if (strokeLine) { mapState.picks.removeLayer(strokeLine); strokeLine = null; } }
       $("mapToolHint").textContent = picking
         ? "Tap the roads that ring your city" : "Tap the map to set a location";
       renderPicks();
@@ -3810,6 +3994,7 @@
                                   areaKm2: ring.areaKm2 })) return;
       var was = cities.from;
       picking = false;
+      if (mapState.map && mapState.map.dragging) mapState.map.dragging.enable();
       clearCandidates();
       $("mapToolHint").textContent = "Tap the map to set a location";
       useCity({
@@ -4035,7 +4220,8 @@
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
-    pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear
+    pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear,
+    snapStroke: snapStroke, roadsInBox: roadsInBox, roadWeight: roadWeight
   };
 
   if (document.readyState === "loading") {
