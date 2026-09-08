@@ -34,6 +34,25 @@
 
 <main id="main" class="wrap">
 
+  <!-- A beta notice, said once and plainly at the top. Not dismissible: it is
+       not a nag to be cleared, it is a statement about what the page is, and
+       a reader who arrives tomorrow is owed it as much as one who arrives
+       today. Specific about what can be wrong, because "may contain errors"
+       tells nobody what to check. -->
+  <aside class="beta" role="note" aria-labelledby="betaTitle">
+    <p class="beta__title" id="betaTitle">This is a beta. Check it before you rely on it.</p>
+    <p>It measures a distance and applies the common rulings. It does not know
+      your city the way you do — the border it draws comes from a public map and
+      is sometimes wider or tighter than where you would say the town ends, and
+      the road it measures is the one a routing service chose, not necessarily
+      the one you will take. Both change the answer.</p>
+    <p>So look at the map and the border before you trust the number, and take a
+      ruling you are unsure of to a scholar or to
+      <a href="https://www.sistani.org/english/" rel="noopener">sistani.org</a>.
+      A calculator can tell you how far it is. Whether that settles your prayer
+      is not its to say.</p>
+  </aside>
+
   <!-- ============================ THE FORM ============================ -->
   <form id="qasrForm" class="card" novalidate>
 
@@ -247,6 +266,13 @@
       <p class="verdict__label" id="verdictLabel">—</p>
       <p class="verdict__sub" id="verdictSub"></p>
     </div>
+
+    <!-- Again beside the answer, because this is the part that gets read, and
+         a reader who scrolled straight to it never saw the notice at the top.
+         Short here: the long version is up there. -->
+    <p class="beta-note">A beta, and an estimate. Check the border on the map
+      against where you would say your town ends, and take an unclear ruling to
+      a scholar.</p>
 
     <div class="card" id="undeterminedCard" hidden>
       <h2 class="block__title">Not enough to rule on</h2>

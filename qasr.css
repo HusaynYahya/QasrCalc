@@ -293,6 +293,31 @@ input::placeholder { color: var(--ink-faint); }
 .note--info { border-color: var(--accent-line); background: rgba(15, 138, 118, .06); }
 .note--info b { color: var(--accent-bright); }
 
+/* ---- the beta notice ---------------------------------------------------
+   Built from the same parts as .note, which is the page's existing way of
+   saying "read this": an amber rule down the left, a wash behind it, and the
+   label typeface. It sits above the form rather than beside a field, so it
+   carries a heading and a little more room, and nothing dismisses it — it is
+   a statement about what the page is, not a nag to be cleared. */
+.beta {
+  margin: 0 0 1.5rem; padding: 1rem 1.15rem; border-radius: var(--radius);
+  border: 1px solid var(--amber-line); border-left-width: 3px;
+  background: rgba(176, 116, 13, .07);
+  font-family: var(--font-label); font-size: .87rem; color: var(--ink-soft);
+  line-height: 1.6;
+}
+.beta p { margin: .55rem 0 0; }
+.beta p:first-child { margin-top: 0; }
+.beta__title { font-weight: 600; color: var(--amber-bright); font-size: .92rem; }
+.beta a { color: inherit; }
+
+/* Beside the verdict, where a reader who scrolled straight to the answer will
+   see it. Quieter than the notice at the top, which says the whole of it. */
+.beta-note {
+  margin: .6rem 0 0; font-family: var(--font-label); font-size: .78rem;
+  color: var(--ink-mute); line-height: 1.55;
+}
+
 /* ---- reference notes -------------------------------------------------- */
 .notes h3 {
   font-size: 1.08rem; color: var(--ink); margin: 2rem 0 .6rem;
