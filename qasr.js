@@ -306,6 +306,20 @@
      claim. Nothing is forced: the distance is shown and the reader chooses.  */
   var NEAR_CITY_KM = 75;
 
+  /* Hadd al-tarakhkhus, as a distance.
+
+     It is not really one. The limit is sight-based — the point at which the
+     people of the town can no longer see you, the sign being that you cannot
+     see them [1755], [1756] — so it moves with the ground, the weather and
+     the eye, and no number is the whole of it. Two kilometres is a stand-in
+     for the run out to it, and is the figure the Al-Ma'arif Foundation puts
+     on the same limit for the same city on https://al-m.ca/travel/ ; taking
+     theirs means the two tools do not draw the line in two places.
+
+     It marks where shortening begins, and nothing else. The eight farsakh is
+     still counted from the town border, not from here [1755]. */
+  var HADD_TARAKHKHUS_KM = 2;
+
   /* Photon's extent is [west, north, east, south], in degrees. */
   function extentKm2(e, lat) {
     if (!e || e.length < 4) return 0;
@@ -2285,7 +2299,7 @@
        falls outside the city you chose is how you know to choose another one;
        but it is drawn as what it is: grey, unfilled, and labelled unused.    */
     var borderUnused = !!(borderCheck && borderCheck.ok === false && borderCheck.outside);
-    var drewBorder = false;
+    var drewBorder = false, drewHadd = false;
     [["from", paint("--map-border"), "Your city"]]
       .forEach(function (spec) {
         var city = cities[spec[0]];
@@ -2379,6 +2393,35 @@
       }
       seen.push(L.latLngBounds(line));
 
+      /* Hadd al-tarakhkhus, drawn round the point the road leaves town: the
+         run-out to it is two kilometres, so it is a circle on the ground and
+         not a dot on the route. Drawn as a dot it sat under the amber ring —
+         at the zoom that fits a journey, two kilometres is about three
+         pixels, and the two marks were one.
+
+         Only for a journey out of the reader's own watan. Leaving anywhere
+         else the shortening starts at the town limit, and returning the hadd
+         does not apply at all [1757] — which is what qasrBegins decides.
+         Drawing it in those cases would put a line on the map that governs
+         nothing.
+
+         Gold, hollow and dashed: it is ground to cross, not a prayer state,
+         and the amber ring at its centre is. */
+      var haddHere = m && m.qasrBegins && m.qasrBegins.where === "haddAlTarakhkhus" &&
+                     says.changes && m.edgeKm > 0 && counted && counted.length;
+      drewHadd = !!haddHere;
+      if (haddHere) {
+        L.circle(counted[0], {
+          radius: HADD_TARAKHKHUS_KM * 1000,
+          color: paint("--map-hadd"), weight: 2, opacity: .9, dashArray: "5 5",
+          fill: true, fillColor: paint("--map-hadd"), fillOpacity: .07
+        }).addTo(mapState.drawn).bindTooltip("\u1e24add al-tarakhkhu\u1e63 — the shortening " +
+          "begins at the far edge of this, about " + fmtKm(HADD_TARAKHKHUS_KM) +
+          " past the border, where the town is lost to sight. Judged by eye, so this shows " +
+          "where to look rather than a line on the ground. The eight farsakh is still " +
+          "counted from the border.");
+      }
+
       /* Where the eight farsakh falls along this road. It marks the distance
          only: once a journey qualifies, the shortening runs from the town
          limit onwards, not from this point.                                  */
@@ -2434,6 +2477,7 @@
     $("mapLegend").querySelector(".is-route").hidden = !(line && shortensHere);
     $("mapLegend").querySelector(".is-fullroute").hidden = !(line && !shortensHere);
     $("mapLegend").querySelector(".is-begin").hidden = !(line && shortensHere && m && m.edgeKm > 0);
+    $("mapLegend").querySelector(".is-hadd").hidden = !drewHadd;
     $("mapLegend").querySelector(".is-head").hidden = !(line && m && m.edgeKm > 0);
     $("mapLegend").querySelector(".is-head").textContent = "";
     $("mapLegend").querySelector(".is-head").innerHTML =
@@ -3641,6 +3685,7 @@
     /* The geography only. Rulings belong to Fiqh.evaluate and nowhere else. */
     inShape: inShape, borderExitKm: borderExitKm, haversineKm: haversineKm,
     extentKm2: extentKm2, NEAR_CITY_KM: NEAR_CITY_KM,
+    HADD_TARAKHKHUS_KM: HADD_TARAKHKHUS_KM,
     convexHull: convexHull, ringShape: ringShape, RING_ROAD: RING_ROAD,
     stitchLines: stitchLines, simplifyLine: simplifyLine, ringLines: ringLines,
     ringAreaKm2: ringAreaKm2, ringBoundary: ringBoundary, cityChoices: cityChoices,

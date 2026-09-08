@@ -38,6 +38,10 @@
   --map-full:    #b0740d;
   --map-faint:   #93a1ac;
   --map-border:  #0f8a76;
+  /* Gold, and neither of the prayer colours: the hadd is a place on the road,
+     not a state of prayer. Drawn hollow and dashed as well as gold, because a
+     warm map already carries amber and hue alone is a weak signal. */
+  --map-hadd:    #c8971b;
   --map-paper:   #ffffff;
   --map-tiles:   "light_all";
 
@@ -366,6 +370,13 @@ input::placeholder { color: var(--ink-faint); }
 /* A ring in the amber of the stretch it ends. Hollow, where the two ends of
    the journey are filled: a line you cross, not a place you are at. */
 .key--begin { border: 3px solid var(--amber); background: var(--bg-raise); width: 14px; height: 14px; border-radius: 50%; }
+/* Hadd al-tarakhkhus. Hollow and dashed like the mark on the map, so the
+   legend carries the same thing the reader is looking at. */
+.key--hadd {
+  border: 2px dashed var(--map-hadd); background: none;
+  width: 14px; height: 14px; border-radius: 50%;
+}
+.legend li.is-hadd { color: var(--ink-soft); }
 .key--fullroute { height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--amber) 0 4px, transparent 4px 9px); }
 .legend li.is-begin { font-weight: 600; }
 
@@ -832,6 +843,7 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
   --map-full:    #e0a33a;
   --map-faint:   #6c7d8a;
   --map-border:  #4ec5ac;
+  --map-hadd:    #f2c53d;
   --map-paper:   #11171c;
   --map-tiles:   "dark_all";
 
@@ -867,6 +879,7 @@ cite { font-style: normal; color: var(--ink-faint); font-size: .92em; }
     --map-full:    #e0a33a;
     --map-faint:   #6c7d8a;
     --map-border:  #4ec5ac;
+    --map-hadd:    #f2c53d;
     --map-paper:   #11171c;
     --map-tiles:   "dark_all";
 

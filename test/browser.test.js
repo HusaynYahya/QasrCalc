@@ -290,6 +290,49 @@ async function shot(page, name) {
     await page.close();
   });
 
+  await test("the hadd is drawn as a circle round where the road leaves town", async function () {
+    /* Two kilometres is about three pixels at the zoom that fits a journey,
+       so this was first drawn as a dot and sat exactly under the amber ring
+       that marks the border. A circle on the ground is the point: it has a
+       size the reader can see, and it grows when they zoom in. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    var drawn = await page.evaluate(function () {
+      var gold = getComputedStyle(document.documentElement)
+        .getPropertyValue("--map-hadd").trim().toLowerCase();
+      var hit = [].slice.call(document.querySelectorAll("#map svg path"))
+        .filter(function (p) {
+          return (p.getAttribute("stroke") || "").toLowerCase() === gold;
+        });
+      var li = document.querySelector(".legend li.is-hadd");
+      return { marks: hit.length, dashed: hit.length ? hit[0].getAttribute("stroke-dasharray") : null,
+               legend: !!li && !li.hidden };
+    });
+    assert.strictEqual(drawn.marks, 1, "the hadd circle is not on the map");
+    assert.ok(drawn.dashed, "the hadd circle is not dashed, so it reads as a hard line");
+    assert.ok(drawn.legend, "the legend does not carry the hadd");
+    await shot(page, "06-hadd");
+    await page.close();
+  });
+
+  await test("no hadd is drawn on a journey that is not shortened", async function () {
+    /* It marks where the shortening begins. On a journey with no shortening
+       it would be marking nothing. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "Anson Road, Cricklewood");
+    var drawn = await page.evaluate(function () {
+      var gold = getComputedStyle(document.documentElement)
+        .getPropertyValue("--map-hadd").trim().toLowerCase();
+      return { marks: [].slice.call(document.querySelectorAll("#map svg path"))
+        .filter(function (p) { return (p.getAttribute("stroke") || "").toLowerCase() === gold; }).length,
+        legend: (function () { var li = document.querySelector(".legend li.is-hadd");
+          return !!li && !li.hidden; })() };
+    });
+    assert.strictEqual(drawn.marks, 0, "a hadd circle is drawn on a journey prayed in full");
+    assert.strictEqual(drawn.legend, false, "the legend offers the hadd on a journey prayed in full");
+    await page.close();
+  });
+
   await test("the ruling never contradicts the line above it", async function () {
     /* The fault that reached the reader: London on one screen, "your start is
        outside London" on the next. */
