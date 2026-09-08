@@ -145,30 +145,40 @@ async function stub(page, log) {
     var elements = [];
     /* Picking roads off the map: whichever side of the square the tap is
        nearest is the road returned, so four taps make the loop. */
-    /* A stroke asks for a box rather than a point: answer with a motorway
-       and a residential lane running beside it, so the test can check which
-       one a line drawn between them is taken to follow. */
-    var bb = /way\((-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
-    if (bb) {
-      var bs = parseFloat(bb[1]), bw = parseFloat(bb[2]);
-      var bn = parseFloat(bb[3]), be = parseFloat(bb[4]);
-      var midLon = (bw + be) / 2;
-      function down(lon, n) {
+    /* One "around" shape serves both: a single point is a tap, a whole
+       polyline is a stroke drawn along the roads. */
+    var ar = /way\(around:(\d+),([-\d.,]+)\)/.exec(q);
+    var pairs = [];
+    if (ar) {
+      var nums = ar[2].split(",").map(parseFloat);
+      for (var pi = 0; pi + 1 < nums.length; pi += 2) pairs.push([nums[pi], nums[pi + 1]]);
+    }
+
+    /* A stroke: answer with a motorway under the line and a residential lane
+       running beside it, so the test can check which one is taken. */
+    if (ar && pairs.length > 1) {
+      var lat0 = pairs[0][0], lon0 = pairs[0][1];
+      var latN = pairs[pairs.length - 1][0], lonN = pairs[pairs.length - 1][1];
+      function along(shift, n) {
         var out = [];
-        for (var k = 0; k <= n; k++) out.push({ lat: bs + (bn - bs) * k / n, lon: lon });
+        for (var k = 0; k <= n; k++) {
+          out.push({ lat: lat0 + (latN - lat0) * k / n,
+                     lon: lon0 + (lonN - lon0) * k / n + shift });
+        }
         return out;
       }
       return route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ elements: [
-          { type: "way", id: 700, geometry: down(midLon, 30),
+          { type: "way", id: 700, geometry: along(0, 30),
             tags: { highway: "motorway", ref: "M-TEST" } },
-          { type: "way", id: 701, geometry: down(midLon + 0.0006, 30),
+          { type: "way", id: 701, geometry: along(0.0006, 30),
             tags: { highway: "residential", name: "Service Lane" } }
         ] }) });
     }
-    var m = /way\(around:(\d+),(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
+
+    var m = ar && pairs.length === 1 ? ar : null;
     if (m) {
-      var radius = parseFloat(m[1]), la = parseFloat(m[2]), lo = parseFloat(m[3]);
+      var radius = parseFloat(m[1]), la = pairs[0][0], lo = pairs[0][1];
       var names = ["south side", "east side", "north side", "west side"];
       /* Distance to the side itself, not to three points on it: a tap
          partway along an edge is nearest that edge, and sampling the ends
@@ -632,6 +642,13 @@ async function shot(page, name) {
     assert.ok(/M-TEST/.test(msg), "the stroke did not follow the motorway: " + msg);
     assert.ok(!/Service Lane/.test(msg),
       "the stroke took the lane beside the road as well: " + msg);
+    /* Drawing runs through handlers the page never touches on load, so a
+       function lost from the file shows up here and nowhere else — twice now
+       a deletion has taken a neighbouring function with it and the only sign
+       was a stroke quietly behaving like a tap. */
+    assert.deepStrictEqual(
+      page.callLog.filter(function (l) { return /PAGE ERROR/.test(l); }), [],
+      "the page threw while drawing");
     await page.close();
   });
 

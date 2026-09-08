@@ -412,6 +412,7 @@
      that queues: it will take a request and sit on it for half a minute at a
      busy hour, which is not a failure it ever reports. It is kept, last. */
   var OVERPASS = [
+    "https://overpass.openstreetmap.fr/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter"
@@ -1778,19 +1779,28 @@
                 .map(function (id) { return byId[id]; });
   }
 
-  /* Every road in a box, for a stroke: one question rather than one per
-     point of it. A stroke across a whole county is refused — that is a
-     megabyte of somebody's server for a line drawn by accident. */
-  function roadsInBox(s, w, n, e) {
-    var across = haversineKm({ lat: s, lon: w }, { lat: n, lon: e });
-    if (across > 90) {
-      return Promise.reject(new Error("That stroke covers " + Math.round(across) +
-        " km, which is more of the map than can be asked for at once. Zoom in and draw " +
-        "along one stretch of road at a time — the roads already picked are kept."));
+  /* The roads a stroke was drawn along.
+
+     Asked for as a corridor round the line itself, not as the box the line
+     happens to span. Overpass takes a whole polyline after "around:", and the
+     difference is not small: measured against the same server, the box round
+     one stretch of the M25 returned 2,726 ways and 2.2 MB, and the corridor
+     round the same stroke returned three ways and one kilobyte. The box was
+     what timed out — no server was refusing, they were all still sending. */
+  function roadsAlong(stroke) {
+    var pts = thinStroke(stroke);
+    if (pts.length < 2) return Promise.resolve([]);
+    var across = haversineKm({ lat: pts[0][1], lon: pts[0][0] },
+                             { lat: pts[pts.length - 1][1], lon: pts[pts.length - 1][0] });
+    if (across > 150) {
+      return Promise.reject(new Error("That stroke runs " + Math.round(across) +
+        " km end to end. Draw along one stretch of road at a time — the roads already " +
+        "picked are kept."));
     }
-    var query = "[out:json][timeout:25];way(" + s.toFixed(5) + "," + w.toFixed(5) + "," +
-      n.toFixed(5) + "," + e.toFixed(5) + ")[\"highway\"~\"^(motorway|trunk|primary|" +
-      "secondary|tertiary|unclassified|residential)$\"];out geom;";
+    var path = pts.map(function (p) { return p[1].toFixed(5) + "," + p[0].toFixed(5); }).join(",");
+    var query = "[out:json][timeout:25];way(around:80," + path +
+      ")[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|" +
+      "unclassified|residential)$\"];out geom;";
     return overpassRace(query, 20000).then(function (data) {
       var out = [];
       ((data && data.elements) || []).forEach(function (el) {
@@ -1802,6 +1812,28 @@
       });
       return out;
     });
+  }
+
+  /* A stroke as a pen draws it is hundreds of points a few pixels apart. The
+     corridor only needs enough of them to follow the line — every forty
+     metres, and sixty at the most, which keeps the question short however
+     long the stroke. */
+  function thinStroke(stroke) {
+    var pts = stroke || [];
+    if (pts.length < 2) return pts.slice();
+    var out = [pts[0]];
+    for (var i = 1; i < pts.length; i++) {
+      var last = out[out.length - 1];
+      if (haversineKm({ lat: last[1], lon: last[0] },
+                      { lat: pts[i][1], lon: pts[i][0] }) >= 0.04) out.push(pts[i]);
+    }
+    var end = pts[pts.length - 1];
+    if (out[out.length - 1] !== end) out.push(end);
+    if (out.length <= 60) return out;
+    var step = out.length / 60, kept = [];
+    for (var k = 0; k < 60; k++) kept.push(out[Math.floor(k * step)]);
+    kept.push(out[out.length - 1]);
+    return kept;
   }
 
   /* The nearest one, where only one is wanted. */
@@ -3157,20 +3189,6 @@
      line ran along is asked for at once — one question for the whole stroke
      rather than one per point — and the roads it followed are added. The map
      stops panning while picking, or a stroke would drag the map instead. */
-  function strokeBox(pts) {
-    var s = pts[0][1], n = pts[0][1], w = pts[0][0], e = pts[0][0];
-    pts.forEach(function (p) {
-      if (p[1] < s) s = p[1];
-      if (p[1] > n) n = p[1];
-      if (p[0] < w) w = p[0];
-      if (p[0] > e) e = p[0];
-    });
-    /* A little room round it: the pen is not exact and the roads it followed
-       may lie just outside the line drawn. */
-    var pad = 0.004;
-    return [s - pad, w - pad, n + pad, e + pad];
-  }
-
   function beginStroke(latlng) {
     if (!picking) return;
     stroke = [[latlng.lng, latlng.lat]];
@@ -3180,6 +3198,12 @@
   function growStroke(latlng) {
     if (!picking || !stroke) return;
     stroke.push([latlng.lng, latlng.lat]);
+    /* Marked here rather than when the stroke ends: Leaflet fires its click
+       from inside its own mouseup handling, which runs before the document
+       hears the mouseup at all — so a flag set at the end of a stroke was set
+       after the click it was meant to suppress, and every stroke was treated
+       as a tap as well. */
+    if (stroke.length >= 3) justDrew = true;
     if (stroke.length < 2) return;
     var line = stroke.map(function (p) { return [p[1], p[0]]; });
     if (strokeLine) strokeLine.setLatLngs(line);
@@ -3196,8 +3220,7 @@
     justDrew = true;
     $("pickMsg").textContent = "Looking for the roads you drew along…";
     $("pickMsg").className = "hint";
-    var box = strokeBox(pts);
-    roadsInBox(box[0], box[1], box[2], box[3]).then(function (roads) {
+    roadsAlong(pts).then(function (roads) {
       var found = snapStroke(pts, roads);
       if (!found.length) {
         $("pickMsg").textContent = "No road runs along that line. Draw closer to the road, " +
@@ -4221,7 +4244,8 @@
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
     pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear,
-    snapStroke: snapStroke, roadsInBox: roadsInBox, roadWeight: roadWeight
+    snapStroke: snapStroke, roadsAlong: roadsAlong, thinStroke: thinStroke,
+    roadWeight: roadWeight
   };
 
   if (document.readyState === "loading") {
