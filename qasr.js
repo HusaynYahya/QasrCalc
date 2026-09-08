@@ -2515,6 +2515,24 @@
     return out;
   }
 
+  /* How far the reader is from a boundary, measured to its nearest corner.
+     Rough on purpose: it is asked only to tell a city on the far side of the
+     world from one on the far side of town, and a vertex is close enough for
+     that. Nought when they are inside it. */
+  function shapeNearKm(shape, place) {
+    var rings = outerRings(shape);
+    if (!rings.length) return Infinity;
+    if (inShape(place.lat, place.lon, shape)) return 0;
+    var near = Infinity;
+    rings.forEach(function (r) {
+      r.forEach(function (c) {
+        var d = haversineKm(place, { lat: c[1], lon: c[0] });
+        if (d < near) near = d;
+      });
+    });
+    return near;
+  }
+
   function shapeAreaKm2(shape) {
     return outerRings(shape).reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
   }
@@ -2618,7 +2636,24 @@
           var holds = withShape.filter(function (r) {
             return inShape(mustContain.lat, mustContain.lon, r.geojson);
           });
+          /* And where nothing holds them, the filter used to give up and let
+             everything through — which handed the next rule, "the smallest
+             wins", the smallest place of that name anywhere on earth.
+
+             That is how a reader in Glasgow got a border of no area at all
+             that did not contain them: OpenStreetMap publishes Glasgow itself
+             as a point with no boundary, so the only polygons on offer were
+             namesakes, and the smallest of those is a hamlet four thousand
+             miles away. Perth went the same way.
+
+             A city that is not within reach of the reader is not their city,
+             whatever it is called. What is left after this may be nothing,
+             and nothing is the right answer: the page says no border is
+             published and leaves the deduction where the reader set it. */
           if (holds.length) withShape = holds;
+          else withShape = withShape.filter(function (r) {
+            return shapeNearKm(r.geojson, mustContain) <= NEAR_CITY_KM;
+          });
         }
         var settled = band(16, 20), finer = settled.length ? [] : band(21, 25);
         var fromAggregate = false;
@@ -2635,7 +2670,13 @@
             return shapeAreaKm2(x.geojson) - shapeAreaKm2(y.geojson);
           });
         }
-        var row = withShape[0] || rows[0], a = row.address || {};
+        /* Where nothing survived the filtering, the first answer is still
+           worth its name — but not its border. Falling back to rows[0] for
+           both was how a rejected namesake got drawn anyway: turned away for
+           being four thousand miles off, and let back in one line later
+           because it happened to be first in the list. */
+        var chosen = withShape[0] || null;
+        var row = chosen || rows[0], a = row.address || {};
         var settlementName = String(name).replace(/^Greater\s+/i, "");
         var city = {
           /* The name the reader asked for, not the administrative label the
@@ -2650,7 +2691,7 @@
           kind: row.addresstype || null,
           rank: typeof row.place_rank === "number" ? row.place_rank : null,
           fromAggregate: fromAggregate,
-          shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
+          shape: chosen && /Polygon/.test((chosen.geojson || {}).type) ? chosen.geojson : null
         };
         nameCache[cacheKey] = city;      /* failures are not kept: they retry */
         return copyCity(city);

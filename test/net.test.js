@@ -468,6 +468,65 @@ test("a settlement's own border is still kept when the name is missing", functio
     });
 });
 
+/* A square of the given side in kilometres, with its corner at lat/lon. */
+function square(lat, lon, sideKm) {
+  var d = sideKm / 111;
+  return { type: "Polygon", coordinates: [[[lon, lat], [lon + d, lat],
+           [lon + d, lat + d], [lon, lat + d], [lon, lat]]] };
+}
+
+test("a namesake on another continent is not taken for want of a better", function () {
+  /* Glasgow, as the address service actually answers it: the city itself is
+     published as a point with no boundary, so the only polygons on offer are
+     namesakes. Nothing contained the reader, the containment filter gave up
+     and let everything through, and "the smallest wins" then picked a hamlet
+     in Kentucky — a border of almost no area, four thousand miles off, that
+     did not contain the reader it had been found for. */
+  var b = browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return reply({ addresstype: "city", place_rank: 16, name: "Glasgow",
+                     address: { city: "Glasgow", country: "United Kingdom" },
+                     geojson: { type: "Point", coordinates: [-4.2518, 55.8642] } });
+    }
+    return reply([
+      { place_rank: 16, addresstype: "village", display_name: "Glasgow, Kentucky",
+        address: { village: "Glasgow", country: "United States" },
+        geojson: square(37.00, -85.91, 1) },
+      { place_rank: 16, addresstype: "town", display_name: "Glasgow, Montana",
+        address: { town: "Glasgow", country: "United States" },
+        geojson: square(48.19, -106.63, 2) }
+    ]);
+  });
+  return b.window.QasrEngine.cityWithRing({ lat: 55.8642, lon: -4.2518 }, false)
+    .then(function (city) {
+      assert.ok(!city.shape,
+        "a border four thousand miles away must not be drawn as the reader's city");
+    });
+});
+
+test("the reader's own city is still taken when they stand just outside it", function () {
+  /* The guard must not throw away a real boundary for the sake of a few
+     kilometres: someone at the edge of town is still in that town's
+     reckoning, and its border is the thing being measured to. */
+  var b = browser(function (url) {
+    if (/\/reverse/.test(url)) {
+      return reply({ addresstype: "city", place_rank: 16, name: "Somewhere",
+                     address: { city: "Somewhere", country: "Nowhere" },
+                     geojson: { type: "Point", coordinates: [0.5, 51.0] } });
+    }
+    return reply([
+      { place_rank: 16, addresstype: "city", display_name: "Somewhere",
+        address: { city: "Somewhere", country: "Nowhere" },
+        geojson: square(51.0, 0.0, 20) }
+    ]);
+  });
+  /* A few kilometres west of that square, well within reach of it. */
+  return b.window.QasrEngine.cityWithRing({ lat: 51.05, lon: -0.05 }, false)
+    .then(function (city) {
+      assert.ok(city.shape, "a border the reader is standing beside must be kept");
+    });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);
