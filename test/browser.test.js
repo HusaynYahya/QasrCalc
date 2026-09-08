@@ -145,16 +145,20 @@ async function stub(page, log) {
     var elements = [];
     /* Picking roads off the map: whichever side of the square the tap is
        nearest is the road returned, so four taps make the loop. */
-    var m = /way\(around:\d+,(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
+    var m = /way\(around:(\d+),(-?[\d.]+),(-?[\d.]+)\)/.exec(q);
     if (m) {
-      var la = parseFloat(m[1]), lo = parseFloat(m[2]);
+      var radius = parseFloat(m[1]), la = parseFloat(m[2]), lo = parseFloat(m[3]);
       var names = ["south side", "east side", "north side", "west side"];
       /* Distance to the side itself, not to three points on it: a tap
          partway along an edge is nearest that edge, and sampling the ends
          and middle put it on whichever corner happened to be closer. */
+      /* In metres, and honouring the radius asked for — the real service
+         returns nothing outside it, which is what makes a missed tap a miss
+         and the widening worth having. */
+      var kx = Math.cos(la * Math.PI / 180) * 111320, ky = 111320;
       function toSegment(g) {
-        var ax = g[0].lon - lo, ay = g[0].lat - la;
-        var bx = g[1].lon - lo, by = g[1].lat - la;
+        var ax = (g[0].lon - lo) * kx, ay = (g[0].lat - la) * ky;
+        var bx = (g[1].lon - lo) * kx, by = (g[1].lat - la) * ky;
         var dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy;
         var t = len > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len)) : 0;
         return Math.hypot(ax + dx * t, ay + dy * t);
@@ -164,6 +168,10 @@ async function stub(page, log) {
         var d = toSegment(w.geometry);
         if (d < bestD) { bestD = d; best = i; }
       });
+      if (bestD > radius) {
+        return route.fulfill({ status: 200, contentType: "application/json",
+                               body: JSON.stringify({ elements: [] }) });
+      }
       var w = sides[best];
       var out = [{ type: "way", id: 900 + best, geometry: w.geometry,
                    tags: { highway: "primary", name: names[best] } }];
@@ -498,6 +506,39 @@ async function shot(page, name) {
     assert.ok(await page.evaluate(function () {
       return document.getElementById("pickList").hidden;
     }), "the choice stayed on screen after choosing");
+    await page.close();
+  });
+
+  await test("a tap that finds nothing says so, and keeps what is picked", async function () {
+    /* Sixty metres is a poor reach for a thumb, so the search widens before
+       giving up — and when it does give up it must not lose the roads
+       already picked, or a missed tap costs the whole border. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    var S = 51.2885, N = 51.7115, W = -0.4603, E = 0.2203;
+    await page.evaluate(function (t) {
+      window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+    }, [S, (W + E) / 2]);
+    await page.waitForTimeout(400);
+    assert.ok(/1 road picked/.test(await page.textContent("#pickMsg")));
+
+    /* The middle of the square: nothing within any radius the stub serves. */
+    await page.evaluate(function (t) {
+      window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+    }, [(S + N) / 2 - 0.05, (W + E) / 2 + 0.0007]);
+    await page.waitForFunction(
+      "document.getElementById('pickMsg').className.indexOf('warn') >= 0",
+      null, { timeout: 20000 });
+    assert.ok(/No road within/.test(await page.textContent("#pickMsg")),
+      "the miss is not explained: " + (await page.textContent("#pickMsg")));
+
+    /* And the road picked before the miss is still there. */
+    await page.click("#pickUndo");
+    await page.waitForTimeout(300);
+    assert.ok(!(await page.isVisible("#pickUndo")),
+      "undo should have emptied a list of exactly one");
     await page.close();
   });
 

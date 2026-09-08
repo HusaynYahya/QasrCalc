@@ -1639,9 +1639,7 @@
         found.push({ id: el.id, km: pointToLineKm(lat, lon, line), line: line,
                      name: (el.tags && (el.tags.ref || el.tags.name)) || "an unnamed road" });
       });
-      if (!found.length) {
-        throw new Error("No road there. Tap the road itself, and zoom in if it is fiddly.");
-      }
+      if (!found.length) throw new Error("No road there.");
       found.sort(function (a, b) { return a.km - b.km; });
       /* One entry per road: a long road comes back as many ways, and a list
          of six identical names is no choice at all. */
@@ -1658,6 +1656,24 @@
   /* The nearest one, where only one is wanted. */
   function roadAt(lat, lon, radiusM) {
     return roadsAt(lat, lon, radiusM).then(function (list) { return list[0]; });
+  }
+
+  /* Widening until something is found. Sixty metres is a fair reach for a
+     mouse and a poor one for a thumb on a phone, where a tap that misses the
+     road by a street's width answered "no road there" and looked broken.
+     Each ring out is a fresh question, so it stops at the first that answers. */
+  function roadsNear(lat, lon) {
+    var tries = [60, 150, 350];
+    function go(i) {
+      return roadsAt(lat, lon, tries[i]).catch(function (err) {
+        /* Only "nothing found" is worth widening for. A server that refused
+           will refuse a larger question too, and saying so once is kinder
+           than three times. */
+        if (i + 1 < tries.length && /No road there/.test(err.message)) return go(i + 1);
+        throw err;
+      });
+    }
+    return go(0);
   }
 
   function ringBoundary(refs, near) {
@@ -3076,12 +3092,20 @@
     clearCandidates();
     $("pickMsg").textContent = "Looking for the road there…";
     $("pickMsg").className = "hint";
-    return roadsAt(latlng.lat, latlng.lng).then(function (roads) {
+    return roadsNear(latlng.lat, latlng.lng).then(function (roads) {
       /* One road under the tap is not a question worth asking. */
       if (roads.length === 1) { togglePicked(roads[0]); return; }
       showCandidates(roads);
     }).catch(function (err) {
-      $("pickMsg").textContent = err.message;
+      /* The two failures a reader can act on differently: nothing under the
+         tap, or a map server that would not answer. */
+      var m = err.message;
+      $("pickMsg").textContent = /No road there/.test(m)
+        ? "No road within a few hundred metres of that tap. Zoom in and tap the road itself."
+        : /429|refused|returned/.test(m)
+          ? "The map server is busy just now (" + m + "). Wait a moment and tap again — " +
+            "the roads already picked are kept."
+          : m;
       $("pickMsg").className = "hint hint--warn";
     });
   }
@@ -3939,7 +3963,7 @@
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
-    pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt
+    pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear
   };
 
   if (document.readyState === "loading") {
