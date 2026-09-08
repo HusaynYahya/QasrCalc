@@ -542,6 +542,30 @@ async function shot(page, name) {
     await page.close();
   });
 
+  await test("a map server that hangs is given up on, and the next one answers", async function () {
+    /* The fault that made picking look dead: the first host took the request
+       and never answered, so fetch never settled, the catch never ran, and
+       the other two hosts were never asked. The page waited for ever. */
+    var page = await open(browser, base);
+    /* overpass-api.de is asked first: swallow it entirely. The stub set up in
+       open() still serves the other two. */
+    await page.route("**overpass-api.de**", function () { /* never answered */ });
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    var S = 51.2885, W = -0.4603, E = 0.2203;
+    await page.evaluate(function (t) {
+      window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+    }, [S, (W + E) / 2]);
+    /* Nine seconds for the dead host, then a live one answers. */
+    await page.waitForFunction(
+      "/road picked/.test(document.getElementById('pickMsg').textContent)",
+      null, { timeout: 30000 });
+    assert.ok(/1 road picked/.test(await page.textContent("#pickMsg")),
+      "the second host never got asked: " + (await page.textContent("#pickMsg")));
+    await page.close();
+  });
+
   await test("a road tapped twice is put back, and three sides will not close", async function () {
     var page = await open(browser, base);
     await journey(page, "WD19 4QP", "University of Warwick");

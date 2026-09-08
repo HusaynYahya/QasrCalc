@@ -1588,16 +1588,37 @@
 
   /* "out geom" and not a bare "out": without it the relation comes back as a
      list of member ids, with no coordinates to draw or measure.              */
-  /* One asker for every Overpass question, trying each host in turn. */
-  function overpassAsk(query, hosts, why) {
+  /* One asker for every Overpass question, trying each host in turn.
+
+     Each host is given a deadline of its own. Without one a host that takes
+     the connection and then says nothing — which is exactly what an Overpass
+     at capacity does — leaves fetch unsettled for ever: the catch never runs,
+     the other two hosts are never tried, and the page waits on a road that is
+     never coming. It looked from the outside like tapping a road did nothing
+     at all.                                                                  */
+  var OVERPASS_WAIT_MS = 20000;
+
+  function overpassAsk(query, waitMs, hosts, why) {
     hosts = hosts || OVERPASS;
+    var wait = waitMs || OVERPASS_WAIT_MS;
     if (!hosts.length) return Promise.reject(new Error(why || "No map server answered."));
-    return fetch(hosts[0] + "?data=" + encodeURIComponent(query))
+    var host = hosts[0].split("/")[2], timer = null;
+    var asked = fetch(hosts[0] + "?data=" + encodeURIComponent(query))
       .then(function (r) {
-        if (!r.ok) throw new Error(hosts[0].split("/")[2] + " returned " + r.status);
+        if (!r.ok) throw new Error(host + " returned " + r.status);
         return r.json();
-      })
-      .catch(function (err) { return overpassAsk(query, hosts.slice(1), err && err.message); });
+      });
+    var deadline = new Promise(function (_, no) {
+      timer = setTimeout(function () {
+        no(new Error(host + " did not answer within " + Math.round(wait / 1000) + "s"));
+      }, wait);
+    });
+    return Promise.race([asked, deadline])
+      .then(function (data) { clearTimeout(timer); return data; })
+      .catch(function (err) {
+        clearTimeout(timer);
+        return overpassAsk(query, wait, hosts.slice(1), err && err.message);
+      });
   }
 
   /* How far a point lies from a line, in kilometres. Flat-earth within the
@@ -1631,7 +1652,9 @@
     var query = "[out:json][timeout:25];way(around:" + r + "," + lat.toFixed(6) + "," +
       lon.toFixed(6) + ")[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|" +
       "unclassified|residential)$\"];out geom;";
-    return overpassAsk(query).then(function (data) {
+    /* A handful of ways within a few hundred metres. If that is slow the host
+       is in trouble, and the next one is worth more than the wait. */
+    return overpassAsk(query, 9000).then(function (data) {
       var found = [];
       ((data && data.elements) || []).forEach(function (el) {
         var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });
