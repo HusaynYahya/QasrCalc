@@ -80,6 +80,46 @@
     return out.join(", ");
   }
 
+  /* Which of two answers wearing the same name is the one a reader means.
+
+     Typing "dubai" brings back four objects from OpenStreetMap all called
+     Dubai and nothing else: the city node, the emirate, the municipality's
+     administrative boundary, and — mis-tagged as a state — a node out at
+     Hatta, a hundred and thirty kilometres away. Every one of them reduces
+     to "Dubai, United Arab Emirates", because the name and the country are
+     all they have to tell them apart, so the reader was offered the same
+     line four times and picking the wrong one started their journey in the
+     mountains.
+
+     A settlement is what someone typing a town's name means; a region drawn
+     round it is not, and its centroid can be an hour out into the desert.
+     So where two answers cannot be told apart on the page, the settlement is
+     the one kept.                                                            */
+  var SETTLEMENT_VALUE = /^(city|town|village|hamlet|municipality|suburb|quarter|neighbourhood)$/;
+
+  function suggestRank(p) {
+    if (p.osm_key === "place" && SETTLEMENT_VALUE.test(p.osm_value || "")) return 0;
+    /* A house, a street or a named building: precise, and precisely what was
+       asked for when it is what was typed. */
+    if (p.osm_key !== "boundary" && p.osm_value !== "state" && p.osm_value !== "region") return 1;
+    return 2;                                     /* a region, or a boundary */
+  }
+
+  /* Two rows the reader cannot tell apart are not a choice, they are a
+     coin toss — so only the best of each identical line is offered. Places
+     that really are distinct keep their own line: Photon names the county
+     and the state, so the two Watfords and the two Parises differ already
+     and never reach this. */
+  function oneOfEachLabel(found) {
+    var best = Object.create(null), order = [];
+    found.forEach(function (p) {
+      var had = best[p.label];
+      if (!had) { best[p.label] = p; order.push(p.label); return; }
+      if (p.rank < had.rank) best[p.label] = p;
+    });
+    return order.map(function (l) { return best[l]; });
+  }
+
   /* Suggestions while typing. Biased towards a place already chosen, so the
      second address is looked for near the first.                             */
   function suggest(query, near, signal) {
@@ -92,13 +132,16 @@
         return r.json();
       })
       .then(function (data) {
-        return (data.features || []).map(function (f) {
+        var found = (data.features || []).map(function (f) {
+          var p = f.properties || {};
           return {
-            label: photonLabel(f.properties || {}),
+            label: photonLabel(p),
+            rank: suggestRank(p),
             lat: f.geometry.coordinates[1],
             lon: f.geometry.coordinates[0]
           };
         }).filter(function (p) { return p.label; });
+        return oneOfEachLabel(found);
       })
       .then(function (found) {
         /* Type-ahead is weak on postcodes and plot numbers; the older search
@@ -124,13 +167,16 @@
         return r.json();
       })
       .then(function (rows) {
-        var places = (rows || []).map(function (row) {
+        var places = oneOfEachLabel((rows || []).map(function (row) {
           return {
             label: row.display_name,
+            /* Nominatim's own ordering is its answer to which is meant, so
+               nothing here reorders it; the rank only settles ties. */
+            rank: 0,
             lat: parseFloat(row.lat),
             lon: parseFloat(row.lon)
           };
-        });
+        }));
         geocodeCache[key] = places;
         return places;
       });

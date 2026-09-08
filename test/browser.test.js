@@ -82,11 +82,38 @@ function nominatimRow(p) {
            address: { city: p.label.split(", ").slice(-3)[0] } };
 }
 
+/* Photon's real answer for "dubai", recorded. Four objects of that name and
+   nothing to tell them apart on the page: the city, the emirate, the
+   municipality's boundary, and a node mis-tagged as a state out at Hatta,
+   a hundred and thirty kilometres from the city it is named after. */
+function dubaiFeatures() {
+  function f(lon, lat, key, value, extra) {
+    var props = { name: "Dubai", country: "United Arab Emirates",
+                  osm_key: key, osm_value: value };
+    Object.keys(extra || {}).forEach(function (k) { props[k] = extra[k]; });
+    return { type: "Feature", geometry: { type: "Point", coordinates: [lon, lat] },
+             properties: props };
+  }
+  return [
+    f(55.2924, 25.2647, "place", "city", { state: "Dubai" }),
+    f(55.4797, 25.0791, "place", "state"),
+    f(55.1886, 25.0743, "boundary", "administrative", { state: "Dubai" }),
+    f(56.1461, 24.8047, "place", "state"),                     /* out at Hatta */
+    { type: "Feature", geometry: { type: "Point", coordinates: [55.1353, 25.0786] },
+      properties: { name: "Dubai Marina", state: "Dubai", country: "United Arab Emirates",
+                    osm_key: "place", osm_value: "suburb" } }
+  ];
+}
+
 async function stub(page, log) {
   await page.route("**://photon.komoot.io/**", function (route) {
     var q = new URL(route.request().url()).searchParams.get("q") || "";
-    var p = whichPlace(q);
     log.push("photon");
+    if (/dubai/i.test(q)) {
+      return route.fulfill({ status: 200, contentType: "application/json",
+                             body: JSON.stringify({ features: dubaiFeatures() }) });
+    }
+    var p = whichPlace(q);
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
       features: p ? [{ type: "Feature", geometry: { type: "Point", coordinates: [p.lon, p.lat] },
                        properties: { name: p.label.split(",")[0], city: "", country: "England" } }] : []
@@ -786,6 +813,56 @@ async function shot(page, name) {
       return out;
     });
     assert.deepStrictEqual(seen, [], "too faint to read against the page: " + seen.join(", "));
+    await page.close();
+  });
+
+  await test("one line per place, and the line kept is the settlement", async function () {
+    /* Four objects named Dubai came back and all four reduced to "Dubai,
+       United Arab Emirates", so the reader was offered the same line four
+       times over. That is not a choice, it is a coin toss — and one of the
+       four faces was a node mis-tagged as a state out at Hatta, which would
+       have started the journey a hundred and thirty kilometres from the city
+       whose name was typed. */
+    var page = await open(browser, base);
+    await page.click("#fromInput");
+    await page.fill("#fromInput", "dubai");
+    await page.waitForTimeout(600);
+    var rows = await page.$$eval("#fromList li", function (li) {
+      return li.map(function (x) { return x.textContent.trim(); });
+    });
+
+    var dubais = rows.filter(function (t) { return /^Dubai, United Arab Emirates$/.test(t); });
+    assert.strictEqual(dubais.length, 1,
+      "expected one Dubai, got " + dubais.length + ": " + JSON.stringify(rows));
+    assert.ok(rows.some(function (t) { return /Dubai Marina/.test(t); }),
+      "a place that is genuinely its own must keep its line: " + JSON.stringify(rows));
+
+    /* And the one kept must be the city itself, not a region's centroid out
+       in the desert and certainly not the node at Hatta. The rows answer to
+       mousedown rather than click, so this takes one the way a reader does
+       and then reads where on the earth it actually put them. */
+    var options = await page.$$("#fromList li");
+    await options[0].click();
+    await page.waitForTimeout(500);
+
+    var pin = await page.evaluate(function () {
+      var at = null;
+      if (window.__qasrMap) {
+        window.__qasrMap.eachLayer(function (l) {
+          if (!at && l.getLatLng) { var p = l.getLatLng(); at = [p.lat, p.lng]; }
+        });
+      }
+      return { box: document.getElementById("fromInput").value, at: at };
+    });
+    assert.ok(/United Arab Emirates/.test(pin.box),
+      "taking the row must fill the box with the whole label: " + pin.box);
+    assert.ok(pin.at, "taking a place must drop a pin on the map");
+    /* Hatta is at 56.15 east; the city is at 55.29. Anything past 55.6 is the
+       wrong Dubai, and it is the one the reader could not see was different. */
+    assert.ok(pin.at[1] < 55.6,
+      "the pin landed at " + pin.at[1].toFixed(3) + " east — that is not the city");
+    assert.ok(Math.abs(pin.at[0] - 25.2647) < 0.05 && Math.abs(pin.at[1] - 55.2924) < 0.05,
+      "expected the city node, got " + pin.at[0].toFixed(4) + "," + pin.at[1].toFixed(4));
     await page.close();
   });
 
