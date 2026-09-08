@@ -470,9 +470,14 @@ test("it reaches as far as the motorway reaches, and no further", function () {
 });
 
 /* --- the Greater Toronto Area ---------------------------------------------
-   Fetched by name from the map, region by region and town by town, and
-   checked the way the tracing was: places whose side of the line is not in
-   doubt. */
+   Al-Ma'arif's own line, copied from https://al-m.ca/travel/ , checked the
+   way every boundary here is: places whose side of it is not in doubt.
+
+   Three of the places below are outside it although they are inside the
+   region they belong to — Burlington in Halton, East Gwillimbury in York,
+   Oshawa in Durham. That is their line's choice, not a fault in it, and
+   these tests are what would catch it being quietly replaced by the
+   municipal boundary, which takes all three in. */
 console.log("\nThe GTA boundary");
 
 function gta() {
@@ -488,13 +493,12 @@ test("it holds the cities the GTA is made of", function () {
    ["Markham", 43.8561, -79.3370], ["Richmond Hill", 43.8828, -79.4403],
    ["Newmarket", 44.0592, -79.4613], ["Aurora", 44.0065, -79.4504],
    ["Pickering", 43.8384, -79.0868], ["Ajax", 43.8509, -79.0204],
-   ["Whitby", 43.8975, -78.9428], ["Oshawa", 43.8971, -78.8658],
-   ["Oakville", 43.4675, -79.6877], ["Milton", 43.5183, -79.8774],
-   ["Halton Hills", 43.6300, -79.9500], ["Burlington", 43.3255, -79.7990],
+   ["Whitby", 43.8975, -78.9428], ["Oakville", 43.4675, -79.6877],
+   ["Milton", 43.5183, -79.8774], ["Halton Hills", 43.6300, -79.9500],
    ["Uxbridge", 44.1085, -79.1220], ["Stouffville", 43.9710, -79.2470],
    ["Scarborough", 43.7731, -79.2578], ["Etobicoke", 43.6205, -79.5132],
    ["Pearson airport", 43.6777, -79.6248], ["Caledon", 43.8660, -79.8660],
-   ["King City", 43.9260, -79.5290], ["Mount Albert", 44.1330, -79.3200]
+   ["King City", 43.9260, -79.5290], ["North York", 43.7615, -79.4111]
   ].forEach(function (c) {
     assert.strictEqual(G.inShape(c[1], c[2], shape), true, c[0] + " came out outside the GTA");
   });
@@ -507,32 +511,40 @@ test("it stops where the map stops it", function () {
    ["Kitchener", 43.4516, -80.4925], ["Peterborough", 44.3091, -78.3197],
    ["St Catharines", 43.1594, -79.2469], ["Cambridge", 43.3616, -80.3144],
    ["Niagara Falls", 43.0896, -79.0849],
-   /* The four that decide whether this is the five regions whole or the
-      narrower line: they sit in Clarington, Scugog, Georgina and Brock,
-      which the regions take in and this boundary does not. */
+   /* Clarington, Scugog, Georgina and Brock: in Durham and York, and not
+      in this line. */
    ["Bowmanville", 43.9120, -78.6880], ["Port Perry", 44.1000, -78.9450],
-   ["Keswick", 44.2300, -79.4660], ["Beaverton", 44.4300, -79.1500]
+   ["Keswick", 44.2300, -79.4660], ["Beaverton", 44.4300, -79.1500],
+   /* And the three whole municipalities their line leaves out, which the
+      municipal boundary would take in. */
+   ["Burlington", 43.3255, -79.7990], ["Oshawa", 43.8971, -78.8658],
+   ["East Gwillimbury", 44.1030, -79.4400], ["Mount Albert", 44.1330, -79.3200]
   ].forEach(function (c) {
     assert.strictEqual(G.inShape(c[1], c[2], shape), false, c[0] + " came out inside the GTA");
   });
 });
 
-test("it is one line round the outside, not sixteen town outlines", function () {
-  /* The municipal boundaries between the sixteen are dropped before the
-     shape is kept, so a drawn boundary is the outside edge and nothing
-     else. One ring is what says the merge worked. */
+test("it is one line round the outside, with nothing drawn inside it", function () {
   var e = gta();
-  assert.strictEqual(e.shape.type, "Polygon", "the GTA is back to separate parts");
+  assert.strictEqual(e.shape.type, "Polygon", "the GTA is in parts again");
   assert.strictEqual(e.shape.coordinates.length, 1,
     "the GTA carries " + e.shape.coordinates.length + " rings, so a line would show inside it");
   var ring = e.shape.coordinates[0];
   assert.deepStrictEqual(ring[0], ring[ring.length - 1], "the ring does not close");
 });
 
+test("it is the line al-m.ca publishes, not the municipal one", function () {
+  /* 4,580 against the 5,473 the municipalities come to. If someone rebuilds
+     this from tools/trace-area.html the area alone will say so. */
+  var area = G.ringAreaKm2(gta().shape.coordinates[0]);
+  assert.ok(area > 4400 && area < 4750,
+    "the GTA came out at " + area.toFixed(0) + " km² — 5,473 would mean the municipal boundary");
+});
+
 test("it encloses what that boundary encloses, and its box holds it", function () {
   var e = gta(), ring = e.shape.coordinates[0];
   var area = G.ringAreaKm2(ring);
-  assert.ok(area > 5000 && area < 6000, "the GTA came out at " + area.toFixed(0) + " km²");
+  assert.ok(area > 4400 && area < 4750, "the GTA came out at " + area.toFixed(0) + " km²");
   ring.forEach(function (p) {
     assert.ok(p[1] >= e.box[0] && p[1] <= e.box[2] && p[0] >= e.box[1] && p[0] <= e.box[3],
       "the boundary runs outside its own box at " + p);
