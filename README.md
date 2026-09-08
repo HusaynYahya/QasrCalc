@@ -149,6 +149,23 @@ page.
 A border found by lookup says so on the page, in those words, rather than being
 presented with the same confidence as the M25.
 
+Eight of the forty-nine end up with **no border**, for two different reasons and
+neither of them a fault in the lookup. For Mumbai, Jeddah, Johannesburg and
+Kuwait City, OpenStreetMap has a point and no polygon at all — there is nothing
+to fetch. For Lahore, Kuala Lumpur, Lagos and Najaf the reverse lookup answers
+with no city, town or village in the address, and the only polygons on offer are
+the district, governorate or federal territory the city sits in — a region rather
+than a city, which is the Riyadh mistake wearing a smaller number.
+
+The cost is real: Kuala Lumpur's federal territory is 244 km², which *is* roughly
+the city, and it is no longer taken automatically. It is still taken when the
+reader names Kuala Lumpur themselves, and then it arrives with a name attached
+instead of deducting against a border the page could not label. That is the trade
+— a border used silently, unnamed, is the thing this page keeps trying not to do.
+
+So the page says none is published and names the two things that still work:
+another city, or a border drawn along your own ring road.
+
 The distance counted always runs **from the city border to the destination**, and
 the page says on every calculation whether that actually happened. A green line
 under the map names the border and the distance deducted; an amber one names the

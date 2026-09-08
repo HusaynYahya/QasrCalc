@@ -4290,7 +4290,16 @@
              as it did. */
           : city.shape ? " — its border as published in OpenStreetMap is outlined on " +
               "the map; that is an administrative line, and not always where the town ends."
-          : " — no published border to outline.") +
+          /* Said with the remedy attached, because it is a dead end
+             otherwise. OpenStreetMap has no polygon at all for Mumbai,
+             Johannesburg, Jeddah or Lahore — only a point — and a reader
+             there was told the border did not exist without being told that
+             the page can still take one: another city's, or one they draw
+             along their own ring road. Both are behind "Change which city",
+             which is on screen but gives no hint that it answers this. */
+          : " — OpenStreetMap publishes no border for it, so none is drawn. " +
+            "You can name another city, or draw the border along your own " +
+            "ring road, under \u201cChange which city\u201d.") +
         (slot === "from" && !cityConfirmed ? " <em>Suggested — change it if another city's edge is the one you would call leaving town.</em>" : "");
       hint.className = "hint hint--ok";
       /* Too large to be a city, so say so rather than quietly counting the
