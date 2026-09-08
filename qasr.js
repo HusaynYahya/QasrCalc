@@ -183,6 +183,7 @@
 
     var url = NOMINATIM.replace("/search", "/reverse") +
               "?format=jsonv2&zoom=" + zoom + "&addressdetails=1&polygon_geojson=1" +
+              "&accept-language=en" +
               "&lat=" + place.lat + "&lon=" + place.lon;
 
     return nominatim(url, { headers: { Accept: "application/json" } })
@@ -1913,6 +1914,14 @@
     return out;
   }
 
+  function shapeAreaKm2(shape) {
+    var rings = !shape ? []
+      : shape.type === "Polygon" ? [shape.coordinates[0]]
+      : shape.type === "MultiPolygon"
+        ? shape.coordinates.map(function (p) { return p[0]; }) : [];
+    return rings.reduce(function (n, r) { return n + ringAreaKm2(r); }, 0);
+  }
+
   function cityByName(name, mustContain) {
     var cacheKey = String(name).toLowerCase() + "|" + (mustContain
       ? mustContain.lat.toFixed(2) + "," + mustContain.lon.toFixed(2) : "");
@@ -1929,18 +1938,50 @@
        Several results are asked for, not one: the top hit for a town's name is
        usually the place node, which is a point and carries no boundary. The
        first result that actually has a polygon is the one worth having.       */
-    var url = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=10" +
-              "&featureType=settlement&q=" + encodeURIComponent(name);
-    return nominatim(url, { headers: { Accept: "application/json" } })
-      .then(function (r) {
-        if (!r.ok) throw nominatimError(r.status);
-        return r.json();
-      })
-      .then(function (rows) {
-        if (!rows || !rows.length) throw new Error("No city of that name was found.");
-        var withShape = rows.filter(function (r) {
-          return r.geojson && /Polygon/.test(r.geojson.type);
+    /* In English, because the page is. Without it Dubai comes back as دبي
+       and is shown that way beside an English sentence — the map's own name
+       for a place, but not the one this reader asked in. */
+    var base = NOMINATIM + "?format=jsonv2&addressdetails=1&polygon_geojson=1&limit=10" +
+               "&accept-language=en&q=" + encodeURIComponent(name);
+
+    function ask(url) {
+      return nominatim(url, { headers: { Accept: "application/json" } })
+        .then(function (r) {
+          if (!r.ok) throw nominatimError(r.status);
+          return r.json();
         });
+    }
+    function polygons(rows) {
+      return (rows || []).filter(function (r) {
+        return r.geojson && /Polygon/.test(r.geojson.type);
+      });
+    }
+
+    /* Asked twice where the first answer is no use.
+
+       featureType=settlement is the right question and keeps counties and
+       regions out of it, but it also hides anything more precise than a
+       settlement — and some cities are only published more precisely than
+       that. Dubai is a point at settlement rank; its municipality, the
+       5,970 km² boundary that is actually the city, is rank 25 and does not
+       come back at all under that filter. What did come back was the Emirate,
+       7,229 km², reaching Hatta and an exclave on the Omani border.
+
+       So when the narrow question yields no settlement boundary, the wide one
+       is asked, and only the finer ranks are taken from it. Everywhere that
+       answers the first time costs nothing extra. */
+    return ask(base + "&featureType=settlement").then(function (rows) {
+      if (!rows || !rows.length) throw new Error("No city of that name was found.");
+      var settled = polygons(rows).filter(function (r) {
+        return typeof r.place_rank !== "number" || (r.place_rank >= 16 && r.place_rank <= 20);
+      });
+      if (settled.length) return { rows: rows, wide: null };
+      return ask(base).then(function (all) { return { rows: rows, wide: all }; })
+                      .catch(function () { return { rows: rows, wide: null }; });
+    })
+      .then(function (got) {
+        var rows = (got.wide && got.wide.length) ? got.wide : got.rows;
+        var withShape = polygons(rows);
         /* A settlement ranks 16 to 20; a county ranks 12. A settlement's own
            boundary is preferred where one exists.
 
@@ -1951,11 +1992,26 @@
            not of a quarter [1704 fn.2]. So an aggregate boundary is accepted
            when nothing finer exists, and carries the settlement's own name
            rather than the administrative one. */
-        var settled = withShape.filter(function (r) {
-          return typeof r.place_rank !== "number" || (r.place_rank >= 16 && r.place_rank <= 20);
-        });
+        /* Preferred in order: the settlement's own boundary; failing that a
+           finer administrative one; failing both, an aggregate.
+
+           The finer band is what Dubai needs. Nothing is published for it at
+           settlement rank — the city is a point — and refusing anything more
+           specific dropped the page straight to the aggregate, which is the
+           whole Emirate: 7,229 km², reaching Hatta ninety-seven kilometres
+           away and taking in an exclave on the Omani border. The municipality
+           is published at rank 25 and was being thrown away for being too
+           precise. */
+        function band(lo, hi) {
+          return withShape.filter(function (r) {
+            return typeof r.place_rank !== "number" ||
+                   (r.place_rank >= lo && r.place_rank <= hi);
+          });
+        }
+        var settled = band(16, 20), finer = settled.length ? [] : band(21, 25);
         var fromAggregate = false;
         if (settled.length) withShape = settled;
+        else if (finer.length) withShape = finer;
         else if (withShape.length) fromAggregate = true;
         /* There is a Watford in Northamptonshire as well as Hertfordshire,
            and a Cambridge on two continents. When we know where the reader
@@ -1965,6 +2021,16 @@
             return inShape(mustContain.lat, mustContain.lon, r.geojson);
           });
           if (holds.length) withShape = holds;
+        }
+        /* The smallest of what is left. A city is the smallest published
+           thing that still holds the reader: where an emirate and a
+           municipality both do, the municipality is the city and the emirate
+           is a region it sits in. Only ever applied within one band, so a
+           quarter cannot beat the city it is part of. */
+        if (withShape.length > 1) {
+          withShape = withShape.slice().sort(function (x, y) {
+            return shapeAreaKm2(x.geojson) - shapeAreaKm2(y.geojson);
+          });
         }
         var row = withShape[0] || rows[0], a = row.address || {};
         var settlementName = String(name).replace(/^Greater\s+/i, "");
@@ -2023,7 +2089,8 @@
      level, where cityOf's zoom 10 answers with the city.                     */
   function addressAt(lat, lon) {
     var url = NOMINATIM.replace("/search", "/reverse") +
-              "?format=jsonv2&addressdetails=1&zoom=18&lat=" + lat + "&lon=" + lon;
+              "?format=jsonv2&addressdetails=1&zoom=18&accept-language=en" +
+              "&lat=" + lat + "&lon=" + lon;
     return nominatim(url, { headers: { Accept: "application/json" } })
       .then(function (r) {
         if (!r.ok) throw nominatimError(r.status);

@@ -73,6 +73,81 @@ function ringReply() {
   return { elements: [{ type: "relation", members: [{ type: "way", geometry: dense }] }] };
 }
 
+section("Which boundary is taken for a city");
+
+/* Dubai, as the address service actually answers for it: a point at
+   settlement rank, a municipality published more precisely than that, and the
+   whole Emirate above both. */
+function square(lat, lon, halfDeg) {
+  return { type: "Polygon", coordinates: [[
+    [lon - halfDeg, lat - halfDeg], [lon + halfDeg, lat - halfDeg],
+    [lon + halfDeg, lat + halfDeg], [lon - halfDeg, lat + halfDeg],
+    [lon - halfDeg, lat - halfDeg]
+  ]] };
+}
+var DUBAI = { lat: 25.2048, lon: 55.2708 };
+
+function dubaiNetwork(url) {
+  if (/\/reverse/.test(url)) {
+    /* The city is a point here: no boundary comes back from the reverse. */
+    return reply({ display_name: "Dubai, Dubai Emirate, United Arab Emirates",
+      lat: String(DUBAI.lat), lon: String(DUBAI.lon), addresstype: "city", place_rank: 16,
+      address: { city: "Dubai", state: "Dubai Emirate", country: "United Arab Emirates" },
+      geojson: { type: "Point", coordinates: [DUBAI.lon, DUBAI.lat] } });
+  }
+  if (/featureType=settlement/.test(url)) {
+    /* The narrow question hides the municipality and offers the Emirate. */
+    return reply([
+      { place_rank: 16, category: "place", type: "city", display_name: "Dubai",
+        address: { city: "Dubai", state: "Dubai Emirate" },
+        geojson: { type: "Point", coordinates: [DUBAI.lon, DUBAI.lat] } },
+      { place_rank: 8, category: "boundary", type: "administrative",
+        display_name: "Dubai Emirate", address: { state: "Dubai Emirate" },
+        geojson: square(DUBAI.lat, DUBAI.lon, 0.9) }
+    ]);
+  }
+  /* The wide question carries the municipality, at a finer rank. */
+  return reply([
+    { place_rank: 25, category: "boundary", type: "administrative",
+      display_name: "Dubai, Dubai Emirate, United Arab Emirates",
+      address: { city: "Dubai", state: "Dubai Emirate" },
+      geojson: square(DUBAI.lat, DUBAI.lon, 0.12) },
+    { place_rank: 16, category: "place", type: "city", display_name: "Dubai",
+      address: { city: "Dubai" },
+      geojson: { type: "Point", coordinates: [DUBAI.lon, DUBAI.lat] } },
+    { place_rank: 8, category: "boundary", type: "administrative",
+      display_name: "Dubai Emirate", address: { state: "Dubai Emirate" },
+      geojson: square(DUBAI.lat, DUBAI.lon, 0.9) }
+  ]);
+}
+
+test("a city published finer than settlement rank is still found", function () {
+  var b = browser(dubaiNetwork);
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(DUBAI, false).then(function (city) {
+    assert.strictEqual(city.name, "Dubai");
+    assert.ok(city.shape, "no boundary was taken at all");
+    var got = G.ringAreaKm2(city.shape.coordinates[0]);
+    var emirate = G.ringAreaKm2(square(DUBAI.lat, DUBAI.lon, 0.9).coordinates[0]);
+    assert.ok(got < emirate / 4,
+      "the emirate was taken as the city — " + Math.round(got) + " km² against " +
+      Math.round(emirate) + " for the region it sits in");
+  });
+});
+
+test("the address service is asked in English", function () {
+  var b = browser(dubaiNetwork);
+  return b.window.QasrEngine.cityWithRing(DUBAI, false).then(function () {
+    var asked = b.calls.filter(function (c) { return /nominatim/.test(c.url); });
+    assert.ok(asked.length, "the address service was never asked");
+    asked.forEach(function (c) {
+      assert.ok(/accept-language=en/.test(c.url),
+        "asked without a language, so a name comes back in the local script: " +
+        c.url.slice(0, 90));
+    });
+  });
+});
+
 section("What is asked of the network");
 
 test("the ring is asked for by bounding box, not by radius", function () {
