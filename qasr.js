@@ -3513,30 +3513,55 @@
 
     $("ringGo").addEventListener("click", function () {
       var ref = $("ringInput").value.trim();
+      function say(t, warn) {
+        $("ringMsg").textContent = t;
+        $("ringMsg").className = "hint" + (warn ? " hint--warn" : "");
+      }
       if (!ref) return;
-      $("ringMsg").textContent = "Tracing the " + ref.toUpperCase() + "…";
-      $("ringMsg").className = "hint";
+      /* Near the start, because a road number is not unique to one country:
+         there is an M25 near Cape Town as well as round London, and without a
+         point to search from the trace is a lottery between them. */
+      var near = places.from || cities.from;
+      if (!near || typeof near.lat !== "number") {
+        say("Set where you are starting from first — the roads are looked for near it, " +
+            "because a road number is not unique to one country.", true);
+        return;
+      }
+      say("Tracing the " + ref.toUpperCase() + "…");
       busy("Tracing the " + ref.toUpperCase() + " — a moment the first time");
-      ringBoundary(ref, places.from).then(function (ring) {
+      ringBoundary(ref, near).then(function (ring) {
+        /* Refused unless it closes into a loop of a believable size. An open
+           chain is not a border: drawn as one it encloses whatever the line
+           closing it happens to cut off, and the reader would be told a
+           deduction measured against that. ringIsSound is the same test the
+           M25's own shape has to pass. */
+        if (!ringIsSound({ traced: ring.traced, closedByHand: ring.closedByHand,
+                           areaKm2: ring.areaKm2 })) {
+          busy(null);
+          say("The " + ring.ref + " was found but does not close into a usable border" +
+              (ring.closedByHand ? " — there is a gap in the loop" : "") +
+              (ring.areaKm2 ? ", enclosing " + Math.round(ring.areaKm2) + " km²" : "") +
+              ". Name the roads that complete the ring, or choose a city above.", true);
+          return;
+        }
         busy("Traced the " + ring.ref + " — that is your city's edge", true);
         var was = cities.from;
-        $("ringMsg").textContent = ring.traced ? "" :
-          "The " + ring.ref + " could not be traced into a loop, so its outline is a rough one.";
-        $("ringMsg").className = "hint" + (ring.traced ? "" : " hint--warn");
+        say("Traced the " + ring.ref + " — it encloses " + Math.round(ring.areaKm2) +
+            " km², and is now your city's edge.");
         $("ringInput").value = "";
         useCity({
           name: (was && was.name) || ring.ref,
           area: was ? was.area : null,
           shape: ring.shape,
           fromRing: ring.ref,
+          ringArea: ring.areaKm2,
           ringTraced: ring.traced,
           ringClosedByHand: ring.closedByHand,
           ringTried: true
         }, true);
       }).catch(function (err) {
         busy(null);
-        $("ringMsg").textContent = err.message;
-        $("ringMsg").className = "hint hint--warn";
+        say(err.message, true);
       });
     });
 

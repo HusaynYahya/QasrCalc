@@ -70,15 +70,20 @@
               <button type="button" class="btn btn--small" id="cityGo">Use it</button>
             </div>
             <p class="hint" id="cityMsg"></p>
+
           </div>
           <div class="citypick__own">
-            <label for="ringInput">Or take a ring road as the edge</label>
+            <label for="ringInput">Or draw the border yourself, from roads that ring your city</label>
             <div class="citypick__row">
               <input id="ringInput" type="text" autocomplete="off" spellcheck="false"
                      placeholder="e.g. M25, A282" />
               <button type="button" class="btn btn--small" id="ringGo">Use it</button>
             </div>
-            <p class="hint" id="ringMsg">London already uses the M25 and A282. Separate several roads with commas.</p>
+            <p class="hint" id="ringMsg">Road numbers, separated by commas. The map is asked
+              for those roads&rsquo; own centrelines near your starting point and stitches them
+              into the loop they make, so nothing is drawn by hand &mdash; and roads that do not
+              close into a loop are refused rather than joined up for you. London already uses
+              the M25 and A282.</p>
           </div>
         </div>
       </div>

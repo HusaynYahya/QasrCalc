@@ -129,9 +129,27 @@ async function stub(page, log) {
     })});
   });
 
+  /* Overpass, with two roads invented for the border-from-roads test: B1
+     closes into a square of about 2,200 km² round London, B99 is the same
+     square with a side missing, so it cannot close. Everything else answers
+     empty, as before. */
   await page.route("**overpass**", function (route) {
     log.push("overpass");
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ elements: [] }) });
+    var q = decodeURIComponent(route.request().url().split("data=")[1] || "");
+    var S = 51.2885, N = 51.7115, W = -0.4603, E = 0.2203;
+    function way(a, b) {
+      return { type: "way", geometry: [{ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] }] };
+    }
+    var sides = [way([S, W], [S, E]), way([S, E], [N, E]),
+                 way([N, E], [N, W]), way([N, W], [S, W])];
+    var elements = [];
+    if (/"ref"="B1"/.test(q)) {
+      elements = [{ type: "relation", members: sides }];
+    } else if (/"ref"="B99"/.test(q)) {
+      elements = [{ type: "relation", members: sides.slice(0, 3) }];   /* a side short */
+    }
+    route.fulfill({ status: 200, contentType: "application/json",
+                    body: JSON.stringify({ elements: elements }) });
   });
 
   /* Tiles: one transparent pixel, so nothing waits on a map server. */
@@ -367,6 +385,42 @@ async function shot(page, name) {
     });
     assert.strictEqual(drawn.marks, 0, "a hadd circle is drawn on a journey prayed in full");
     assert.strictEqual(drawn.legend, false, "the legend offers the hadd on a journey prayed in full");
+    await page.close();
+  });
+
+  await test("a border can be drawn from roads the reader names", async function () {
+    /* The engine already traces the M25 for London without being asked. This
+       is that trace with the roads named by hand, for a town whose ring road
+       the page has never heard of. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.fill("#ringInput", "B1");
+    await page.click("#ringGo");
+    await page.waitForFunction(
+      "/encloses/.test(document.getElementById('ringMsg').textContent)", null, { timeout: 20000 });
+    var msg = await page.textContent("#ringMsg");
+    assert.ok(/2,?2\d\d km/.test(msg), "the traced area is not reported: " + msg);
+    var hint = await page.textContent("#fromHint");
+    assert.ok(/B1/.test(hint), "the page does not say the border came from B1: " + hint);
+    await shot(page, "07-own-border");
+    await page.close();
+  });
+
+  await test("roads that do not close into a loop are refused", async function () {
+    /* An open chain is not a border. Drawn as one it would enclose whatever
+       the closing line happened to cut off. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.fill("#ringInput", "B99");
+    await page.click("#ringGo");
+    await page.waitForFunction(
+      "document.getElementById('ringMsg').className.indexOf('warn') >= 0", null, { timeout: 20000 });
+    var msg = await page.textContent("#ringMsg");
+    assert.ok(/do not close|gap/.test(msg), "the refusal does not say why: " + msg);
+    var hint = await page.textContent("#fromHint");
+    assert.ok(!/B99/.test(hint), "a border that could not close was adopted anyway: " + hint);
     await page.close();
   });
 
