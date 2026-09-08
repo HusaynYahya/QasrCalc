@@ -440,6 +440,18 @@ input::placeholder { color: var(--ink-faint); }
    different question while it is on. */
 .map.is-picking { cursor: copy; }
 #pickLabel { display: block; margin-top: .9rem; }
+/* The roads under a tap, for the reader to choose between. Built like the
+   city list above it, because it is the same kind of question. */
+.picklist { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .35rem; }
+.pickopt {
+  width: 100%; text-align: left; cursor: pointer; font: inherit;
+  padding: .5rem .7rem; border-radius: 10px;
+  border: 1px solid var(--hair); background: var(--bg-raise); color: var(--ink);
+}
+.pickopt b { display: block; font-size: .9rem; }
+.pickopt span { display: block; font-size: .78rem; color: var(--ink-mute); }
+.pickopt:hover { border-color: var(--accent); }
+.pickopt.is-on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .maptools__opt {
   display: inline-flex; align-items: center; gap: .4rem; cursor: pointer;
   font-family: var(--font-label); font-size: .82rem; color: var(--ink-mute);

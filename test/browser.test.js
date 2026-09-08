@@ -149,25 +149,38 @@ async function stub(page, log) {
     if (m) {
       var la = parseFloat(m[1]), lo = parseFloat(m[2]);
       var names = ["south side", "east side", "north side", "west side"];
+      /* Distance to the side itself, not to three points on it: a tap
+         partway along an edge is nearest that edge, and sampling the ends
+         and middle put it on whichever corner happened to be closer. */
+      function toSegment(g) {
+        var ax = g[0].lon - lo, ay = g[0].lat - la;
+        var bx = g[1].lon - lo, by = g[1].lat - la;
+        var dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy;
+        var t = len > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len)) : 0;
+        return Math.hypot(ax + dx * t, ay + dy * t);
+      }
       var best = 0, bestD = Infinity;
       sides.forEach(function (w, i) {
-        var g = w.geometry;
-        var d = Math.min(
-          Math.hypot(g[0].lat - la, g[0].lon - lo),
-          Math.hypot(g[1].lat - la, g[1].lon - lo),
-          Math.hypot((g[0].lat + g[1].lat) / 2 - la, (g[0].lon + g[1].lon) / 2 - lo));
+        var d = toSegment(w.geometry);
         if (d < bestD) { bestD = d; best = i; }
       });
       var w = sides[best];
+      var out = [{ type: "way", id: 900 + best, geometry: w.geometry,
+                   tags: { highway: "primary", name: names[best] } }];
+      /* A junction partway up the west side, where a slip lane runs beside
+         the road and is nearer to the tap than the road itself. Kept off the
+         midpoints, so the four-tap test still meets one road per tap. */
+      var jLat = (S + N) / 2 + 0.12, jLon = W;
+      if (Math.abs(la - jLat) < 0.02 && Math.abs(lo - jLon) < 0.02) {
+        out.unshift({ type: "way", id: 950,
+          geometry: [{ lat: jLat - 0.01, lon: jLon + 0.0002 },
+                     { lat: jLat + 0.01, lon: jLon + 0.0002 }],
+          tags: { highway: "residential", name: "Slip Lane" } });
+      }
       return route.fulfill({ status: 200, contentType: "application/json",
-        body: JSON.stringify({ elements: [{ type: "way", id: 900 + best,
-          geometry: w.geometry, tags: { highway: "primary", name: names[best] } }] }) });
+        body: JSON.stringify({ elements: out }) });
     }
-    if (/"ref"="B1"/.test(q)) {
-      elements = [{ type: "relation", members: sides }];
-    } else if (/"ref"="B99"/.test(q)) {
-      elements = [{ type: "relation", members: sides.slice(0, 3) }];   /* a side short */
-    }
+
     route.fulfill({ status: 200, contentType: "application/json",
                     body: JSON.stringify({ elements: elements }) });
   });
@@ -416,42 +429,6 @@ async function shot(page, name) {
     await page.close();
   });
 
-  await test("a border can be drawn from roads the reader names", async function () {
-    /* The engine already traces the M25 for London without being asked. This
-       is that trace with the roads named by hand, for a town whose ring road
-       the page has never heard of. */
-    var page = await open(browser, base);
-    await journey(page, "WD19 4QP", "University of Warwick");
-    await page.click("#cityBtn");
-    await page.fill("#ringInput", "B1");
-    await page.click("#ringGo");
-    await page.waitForFunction(
-      "/encloses/.test(document.getElementById('ringMsg').textContent)", null, { timeout: 20000 });
-    var msg = await page.textContent("#ringMsg");
-    assert.ok(/2,?2\d\d km/.test(msg), "the traced area is not reported: " + msg);
-    var hint = await page.textContent("#fromHint");
-    assert.ok(/B1/.test(hint), "the page does not say the border came from B1: " + hint);
-    await shot(page, "07-own-border");
-    await page.close();
-  });
-
-  await test("roads that do not close into a loop are refused", async function () {
-    /* An open chain is not a border. Drawn as one it would enclose whatever
-       the closing line happened to cut off. */
-    var page = await open(browser, base);
-    await journey(page, "WD19 4QP", "University of Warwick");
-    await page.click("#cityBtn");
-    await page.fill("#ringInput", "B99");
-    await page.click("#ringGo");
-    await page.waitForFunction(
-      "document.getElementById('ringMsg').className.indexOf('warn') >= 0", null, { timeout: 20000 });
-    var msg = await page.textContent("#ringMsg");
-    assert.ok(/do not close|gap/.test(msg), "the refusal does not say why: " + msg);
-    var hint = await page.textContent("#fromHint");
-    assert.ok(!/B99/.test(hint), "a border that could not close was adopted anyway: " + hint);
-    await page.close();
-  });
-
   await test("a border can be picked road by road off the map", async function () {
     /* Four taps, one per side of the square, and the roads collected go
        through ringShape — the same stitching the M25 gets. */
@@ -486,6 +463,41 @@ async function shot(page, name) {
     await page.evaluate(function () { window.scrollTo(0, 0); });
     await page.waitForTimeout(700);
     await shot(page, "08-picked-border");
+    await page.close();
+  });
+
+  await test("where two roads run under the tap, the reader chooses", async function () {
+    /* Tapping a motorway near a junction lands on a slip road a few metres
+       away. Taking the nearest silently put a lane in the border. */
+    var page = await open(browser, base);
+    await journey(page, "WD19 4QP", "University of Warwick");
+    await page.click("#cityBtn");
+    await page.click("#pickStart");
+    var S = 51.2885, N = 51.7115, W = -0.4603;
+    await page.evaluate(function (t) {
+      window.__qasrMap.fire("click", { latlng: { lat: t[0], lng: t[1] } });
+    }, [(S + N) / 2 + 0.12, W]);
+    await page.waitForFunction(
+      "!document.getElementById('pickList').hidden", null, { timeout: 20000 });
+
+    var opts = await page.$$eval("#pickList .pickopt", function (bs) {
+      return bs.map(function (b) { return b.textContent; });
+    });
+    assert.strictEqual(opts.length, 2, "both roads should be offered: " + JSON.stringify(opts));
+    assert.ok(/Slip Lane/.test(opts.join(" ")), "the nearer lane is not offered");
+    assert.ok(/west side/.test(opts.join(" ")), "the road actually meant is not offered");
+    assert.ok(!/road picked/.test(await page.textContent("#pickMsg")),
+      "a road was taken without being chosen");
+
+    /* Choose the road, not the lane that happened to be nearer. */
+    var i = opts.findIndex(function (t) { return /west side/.test(t); });
+    await page.$$eval("#pickList .pickopt", function (bs, k) { bs[k].click(); }, i);
+    await page.waitForTimeout(400);
+    assert.ok(/1 road picked/.test(await page.textContent("#pickMsg")),
+      "the chosen road was not picked: " + (await page.textContent("#pickMsg")));
+    assert.ok(await page.evaluate(function () {
+      return document.getElementById("pickList").hidden;
+    }), "the choice stayed on screen after choosing");
     await page.close();
   });
 

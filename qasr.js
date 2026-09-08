@@ -1618,28 +1618,46 @@
     return best;
   }
 
-  /* The road nearest a tap. Only roads a town is bounded by are offered —
-     a footpath or a driveway is not a border, and there are hundreds of them
-     under any given tap. */
-  function roadAt(lat, lon, radiusM) {
+  /* Every road under a tap, nearest first. Only roads a town is bounded by
+     are offered — a footpath or a driveway is not a border, and there are
+     hundreds of them under any given tap.
+
+     All of them rather than the nearest, because the nearest is often not the
+     one meant: tapping the M25 near a junction lands on a slip road seven
+     metres away, and the reader is left with a lane in their border and no
+     way to see why. */
+  function roadsAt(lat, lon, radiusM) {
     var r = radiusM || 60;
     var query = "[out:json][timeout:25];way(around:" + r + "," + lat.toFixed(6) + "," +
       lon.toFixed(6) + ")[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|" +
       "unclassified|residential)$\"];out geom;";
     return overpassAsk(query).then(function (data) {
-      var best = null;
+      var found = [];
       ((data && data.elements) || []).forEach(function (el) {
         var line = (el.geometry || []).map(function (g) { return [g.lon, g.lat]; });
         if (line.length < 2) return;
-        var d = pointToLineKm(lat, lon, line);
-        if (!best || d < best.km) {
-          best = { id: el.id, km: d, line: line,
-                   name: (el.tags && (el.tags.ref || el.tags.name)) || "an unnamed road" };
-        }
+        found.push({ id: el.id, km: pointToLineKm(lat, lon, line), line: line,
+                     name: (el.tags && (el.tags.ref || el.tags.name)) || "an unnamed road" });
       });
-      if (!best) throw new Error("No road there. Tap the road itself, and zoom in if it is fiddly.");
-      return best;
+      if (!found.length) {
+        throw new Error("No road there. Tap the road itself, and zoom in if it is fiddly.");
+      }
+      found.sort(function (a, b) { return a.km - b.km; });
+      /* One entry per road: a long road comes back as many ways, and a list
+         of six identical names is no choice at all. */
+      var seen = {}, out = [];
+      found.forEach(function (w) {
+        if (seen[w.name]) return;
+        seen[w.name] = true;
+        out.push(w);
+      });
+      return out.slice(0, 6);
     });
+  }
+
+  /* The nearest one, where only one is wanted. */
+  function roadAt(lat, lon, radiusM) {
+    return roadsAt(lat, lon, radiusM).then(function (list) { return list[0]; });
   }
 
   function ringBoundary(refs, near) {
@@ -3014,15 +3032,54 @@
     if (el) el.className = "map" + (picking ? " is-picking" : "");
   }
 
+  /* Tapping a road already picked takes it off again. */
+  function togglePicked(road) {
+    var already = -1;
+    picked.forEach(function (w, i) { if (w.id === road.id) already = i; });
+    if (already >= 0) picked.splice(already, 1); else picked.push(road);
+    clearCandidates();
+    renderPicks();
+  }
+
+  function clearCandidates() {
+    var list = $("pickList");
+    list.innerHTML = "";
+    list.hidden = true;
+  }
+
+  /* More than one road under the tap, so the reader says which. The nearest
+     is not reliably the one meant — tapping a motorway near a junction lands
+     on a slip road a few metres away — and a border is worth a second tap. */
+  function showCandidates(roads) {
+    var list = $("pickList");
+    list.innerHTML = "";
+    roads.forEach(function (road) {
+      var on = picked.some(function (w) { return w.id === road.id; });
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pickopt" + (on ? " is-on" : "");
+      btn.innerHTML = "<b>" + road.name + "</b><span>" +
+        (on ? "picked — tap to take it off" : Math.round(road.km * 1000) + " m from your tap") +
+        "</span>";
+      btn.addEventListener("click", function () { togglePicked(road); });
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+    list.hidden = false;
+    $("pickMsg").textContent = "Which road did you mean? " + roads.length +
+      " run under that tap.";
+    $("pickMsg").className = "hint";
+  }
+
   function pickRoadAt(latlng) {
+    clearCandidates();
     $("pickMsg").textContent = "Looking for the road there…";
     $("pickMsg").className = "hint";
-    return roadAt(latlng.lat, latlng.lng).then(function (road) {
-      var already = -1;
-      picked.forEach(function (w, i) { if (w.id === road.id) already = i; });
-      /* Tapping a road already picked takes it off again. */
-      if (already >= 0) picked.splice(already, 1); else picked.push(road);
-      renderPicks();
+    return roadsAt(latlng.lat, latlng.lng).then(function (roads) {
+      /* One road under the tap is not a question worth asking. */
+      if (roads.length === 1) { togglePicked(roads[0]); return; }
+      showCandidates(roads);
     }).catch(function (err) {
       $("pickMsg").textContent = err.message;
       $("pickMsg").className = "hint hint--warn";
@@ -3634,71 +3691,22 @@
       });
     });
 
-    $("ringGo").addEventListener("click", function () {
-      var ref = $("ringInput").value.trim();
-      function say(t, warn) {
-        $("ringMsg").textContent = t;
-        $("ringMsg").className = "hint" + (warn ? " hint--warn" : "");
-      }
-      if (!ref) return;
-      /* Near the start, because a road number is not unique to one country:
-         there is an M25 near Cape Town as well as round London, and without a
-         point to search from the trace is a lottery between them. */
-      var near = places.from || cities.from;
-      if (!near || typeof near.lat !== "number") {
-        say("Set where you are starting from first — the roads are looked for near it, " +
-            "because a road number is not unique to one country.", true);
-        return;
-      }
-      say("Tracing the " + ref.toUpperCase() + "…");
-      busy("Tracing the " + ref.toUpperCase() + " — a moment the first time");
-      ringBoundary(ref, near).then(function (ring) {
-        /* Refused unless it closes into a loop of a believable size. An open
-           chain is not a border: drawn as one it encloses whatever the line
-           closing it happens to cut off, and the reader would be told a
-           deduction measured against that. ringIsSound is the same test the
-           M25's own shape has to pass. */
-        if (!ringIsSound({ traced: ring.traced, closedByHand: ring.closedByHand,
-                           areaKm2: ring.areaKm2 })) {
-          busy(null);
-          say("The " + ring.ref + " was found but does not close into a usable border" +
-              (ring.closedByHand ? " — there is a gap in the loop" : "") +
-              (ring.areaKm2 ? ", enclosing " + Math.round(ring.areaKm2) + " km²" : "") +
-              ". Name the roads that complete the ring, or choose a city above.", true);
-          return;
-        }
-        busy("Traced the " + ring.ref + " — that is your city's edge", true);
-        var was = cities.from;
-        say("Traced the " + ring.ref + " — it encloses " + Math.round(ring.areaKm2) +
-            " km², and is now your city's edge.");
-        $("ringInput").value = "";
-        useCity({
-          name: (was && was.name) || ring.ref,
-          area: was ? was.area : null,
-          shape: ring.shape,
-          fromRing: ring.ref,
-          ringArea: ring.areaKm2,
-          ringTraced: ring.traced,
-          ringClosedByHand: ring.closedByHand,
-          ringTried: true
-        }, true);
-      }).catch(function (err) {
-        busy(null);
-        say(err.message, true);
-      });
-    });
-
     $("pickStart").addEventListener("click", function () {
       picking = !picking;
+      clearCandidates();
       $("mapToolHint").textContent = picking
         ? "Tap the roads that ring your city" : "Tap the map to set a location";
       renderPicks();
       if (picking) $("map").scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
-    $("pickUndo").addEventListener("click", function () { picked.pop(); renderPicks(); });
+    $("pickUndo").addEventListener("click", function () {
+      picked.pop(); clearCandidates(); renderPicks();
+    });
 
-    $("pickClear").addEventListener("click", function () { picked = []; renderPicks(); });
+    $("pickClear").addEventListener("click", function () {
+      picked = []; clearCandidates(); renderPicks();
+    });
 
     $("pickUse").addEventListener("click", function () {
       var ring = pickedRing();
@@ -3706,6 +3714,7 @@
                                   areaKm2: ring.areaKm2 })) return;
       var was = cities.from;
       picking = false;
+      clearCandidates();
       $("mapToolHint").textContent = "Tap the map to set a location";
       useCity({
         name: (was && was.name) || "the roads you picked",
@@ -3721,10 +3730,6 @@
         ringTried: true
       }, true);
       renderPicks();
-    });
-
-    $("ringInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { e.preventDefault(); $("ringGo").click(); }
     });
 
     $("citySearch").addEventListener("keydown", function (e) {
@@ -3934,7 +3939,7 @@
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
-    pointToLineKm: pointToLineKm, roadAt: roadAt
+    pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt
   };
 
   if (document.readyState === "loading") {
