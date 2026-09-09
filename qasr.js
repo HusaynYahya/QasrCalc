@@ -307,34 +307,57 @@
            the council's boundary back.                                       */
         if (city.fromRing && !found[at].fromRing) found[at] = city;
         else return;
-      } else if (first) found.unshift(city);
+      /* A choice with no border never leads, whoever found it. The panel
+         exists to pick a border to measure from, and one that has none is a
+         last resort rather than a first suggestion — Al Hillah headed the
+         list for a reader in Karbala, forty-one kilometres off and with
+         nothing to draw, above Karbala itself. */
+      } else if (first && city.shape) found.unshift(city);
       else found.push(city);
       if (onFound) onFound(found);
     }
 
     /* Overpass answers on its own host, so it need not wait behind the
        address lookups at all — it used to be asked only after all of them.   */
-    var nearby = biggestCityNear(place)
-      .then(function (big) {
-        if (!big) return null;
-        /* Asked for by name and pinned to where it was found.
+    /* The biggest city within reach, and the nearest one — which are often
+       the same and sometimes are not.
 
-           Without the second argument nothing decided which of the places of
-           that name was meant, and the rule that settles ties — the smallest
-           wins — then chose the smallest anywhere. A reader in Delhi was
-           offered "Delhi, the largest city nearby", and it was a village of
-           three square kilometres in Delaware County, Iowa. The boundary has
-           to be the one that holds the city Overpass actually found. */
-        return cityByName(big.name, big).then(function (settlement) {
-          /* Only if it really is elsewhere. Describing the city you are
-             standing in as "the largest nearby, 23 km away" is nonsense.    */
-          if (!inShape(place.lat, place.lon, settlement.shape)) {
-            settlement.note = "the largest city nearby, " + fmtKm(big.away) + " away";
-          }
-          return settlement;
-        });
-      })
-      .catch(function () { return null; });
+       Only the biggest used to be offered. That is what gets London in front
+       of someone in Watford, and it is the point of asking. But it also meant
+       a reader in Ras Al Khaimah was offered Sharjah, seventy-two kilometres
+       off, and not their own city at all: OpenStreetMap publishes no boundary
+       for Ras Al Khaimah and no city in the address either, so the lookups by
+       position had nothing to name, and the only choice on the panel was a
+       city in another emirate.
+
+       Both come out of the same answer, so this costs no extra request. */
+    function named(found, note) {
+      if (!found) return Promise.resolve(null);
+      /* Asked for by name and pinned to where it was found.
+
+         Without the second argument nothing decided which of the places of
+         that name was meant, and the rule that settles ties — the smallest
+         wins — then chose the smallest anywhere. A reader in Delhi was
+         offered "Delhi, the largest city nearby", and it was a village of
+         three square kilometres in Delaware County, Iowa. The boundary has
+         to be the one that holds the city Overpass actually found. */
+      return cityByName(found.name, found).then(function (settlement) {
+        /* Only if it really is elsewhere. Describing the city you are
+           standing in as "the largest nearby, 23 km away" is nonsense.    */
+        if (!inShape(place.lat, place.lon, settlement.shape)) {
+          settlement.note = note + ", " + fmtKm(found.away) + " away";
+        }
+        return settlement;
+      });
+    }
+
+    var around = biggestCityNear(place).catch(function () { return null; });
+    var nearby = around.then(function (r) { return r && named(r.biggest, "the largest city nearby"); })
+                       .catch(function () { return null; });
+    var closest = around.then(function (r) {
+      if (!r || !r.nearest || r.nearest.name === r.biggest.name) return null;
+      return named(r.nearest, "the nearest city");
+    }).catch(function () { return null; });
 
     var byZoom = [12, 10].map(function (zoom) {
       return cityAt(place, zoom)
@@ -357,9 +380,13 @@
     /* The largest city goes to the front whenever it lands: it is the one a
        reader is least likely to think of, and most likely to want.           */
     var big = nearby.then(function (city) { add(city, true); });
+    /* The reader's own town goes above the big one it is offered beside:
+       "somewhere else, seventy kilometres away" is the alternative, not the
+       first suggestion. */
+    var near = closest.then(function (city) { add(city, true); });
     var ring = ringed.then(function (city) { add(city, true); });
 
-    return Promise.all(byZoom.concat([big, ring])).then(function () {
+    return Promise.all(byZoom.concat([big, near, ring])).then(function () {
       /* Whatever order they arrived in, a ring road that is already the edge
          being measured from goes first. */
       found.sort(function (a, b) { return (b.fromRing ? 1 : 0) - (a.fromRing ? 1 : 0); });
@@ -619,7 +646,7 @@
 
     return ask(OVERPASS)
       .then(function (data) {
-        var best = null;
+        var best = null, closest = null;
         (data.elements || []).forEach(function (el) {
           var t = el.tags || {};
           if (!t.name || typeof el.lat !== "number" || typeof el.lon !== "number") return;
@@ -629,16 +656,16 @@
              city outranks a town even when neither carries a figure.         */
           var pop = parseInt((t.population || "").replace(/[^0-9]/g, ""), 10);
           var rank = isNaN(pop) ? (t.place === "city" ? 1 : 0) : pop;
-          if (!best || rank > best.rank || (rank === best.rank && away < best.away)) {
-            /* Its own position travels with it: the boundary fetched for
-               this name has to be the one that holds this city, not the
-               smallest thing of that name anywhere on earth. */
-            best = { name: t["name:en"] || t.name, area: null, rank: rank, away: away,
-                     lat: el.lat, lon: el.lon };
-          }
+          /* Its own position travels with it: the boundary fetched for this
+             name has to be the one that holds this city, not the smallest
+             thing of that name anywhere on earth. */
+          var here = { name: t["name:en"] || t.name, area: null, rank: rank, away: away,
+                       lat: el.lat, lon: el.lon };
+          if (!best || rank > best.rank || (rank === best.rank && away < best.away)) best = here;
+          if (!closest || away < closest.away) closest = here;
         });
         if (!best) throw new Error("no city or town within " + NEAR_CITY_KM + " km");
-        return best;
+        return { biggest: best, nearest: closest };
       })
       .catch(function (err) {
         nearbyReason = nearbyReason || (err && err.message);
@@ -657,19 +684,19 @@
         return r.json();
       })
       .then(function (data) {
-        var best = null;
+        var best = null, closest = null;
         (data.features || []).forEach(function (f) {
           var p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
           if (!p.name || !c) return;
           var away = haversineKm(place, { lat: c[1], lon: c[0] });
           if (away > NEAR_CITY_KM) return;
           var size = extentKm2(p.extent, c[1]);
-          if (!best || size > best.size || (size === best.size && away < best.away)) {
-            best = { name: p.name, area: p.state || p.county || p.country || null,
-                     size: size, away: away, lat: c[1], lon: c[0] };
-          }
+          var here = { name: p.name, area: p.state || p.county || p.country || null,
+                       size: size, away: away, lat: c[1], lon: c[0] };
+          if (!best || size > best.size || (size === best.size && away < best.away)) best = here;
+          if (!closest || away < closest.away) closest = here;
         });
-        return best;
+        return best ? { biggest: best, nearest: closest } : null;
       })
       .catch(function () { return null; });
   }

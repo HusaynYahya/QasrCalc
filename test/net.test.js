@@ -607,6 +607,112 @@ test("the nearby city's own border is taken, not a namesake's", function () {
   });
 });
 
+test("the reader's own city is offered, not only the biggest one near it", function () {
+  /* Ras Al Khaimah, as it really answered. OpenStreetMap publishes no city
+     boundary for it and no city in the address either, so both lookups by
+     position came back with nothing to name — and the only choice left on
+     the panel was Sharjah, seventy-two kilometres off in another emirate.
+     The nearest city comes out of the same Overpass answer as the biggest,
+     so offering it costs no extra request. */
+  var b = browser(function (url) {
+    if (/overpass/.test(url)) {
+      return reply({ elements: [
+        { type: "node", lat: 25.7895, lon: 55.9432,
+          tags: { place: "city", name: "Ras Al Khaimah", population: "345000" } },
+        { type: "node", lat: 25.3463, lon: 55.4209,
+          tags: { place: "city", name: "Sharjah", population: "1800000" } }
+      ]});
+    }
+    if (/\/reverse/.test(url)) {
+      /* A suburb, with no city, town or village anywhere in the address. */
+      return reply({ addresstype: "suburb", place_rank: 16,
+                     name: "Burial Khor Ras Al Khaimah",
+                     address: { suburb: "Burial Khor Ras Al Khaimah",
+                                state: "Ras al-Khaimah Emirate",
+                                country: "United Arab Emirates" },
+                     geojson: null });
+    }
+    if (/\/search/.test(url)) {
+      var q = decodeURIComponent((url.split("q=")[1] || "").split("&")[0]).toLowerCase();
+      if (/sharjah/.test(q)) {
+        return reply([{ place_rank: 16, addresstype: "city", display_name: "Sharjah",
+                        address: { city: "Sharjah", country: "United Arab Emirates" },
+                        geojson: square(25.30, 55.38, 12) }]);
+      }
+      if (/khaimah/.test(q)) {
+        /* Only the emirate has a polygon; the city itself is a point. */
+        return reply([{ place_rank: 8, addresstype: "state",
+                        display_name: "Ras al-Khaimah Emirate",
+                        address: { state: "Ras al-Khaimah Emirate",
+                                   country: "United Arab Emirates" },
+                        geojson: square(25.60, 55.80, 60) }]);
+      }
+    }
+    return reply([]);
+  });
+
+  return new Promise(function (done, fail) {
+    var seen = [];
+    b.window.QasrEngine.cityChoices({ lat: 25.7895, lon: 55.9432 }, function (list) {
+      seen = list;
+    }).then(function () { done(seen); }, fail);
+  }).then(function (list) {
+    var names = list.map(function (c) { return c.name; });
+    assert.ok(names.indexOf("Ras Al Khaimah") > -1,
+      "the reader's own city must be among the choices: " + JSON.stringify(names));
+    assert.ok(names.indexOf("Sharjah") > -1,
+      "and the biggest one near it is still offered: " + JSON.stringify(names));
+  });
+});
+
+test("a choice with no border to draw never leads the list", function () {
+  /* The panel is for picking a border to measure from, so one that has none
+     is a last resort. Al Hillah headed the list for a reader in Karbala,
+     forty-one kilometres away and with nothing to draw, above Karbala. */
+  var b = browser(function (url) {
+    if (/overpass/.test(url)) {
+      return reply({ elements: [
+        /* Al Hillah is the larger of the two, so it is the one the panel
+           offers as the biggest nearby — and the one with no border. */
+        { type: "node", lat: 32.48, lon: 44.42, tags: { place: "city", name: "Al Hillah",
+                                                        population: "900000" } },
+        { type: "node", lat: 32.616, lon: 44.025, tags: { place: "city", name: "Karbala",
+                                                          population: "700000" } }
+      ]});
+    }
+    if (/\/reverse/.test(url)) {
+      return reply({ addresstype: "city", place_rank: 16, name: "Karbala",
+                     address: { city: "Karbala", country: "Iraq" },
+                     geojson: square(32.55, 43.95, 12) });
+    }
+    if (/\/search/.test(url)) {
+      var q = decodeURIComponent((url.split("q=")[1] || "").split("&")[0]).toLowerCase();
+      /* Al Hillah is published as a point: named, and with no border. */
+      if (/hillah/.test(q)) {
+        return reply([{ place_rank: 16, addresstype: "city", display_name: "Al Hillah",
+                        address: { city: "Al Hillah", country: "Iraq" },
+                        geojson: { type: "Point", coordinates: [44.42, 32.48] } }]);
+      }
+      return reply([{ place_rank: 16, addresstype: "city", display_name: "Karbala",
+                      address: { city: "Karbala", country: "Iraq" },
+                      geojson: square(32.55, 43.95, 12) }]);
+    }
+    return reply([]);
+  });
+
+  return new Promise(function (done, fail) {
+    var seen = [];
+    b.window.QasrEngine.cityChoices({ lat: 32.6160, lon: 44.0249 }, function (list) {
+      seen = list;
+    }).then(function () { done(seen); }, fail);
+  }).then(function (list) {
+    assert.ok(list.length, "something should be offered");
+    assert.ok(list[0].shape,
+      "the list is led by a choice with no border: " +
+      JSON.stringify(list.map(function (c) { return c.name + (c.shape ? "" : " (none)"); })));
+  });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);
