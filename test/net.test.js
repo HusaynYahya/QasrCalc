@@ -550,6 +550,63 @@ test("a lookup that was refused does not report the city as missing", function (
     });
 });
 
+section("The city offered as the largest one nearby");
+
+/* A square of the given side in kilometres, cornered at lat/lon. */
+function sq(lat, lon, sideKm) {
+  var d = sideKm / 111;
+  return { type: "Polygon", coordinates: [[[lon, lat], [lon + d, lat],
+           [lon + d, lat + d], [lon, lat + d], [lon, lat]]] };
+}
+
+test("the nearby city's own border is taken, not a namesake's", function () {
+  /* Delhi, as it really answered. Overpass finds a city called Delhi a few
+     kilometres off; the search for that name then returns the real one at
+     about fifteen hundred square kilometres alongside a village of three in
+     Delaware County, Iowa. Nothing said which was meant, and the rule that
+     settles ties — the smallest wins — chose Iowa. The reader was offered
+     "Delhi, the largest city nearby" and it was on another continent. */
+  var b = browser(function (url) {
+    if (/overpass/.test(url)) {
+      return reply({ elements: [
+        { type: "node", lat: 28.66, lon: 77.23, tags: { place: "city", name: "Delhi" } }
+      ]});
+    }
+    if (/\/reverse/.test(url)) {
+      return reply({ addresstype: "suburb", place_rank: 15, name: "Karol Bagh",
+                     address: { suburb: "Karol Bagh", country: "India" }, geojson: null });
+    }
+    if (/\/search/.test(url)) {
+      return reply([
+        { place_rank: 16, addresstype: "village", display_name: "Delhi, Delaware County, Iowa",
+          address: { village: "Delhi", country: "United States" },
+          geojson: sq(42.42, -91.33, 1.7) },
+        { place_rank: 16, addresstype: "city", display_name: "Delhi, India",
+          address: { city: "Delhi", country: "India" },
+          geojson: sq(28.40, 76.84, 38) }
+      ]);
+    }
+    return reply([]);
+  });
+
+  return new Promise(function (done, fail) {
+    var seen = [];
+    b.window.QasrEngine.cityChoices({ lat: 28.6139, lon: 77.2090 }, function (list) {
+      seen = list;
+    }).then(function () { done(seen); }, fail);
+  }).then(function (list) {
+    var delhi = list.filter(function (c) { return c.name === "Delhi"; })[0];
+    assert.ok(delhi, "Delhi should be among the choices: " +
+      JSON.stringify(list.map(function (c) { return c.name; })));
+    assert.ok(delhi.shape, "and it should come with a border");
+    var km2 = delhi.shape.coordinates.reduce(function (n, r) {
+      return n + b.window.QasrEngine.ringAreaKm2(r);
+    }, 0);
+    assert.ok(km2 > 500,
+      "expected Delhi's own border, got one of " + Math.round(km2) + " km² — that is the namesake");
+  });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

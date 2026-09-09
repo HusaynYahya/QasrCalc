@@ -317,7 +317,15 @@
     var nearby = biggestCityNear(place)
       .then(function (big) {
         if (!big) return null;
-        return cityByName(big.name).then(function (settlement) {
+        /* Asked for by name and pinned to where it was found.
+
+           Without the second argument nothing decided which of the places of
+           that name was meant, and the rule that settles ties — the smallest
+           wins — then chose the smallest anywhere. A reader in Delhi was
+           offered "Delhi, the largest city nearby", and it was a village of
+           three square kilometres in Delaware County, Iowa. The boundary has
+           to be the one that holds the city Overpass actually found. */
+        return cityByName(big.name, big).then(function (settlement) {
           /* Only if it really is elsewhere. Describing the city you are
              standing in as "the largest nearby, 23 km away" is nonsense.    */
           if (!inShape(place.lat, place.lon, settlement.shape)) {
@@ -622,7 +630,11 @@
           var pop = parseInt((t.population || "").replace(/[^0-9]/g, ""), 10);
           var rank = isNaN(pop) ? (t.place === "city" ? 1 : 0) : pop;
           if (!best || rank > best.rank || (rank === best.rank && away < best.away)) {
-            best = { name: t["name:en"] || t.name, area: null, rank: rank, away: away };
+            /* Its own position travels with it: the boundary fetched for
+               this name has to be the one that holds this city, not the
+               smallest thing of that name anywhere on earth. */
+            best = { name: t["name:en"] || t.name, area: null, rank: rank, away: away,
+                     lat: el.lat, lon: el.lon };
           }
         });
         if (!best) throw new Error("no city or town within " + NEAR_CITY_KM + " km");
@@ -654,7 +666,7 @@
           var size = extentKm2(p.extent, c[1]);
           if (!best || size > best.size || (size === best.size && away < best.away)) {
             best = { name: p.name, area: p.state || p.county || p.country || null,
-                     size: size, away: away };
+                     size: size, away: away, lat: c[1], lon: c[0] };
           }
         });
         return best;
