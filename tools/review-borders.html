@@ -63,6 +63,20 @@ border is whatever OpenStreetMap publishes under the name, and no automatic
 check can tell whether it is where a resident would say the town ends — only a
 resident can. This shows them one at a time and writes down what you say.</p>
 
+<div class="card" id="whoCard">
+  <div class="bar">
+    <label><b>Your name</b> <input id="whoName" placeholder="e.g. husayn" size="16" /></label>
+    <button id="whoGo">Use this name</button>
+    <span class="msg" id="whoNote"></span>
+  </div>
+  <p class="msg" id="whoNag">Put a name in before answering — a verdict nobody can be asked
+    about afterwards is not much use, and it keeps two people on one machine apart.</p>
+  <p class="msg"><b>Answers stay in this browser until you send them.</b> They are not saved
+    anywhere else: a different browser, a different machine, a private window or a cleared
+    cache all start empty. Press <b>Send my answers</b> when you are done, or partway through —
+    it downloads a small file to pass on.</p>
+</div>
+
 <div class="bar">
   <label>Or look at any city <input id="ask" placeholder="e.g. Karbala" size="18" /></label>
   <button id="askGo">Show it</button>
@@ -90,7 +104,7 @@ resident can. This shows them one at a time and writes down what you say.</p>
 <div class="card">
   <div class="bar">
     <strong style="flex:1">What you have said so far</strong>
-    <button id="dl">Download</button>
+    <button id="dl" class="yes">Send my answers</button>
     <button id="copy">Copy</button>
     <button id="clear">Start again</button>
   </div>
@@ -115,15 +129,51 @@ geocoding by OpenStreetMap / Nominatim.</p>
 var G = window.QasrEngine;
 var $ = function (id) { return document.getElementById(id); };
 
-/* Kept in the browser rather than in memory alone: a review of fifty cities is
-   not one sitting, and losing it to a stray reload would mean doing it twice. */
-var STORE = "qasr.review";
-var said = (function () {
-  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; }
+/* Whose answers these are.
+
+   Several people review, and the page has to keep them apart: two reviewers
+   on one machine would otherwise write over each other, and a file arriving
+   with no name on it is a file nobody can act on. The name is part of the
+   storage key and part of every export.
+
+   Kept in the browser between sittings, and only there. That is worth saying
+   plainly rather than leaving to be discovered: browser storage belongs to
+   one browser on one machine at one address, so answers typed against
+   localhost are not the answers at the published address, a private window
+   forgets everything on close, and clearing site data takes the lot. It is a
+   scratchpad that survives a reload, not a place to leave work. Sending is
+   what makes it keep. */
+var WHO = "qasr.review.who";
+var who = (function () {
+  try { return localStorage.getItem(WHO) || ""; } catch (e) { return ""; }
 })();
-function remember() {
-  try { localStorage.setItem(STORE, JSON.stringify(said)); } catch (e) {}
+function storeKey() { return "qasr.review." + (who || "anon"); }
+
+var said = {};
+function load_answers() {
+  try { said = JSON.parse(localStorage.getItem(storeKey())) || {}; }
+  catch (e) { said = {}; }
 }
+function remember() {
+  try { localStorage.setItem(storeKey(), JSON.stringify(said)); } catch (e) {}
+}
+function setWho(name) {
+  who = String(name || "").trim().slice(0, 40);
+  try { localStorage.setItem(WHO, who); } catch (e) {}
+  load_answers();
+  tally();
+  if ($("whoName")) $("whoName").value = who;
+  gate();
+}
+/* Nothing is answered anonymously: a verdict with no name on it cannot be
+   asked about afterwards, and "who said this" is the first question of any
+   review worth collecting. */
+function gate() {
+  var ready = !!who && !!current && !!current.km2;
+  ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = !ready; });
+  if ($("whoNag")) $("whoNag").hidden = !!who;
+}
+load_answers();
 
 var queue = [], at = 0, current = null;
 
@@ -207,7 +257,8 @@ function show(city, asked, place) {
 
   var already = said[asked];
   $("note").value = already ? (already.note || "") : "";
-  ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = !city.shape; });
+  /* gate() decides it: a border to judge, and a name to judge it under. */
+  gate();
   msg(already ? "You already called this one “" + already.verdict + "”. Answering again replaces it." : "");
   tally();
 }
@@ -287,7 +338,15 @@ function tally() {
 }
 
 function asJson() {
-  return JSON.stringify(Object.keys(said).sort().map(function (k) { return said[k]; }), null, 1) + "\n";
+  /* The name travels with the answers. A file of verdicts with nobody's name
+     on it cannot be merged with anyone else's or asked about later. */
+  return JSON.stringify({
+    reviewer: who || null,
+    sent: new Date().toISOString(),
+    answered: Object.keys(said).length,
+    of: queue.length,
+    answers: Object.keys(said).sort().map(function (k) { return said[k]; })
+  }, null, 1) + "\n";
 }
 
 /* --- wiring ------------------------------------------------------------- */
@@ -324,13 +383,27 @@ document.addEventListener("keydown", function (e) {
   if (e.key === "3") $("vNo").click();
 });
 
+$("whoGo").addEventListener("click", function () {
+  var name = $("whoName").value.trim();
+  if (!name) { $("whoNote").textContent = "A name is needed before answering."; return; }
+  setWho(name);
+  $("whoNote").textContent = "Answering as " + who +
+    (Object.keys(said).length ? " — " + Object.keys(said).length + " already answered under that name." : ".");
+});
+$("whoName").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); $("whoGo").click(); }
+});
+
 $("dl").addEventListener("click", function () {
+  if (!Object.keys(said).length) { msg("Nothing answered yet.", true); return; }
   var blob = new Blob([asJson()], { type: "application/json" });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "border-review.json";
+  /* Named after the reviewer, so a folder of these sorts itself. */
+  a.download = "border-review-" + (who || "anon").replace(/[^A-Za-z0-9_-]+/g, "-") + ".json";
   a.click();
   URL.revokeObjectURL(a.href);
+  msg("Saved " + a.download + " — send that file on. Your answers stay here too.");
 });
 $("copy").addEventListener("click", function () {
   $("out").hidden = false;
