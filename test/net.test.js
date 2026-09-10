@@ -713,6 +713,141 @@ test("a choice with no border to draw never leads the list", function () {
   });
 });
 
+section("A district standing in for the city");
+
+/* Sharjah, as the address service really answers for it.
+
+   Every signal points the wrong way at once: addresstype "city",
+   place_rank 16, address.city "Halwan" — a quarter of the town, six square
+   kilometres of it. A reader there was told they had left home while still
+   in the middle of it, and the page's only response was a warning. */
+function box(lat, lon, halfLat, halfLon) {
+  return { type: "Polygon", coordinates: [[
+    [lon - halfLon, lat - halfLat], [lon + halfLon, lat - halfLat],
+    [lon + halfLon, lat + halfLat], [lon - halfLon, lat + halfLat],
+    [lon - halfLon, lat - halfLat]
+  ]] };
+}
+var SHARJAH = { lat: 25.3463, lon: 55.4209 };
+var HALWAN = box(SHARJAH.lat, SHARJAH.lon, 0.011, 0.011);      /* about 5 km2 */
+var SHARJAH_CITY = box(SHARJAH.lat, SHARJAH.lon, 0.10, 0.10);  /* about 445 km2 */
+
+function sharjahNetwork(extra) {
+  return function (url) {
+    if (/photon\.komoot\.io\/reverse/.test(url)) {
+      return reply({ features: [{ properties: { name: "Sharjah", state: "Sharjah",
+        country: "United Arab Emirates", osm_value: "city",
+        extent: [55.35, 25.42, 55.52, 25.27] },
+        geometry: { coordinates: [SHARJAH.lon, SHARJAH.lat] } }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Halwan, Sharjah, United Arab Emirates",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Halwan", state: "Sharjah",
+                   country: "United Arab Emirates" },
+        geojson: HALWAN });
+    }
+    if (/nominatim/.test(url)) {
+      var q = decodeURIComponent(url).toLowerCase();
+      if (/q=sharjah/.test(q)) {
+        return reply([{ place_rank: 16, category: "boundary", type: "administrative",
+          display_name: "Sharjah, United Arab Emirates",
+          address: { city: "Sharjah", country: "United Arab Emirates" },
+          geojson: extra || SHARJAH_CITY }]);
+      }
+      return reply([]);
+    }
+    return { ok: false, status: 504, json: function () { return Promise.resolve({}); } };
+  };
+}
+
+test("a ward answering for the city is replaced by the city around it", function () {
+  var b = browser(sharjahNetwork());
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(SHARJAH, false).then(function (city) {
+    assert.strictEqual(city.name, "Sharjah",
+      "still measuring from " + city.name + ", a district inside the city");
+    assert.strictEqual(G.cityTooSmall(city), false, "the doubt was carried over");
+    assert.strictEqual(city.insteadOf, "Halwan",
+      "the swap was made without saying what it replaced");
+    assert.strictEqual(G.inShape(SHARJAH.lat, SHARJAH.lon, city.shape), true,
+      "the border taken does not hold the address it was fetched for");
+    assert.ok(G.ringAreaKm2(city.shape.coordinates[0]) > 100,
+      "the border taken is still district-sized");
+  });
+});
+
+test("a district is never traded for the province that holds it", function () {
+  /* Tokyo is the other half of the same question. The thing containing a
+     small ward there is the prefecture — 42,290 km2, an hour's drive of
+     towns inside it — and adopting that would make the opposite error, and
+     the larger one. The ward is kept, and its warning with it. */
+  var PREFECTURE = box(SHARJAH.lat, SHARJAH.lon, 1.0, 1.0);   /* far over the limit */
+  var b = browser(sharjahNetwork(PREFECTURE));
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(SHARJAH, false).then(function (city) {
+    assert.strictEqual(city.name, "Halwan",
+      "a province was adopted as somebody's city");
+    assert.strictEqual(city.insteadOf, undefined);
+    assert.strictEqual(G.cityTooSmall(city), true,
+      "the reader is no longer being warned about a border that is still wrong");
+  });
+});
+
+test("a smaller neighbour is not adopted over the border being doubted", function () {
+  /* The candidate has to be a promotion. One district swapped for another
+     is movement without improvement, and would hide the warning. */
+  var TINIER = box(SHARJAH.lat, SHARJAH.lon, 0.004, 0.004);
+  var b = browser(sharjahNetwork(TINIER));
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(SHARJAH, false).then(function (city) {
+    assert.strictEqual(city.name, "Halwan");
+    assert.strictEqual(G.cityTooSmall(city), true);
+  });
+});
+
+test("a candidate that does not hold the address is refused", function () {
+  /* Sharjah's border, but drawn round the next town along — near enough
+     that the by-name lookup will hand it over, and still not the city this
+     reader is standing in. */
+  var ELSEWHERE = box(SHARJAH.lat + 0.27, SHARJAH.lon, 0.10, 0.10);
+  var b = browser(sharjahNetwork(ELSEWHERE));
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(SHARJAH, false).then(function (city) {
+    assert.strictEqual(city.name, "Halwan");
+    assert.strictEqual(G.cityTooSmall(city), true);
+  });
+});
+
+section("A border drawn by hand answers to its name");
+
+test("a city with a hand-drawn border is not looked up at all", function () {
+  var b = browser(function () {
+    throw new Error("the network was asked for a border the page is carrying");
+  });
+  var G = b.window.QasrEngine;
+  return G.cityByName("Dubai").then(function (city) {
+    assert.strictEqual(city.name, "Dubai");
+    assert.strictEqual(city.fromRing, "E611 and the coast",
+      "the map server's Dubai — the whole Emirate — was taken instead");
+    assert.strictEqual(city.ringArea, 1328);
+    assert.strictEqual(b.calls.length, 0, "a request was made for it anyway");
+  });
+});
+
+test("a hand-drawn border is refused where it does not hold the reader", function () {
+  /* There is a London in Ontario, and the M25 is not its edge. */
+  var ONTARIO = { lat: 42.9849, lon: -81.2453 };
+  var b = browser(function () { return reply([]); });
+  var G = b.window.QasrEngine;
+  assert.strictEqual(G.ringByName("London", ONTARIO), null,
+    "the M25 was handed to a reader in Ontario");
+  assert.ok(G.ringByName("London", { lat: 51.5074, lon: -0.1278 }),
+    "the M25 was refused to a reader in London");
+  assert.ok(G.ringByName("Greater Toronto"), "the traced GTA boundary is unreachable by name");
+  assert.ok(G.ringByName("Toronto"), "“Greater” should not be needed to find it");
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

@@ -2094,6 +2094,34 @@
       areaKm2: 1328 }
   ];
 
+  /* A border drawn by hand is that city's border whoever asks for it.
+
+     RING_ROADS was only ever consulted through ringRoadNear, which takes a
+     position — so the hand-drawn Dubai was used for a reader standing in
+     Dubai and ignored everywhere else. Asked for by name, or offered as the
+     largest city nearby, Dubai came back as the municipality instead: 5,970
+     km2 against the 1,328 traced here, and the page was carrying the better
+     answer all along. */
+  function ringByName(name, mustContain) {
+    var want = String(name || "").toLowerCase().replace(/^greater\s+/, "").trim();
+    if (!want) return null;
+    for (var i = 0; i < RING_ROADS.length; i++) {
+      var e = RING_ROADS[i];
+      if (e.city.toLowerCase().replace(/^greater\s+/, "") !== want) continue;
+      /* Where the asking came with a position, the border has to hold it:
+         there is a London in Ontario, and the M25 is not its edge. */
+      if (mustContain && !inShape(mustContain.lat, mustContain.lon, e.shape)) return null;
+      return e;
+    }
+    return null;
+  }
+
+  function cityFromRing(entry, automatic) {
+    return { name: entry.city, area: entry.area || null, shape: entry.shape,
+             fromRing: entry.edge, ringArea: entry.areaKm2, ringTraced: true,
+             ringClosedByHand: false, ringTried: true, ringAuto: !!automatic };
+  }
+
   /* Keyed by name as well, for a city named by hand. */
   /* Only the boundaries that are an actual numbered road can be traced from
      a map server, so only those go in the by-name table. */
@@ -2673,6 +2701,10 @@
   }
 
   function cityByName(name, mustContain) {
+    /* A border drawn by hand answers to its name too. Asked for "Dubai" the
+       map server gives the Emirate; the page is carrying the city.          */
+    var curated = ringByName(name, mustContain);
+    if (curated) return Promise.resolve(cityFromRing(curated, false));
     var cacheKey = String(name).toLowerCase() + "|" + (mustContain
       ? mustContain.lat.toFixed(2) + "," + mustContain.lon.toFixed(2) : "");
     /* A copy, never the cached object. Callers annotate what they get back —
@@ -2833,6 +2865,64 @@
       });
   }
 
+  /* The district mistaken for the city, put right rather than only flagged.
+
+     Asked what city stands at a Sharjah address, the address service answers
+     "Halwan": addresstype city, place_rank 16, six square kilometres. Every
+     signal it gives is wrong in the same direction, so nothing in the answer
+     itself betrays the error. cityTooSmall catches it by size alone, and
+     until now the page did no more than say so out loud — which left a reader
+     who trusted it being told they had left town while still well inside it.
+
+     A second opinion settles it. Photon, already asked here for the cities
+     nearby, indexes place=city and place=town, and at that same address
+     answers Sharjah. The border published under that name is then fetched and
+     adopted only if all three of these hold:
+
+       - it contains the address, so it really is the city around it;
+       - it is larger than the border being doubted, so this is a promotion
+         and not a sideways move between two districts;
+       - it is not itself too big to be a city [CITY_MAX_KM2], so a district
+         is never traded for a province. That last is what declines Tokyo,
+         where the thing containing a small ward is a 42,290 km2 prefecture.
+
+     Where no candidate clears all three, the doubted border comes back
+     untouched and its warning stands, exactly as before.                    */
+  function cityAround(place, doubted) {
+    var doubtedKm2 = shapeAreaKm2(doubted.shape);
+    var mine = String(doubted.name || "").toLowerCase();
+
+    return biggestCityNearByExtent(place).then(function (near) {
+      var seen = {}, names = [];
+      [near && near.nearest, near && near.biggest].forEach(function (c) {
+        if (!c || !c.name) return;
+        var key = c.name.toLowerCase();
+        /* The same name again would only fetch the same border back: cityOf
+           has already asked for it. */
+        if (!key || key === mine || seen[key]) return;
+        seen[key] = true;
+        names.push(c.name);
+      });
+      if (!names.length) return doubted;
+
+      function tryNext(i) {
+        if (i >= names.length) return doubted;
+        return cityByName(names[i], place)
+          .then(function (found) {
+            if (!found || !found.shape) return tryNext(i + 1);
+            if (!inShape(place.lat, place.lon, found.shape)) return tryNext(i + 1);
+            var km2 = shapeAreaKm2(found.shape);
+            if (km2 <= doubtedKm2 || cityTooBig(found)) return tryNext(i + 1);
+            found.insteadOf = doubted.name;
+            found.insteadOfKm2 = Math.round(doubtedKm2);
+            return found;
+          })
+          .catch(function () { return tryNext(i + 1); });
+      }
+      return tryNext(0);
+    }).catch(function () { return doubted; });
+  }
+
   /* The city for a place, taking a ring road as the edge wherever the place
      falls inside one.
 
@@ -2846,14 +2936,13 @@
     /* No network, no waiting, nothing to fail: the ring is in the page, and
        the only question is whether the address falls inside it.             */
     if (entry && entry.shape && inShape(place.lat, place.lon, entry.shape)) {
-      return Promise.resolve({
-        name: entry.city, area: entry.area || null,
-        shape: entry.shape, fromRing: entry.edge,
-        ringArea: entry.areaKm2, ringTraced: true, ringClosedByHand: false,
-        ringTried: true, ringAuto: true
-      });
+      return Promise.resolve(cityFromRing(entry, true));
     }
     return cityOf(place).then(function (city) {
+      /* Smaller than the city it is named for: a ward or a quarter standing
+         in for the whole town. Where the city around it can be found, that
+         is the answer; where it cannot, the doubt is reported as before. */
+      if (cityTooSmall(city)) return cityAround(place, city);
       /* A region rather than a city. Where the built-up area is known, that
          is the city, and it is what the measuring runs from [1704]. Where it
          is not, the city is left as it came and showCity says so. */
@@ -4414,6 +4503,15 @@
               city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
               "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
               " km² is outlined instead."
+          /* The swap is said out loud. A reader who typed a Sharjah address
+             and is shown Sharjah would otherwise never learn that the
+             address service disagreed, and could not judge which of the two
+             is their town. */
+          : city.insteadOf ? " — the address service named <b>" + city.insteadOf +
+              "</b> at this address, whose border encloses only about " +
+              city.insteadOfKm2.toLocaleString("en-GB") + " km²: a district inside the " +
+              "city rather than the city itself. The border published for " + city.name +
+              " is outlined instead. Check it on the map."
           /* Said plainly, because it is a weaker claim than the ones above
              it. The M25 is the M25; this is whatever OpenStreetMap publishes
              under the name, which is an administrative line drawn for
@@ -5121,6 +5219,7 @@
     prayerStates: prayerStates, journeyBox: journeyBox, ringsOf: ringsOf,
     segmentsDiffer: segmentsDiffer, ringRoadNear: ringRoadNear, RING_ROADS: RING_ROADS,
     cityWithRing: cityWithRing, ringIsSound: ringIsSound,
+    cityAround: cityAround, ringByName: ringByName, cityByName: cityByName,
     pointToLineKm: pointToLineKm, roadAt: roadAt, roadsAt: roadsAt, roadsNear: roadsNear,
     snapStroke: snapStroke, roadsAlong: roadsAlong, thinStroke: thinStroke,
     roadWeight: roadWeight,
