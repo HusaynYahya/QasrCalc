@@ -51,34 +51,16 @@ var BACKOFF_MS = 30000;
 
 var retries = Object.create(null);
 
-/* A point in the middle of each, and the name a reader would type. */
-var CITIES = [
-  ["London", 51.5074, -0.1278],        ["Birmingham", 52.4862, -1.8904],
-  ["Manchester", 53.4808, -2.2426],    ["Glasgow", 55.8642, -4.2518],
-  ["Dublin", 53.3498, -6.2603],        ["Paris", 48.8566, 2.3522],
-  ["Berlin", 52.5200, 13.4050],        ["Madrid", 40.4168, -3.7038],
-  ["Rome", 41.9028, 12.4964],          ["Istanbul", 41.0082, 28.9784],
-  ["Moscow", 55.7558, 37.6173],        ["Cairo", 30.0444, 31.2357],
-  ["Riyadh", 24.7136, 46.6753],        ["Jeddah", 21.4858, 39.1925],
-  ["Doha", 25.2854, 51.5310],          ["Kuwait City", 29.3759, 47.9774],
-  ["Dubai", 25.1972, 55.2744],         ["Baghdad", 33.3152, 44.3661],
-  ["Karbala", 32.6160, 44.0249],       ["Najaf", 32.0000, 44.3350],
-  ["Tehran", 35.6892, 51.3890],        ["Mashhad", 36.2605, 59.6168],
-  ["Qom", 34.6416, 50.8746],           ["Karachi", 24.8607, 67.0011],
-  ["Lahore", 31.5204, 74.3587],        ["Mumbai", 19.0760, 72.8777],
-  ["Delhi", 28.6139, 77.2090],         ["Hyderabad", 17.3850, 78.4867],
-  ["Dhaka", 23.8103, 90.4125],         ["Kuala Lumpur", 3.1390, 101.6869],
-  ["Singapore", 1.3521, 103.8198],     ["Jakarta", -6.2088, 106.8456],
-  ["Sydney", -33.8688, 151.2093],      ["Melbourne", -37.8136, 144.9631],
-  ["Perth", -31.9505, 115.8605],       ["Auckland", -36.8485, 174.7633],
-  ["Toronto", 43.6532, -79.3832],      ["Montreal", 45.5019, -73.5674],
-  ["Vancouver", 49.2827, -123.1207],   ["New York", 40.7128, -74.0060],
-  ["Chicago", 41.8781, -87.6298],      ["Los Angeles", 34.0522, -118.2437],
-  ["Houston", 29.7604, -95.3698],      ["Detroit", 42.3314, -83.0458],
-  ["Lagos", 6.5244, 3.3792],           ["Nairobi", -1.2921, 36.8219],
-  ["Johannesburg", -26.2041, 28.0473], ["Sao Paulo", -23.5505, -46.6333],
-  ["Tokyo", 35.6762, 139.6503]
-];
+/* The list lives in sweep-cities.json, beside the run it produced, so that
+   the cities asked about and the answers recorded can never drift apart —
+   which they had: the list here still held the fifty cities of the first
+   sweep long after the file beside it had been rewritten for the diaspora. */
+var RECORD = path.join(__dirname, "sweep-cities.json");
+var CITIES = JSON.parse(fs.readFileSync(RECORD, "utf8")).map(function (c) {
+  var one = [c.asked, c.lat, c.lon];
+  one.country = c.country || null;
+  return one;
+});
 
 /* The page, with just enough of a browser round it — the same stubs the
    tests use, and a fetch that names itself. */
@@ -141,6 +123,8 @@ function verdict(r) {
      tool tested the area before the guards and reported Glasgow as having no
      border at all, because its border rounds to nought square kilometres and
      nought is falsy — hiding the fact that the page does warn about it. */
+  if (r.insteadOf) return "the city around " + r.insteadOf + " (" + r.insteadOfKm2 +
+    " km\u00b2) was taken instead";
   if (r.tooBig) return "TOO BIG, reader warned";
   if (r.tooSmall) return "TOO SMALL, reader warned" +
     (r.holdsCentre === false ? " (and it does not contain its own centre)" : "");
@@ -164,7 +148,7 @@ var out = [];
 (async function () {
   for (var i = 0; i < CITIES.length; i++) {
     var c = CITIES[i], asked = c[0], place = { lat: c[1], lon: c[2] };
-    var r = { asked: asked, lat: c[1], lon: c[2] };
+    var r = { asked: asked, country: c.country || null, lat: c[1], lon: c[2] };
     try {
       var city = await G.cityWithRing(place, false);
       r.got = city.name || null;
@@ -178,6 +162,8 @@ var out = [];
       r.holdsCentre = city.shape ? G.inShape(c[1], c[2], city.shape) : null;
       r.tooBig = G.cityTooBig(city);
       r.tooSmall = G.cityTooSmall(city);
+      r.insteadOf = city.insteadOf || null;
+      r.insteadOfKm2 = city.insteadOfKm2 == null ? null : city.insteadOfKm2;
       if (!city.shape) r.why = city.reason || null;
     } catch (err) {
       r.error = String((err && err.message) || err);
