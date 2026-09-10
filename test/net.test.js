@@ -919,6 +919,42 @@ test("the official source names the city, not the ward the point landed in", fun
   });
 });
 
+test("the smallest official area wins, not whichever is first on file", function () {
+  /* Rockingham. It has its own 53 km2 on file and sits inside the 1,723 km2
+     the statistics office draws round Perth. The lookup took the first box
+     that matched, so a reader in Rockingham was handed Perth — whose far edge
+     is eighty kilometres away, all of it deducted as still being at home. */
+  var ROCKINGHAM = { lat: -32.2767, lon: 115.7297 };
+  var TOWN = box(ROCKINGHAM.lat, ROCKINGHAM.lon, 0.06, 0.06);
+  var METRO = box(ROCKINGHAM.lat + 0.4, ROCKINGHAM.lon + 0.1, 0.6, 0.4);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      /* Perth first, exactly as sorting the file by name puts it. */
+      return reply({ areas: [
+        { name: "Perth", areaKm2: 1723, source: "the ABS", shape: METRO,
+          box: [ROCKINGHAM.lat - 0.2, ROCKINGHAM.lon - 0.3,
+                ROCKINGHAM.lat + 1.0, ROCKINGHAM.lon + 0.5] },
+        { name: "Rockingham", areaKm2: 53, source: "the JRC", shape: TOWN,
+          box: [ROCKINGHAM.lat - 0.1, ROCKINGHAM.lon - 0.1,
+                ROCKINGHAM.lat + 0.1, ROCKINGHAM.lon + 0.1] }
+      ] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Rockingham, Western Australia",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Rockingham", state: "Western Australia" }, geojson: null });
+    }
+    return reply([]);
+  });
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(ROCKINGHAM, false).then(function (city) {
+    assert.strictEqual(city.fromUrban, "Rockingham",
+      "took " + city.fromUrban + ", which is the metropolis this town sits in");
+    assert.strictEqual(city.urbanKm2, 53);
+    assert.strictEqual(G.inShape(ROCKINGHAM.lat, ROCKINGHAM.lon, city.shape), true);
+  });
+});
+
 test("a border taken from an official source is not then doubted", function () {
   /* Melbourne's urban centre is 2,885 km2 and Sydney's 2,195. Both are the
      right answer and both are near the size at which a border is called a

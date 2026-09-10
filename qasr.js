@@ -483,6 +483,24 @@
                     place.lon >= b[1] && place.lon <= b[3];
       });
 
+      /* Smallest first, because towns sit inside cities and the file holds
+         both. Rockingham has its own 53 km2 on file and sits inside the
+         1,723 km2 the statistics office draws round Perth; taking whichever
+         came first in the file meant taking Perth, whose far edge is 80 km
+         from Rockingham — so eighty kilometres of somebody else's city was
+         deducted as still being at home, and a journey well past eight
+         farsakh came out under it. Four cities were being answered that way,
+         and four more only escaped it by where their names fell in the
+         alphabet.
+
+         The smallest thing published round a reader is their town. It is the
+         same rule cityByName already applies to an emirate and the
+         municipality inside it, and unlike file order it is an answer rather
+         than an accident. */
+      maybe.sort(function (x, y) {
+        return (x.areaKm2 || Infinity) - (y.areaKm2 || Infinity);
+      });
+
       function next(i) {
         if (i >= maybe.length) return null;
         var a = maybe[i];
