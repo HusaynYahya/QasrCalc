@@ -13,14 +13,22 @@ The point of doing it this way is that the list is reproducible and the
 judgment is in one visible place, rather than spread through a hand-typed
 list nobody can audit.
 
-The coordinate is a point guaranteed to be inside the centre — its
-representative point, not its centroid, because the centroid of a horseshoe
-is outside the horseshoe.
+The coordinate has to be somewhere in the city that was named, and a point
+taken from the shape is not that. An urban centre merges everything built-up
+and touching, so the representative point of the one called "Washington"
+fell in College Park, Maryland — a real place, thirteen kilometres from the
+District, and every lookup that followed was about the wrong town.
+
+So the point is geocoded from the name and then checked against the shape:
+where the address service puts the city inside the centre that bears its
+name, that is the coordinate, and where it does not, the shape's own point is
+used and the city is marked as placed by shape rather than by name.
 ========================================================================= """
 
 import argparse, json, os, sys, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+UA = "qasrcalc-sweep/1.0 (+https://github.com/HusaynYahya/QasrCalc)"
 
 # How many cities to take from each, largest first. Roughly ordered by where
 # the Shia diaspora is; adjust and re-run.
@@ -62,6 +70,21 @@ def main():
                           "GC_CNT_GAD_2025": "country",
                           "GC_POP_TOT_2025": "pop"})
 
+    def geocoded(name, country):
+        """Where the address service puts this city. One request a second, as
+           its terms require."""
+        import time, urllib.parse, subprocess as sp
+        time.sleep(1.2)
+        url = ("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5"
+               "&accept-language=en&featureType=settlement&q=" +
+               urllib.parse.quote(name + ", " + country))
+        got = sp.run(["curl", "-s", "--max-time", "60", "-A", UA, url],
+                     capture_output=True, text=True).stdout
+        try:
+            return [(float(r["lat"]), float(r["lon"])) for r in json.loads(got)]
+        except (ValueError, KeyError, TypeError):
+            return []
+
     out, seen = [], set()
     for country, want in WANTED:
         sub = g[g["country"] == country].nlargest(want, "pop")
@@ -71,10 +94,15 @@ def main():
             if not name or key in seen:
                 continue
             seen.add(key)
-            here = r.geometry.representative_point()
+            from shapely.geometry import Point
+            here, placed = r.geometry.representative_point(), "shape"
+            for lat, lon in geocoded(name, country):
+                if r.geometry.contains(Point(lon, lat)):
+                    here, placed = Point(lon, lat), "name"
+                    break
             out.append({"asked": name, "country": country,
                         "lat": round(here.y, 4), "lon": round(here.x, 4),
-                        "verdict": "not swept yet"})
+                        "placedBy": placed, "verdict": "not swept yet"})
         print("%-16s %d" % (country, len(sub)))
 
     out.sort(key=lambda c: (c["country"], c["asked"]))

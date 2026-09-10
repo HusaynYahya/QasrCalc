@@ -18,6 +18,8 @@ them shows:
     wrong     under 0.50 against every one of them.
     adopted   taken from an official source, with nothing comparable and
               independent to check it against.
+              A source bigger than a city cannot check one either, whatever
+              it is filed under: some municipalities are regions.
     by hand   a border drawn deliberately for this app — the M25, the GTA —
               which is a decision rather than a reading, and not something a
               dataset can mark right or wrong.
@@ -60,7 +62,8 @@ except ImportError:
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from references import REFERENCES, MUNICIPAL, GLOBAL          # noqa: E402
-from borders import ask, ask_global, names_agree, overlap     # noqa: E402
+from borders import (ask, ask_global, names_agree, overlap,    # noqa: E402
+                     CITY_MAX_KM2)
 
 ROOT = os.path.dirname(HERE)
 
@@ -152,8 +155,14 @@ def main():
                 "km2": round(theirs_km2), "iou": round(iou, 3),
                 "covered": round(covered, 3), "namesAgree": agrees,
                 "adopted": adopted, "scale": scale,
-                "checks": bool(agrees and not adopted and scale in CITY_SCALE)})
-            if agrees and not adopted and scale in CITY_SCALE and iou > best:
+                "checks": bool(agrees and not adopted and scale in CITY_SCALE
+                               and theirs_km2 <= CITY_MAX_KM2)})
+            # And a region cannot check a city whatever it is filed under.
+            # Halifax's municipality is the Halifax Regional Municipality,
+            # 5,929 km2 of Nova Scotia, so the town's own 97 km2 scored 0.00
+            # against it and was called wrong for being right.
+            if (agrees and not adopted and scale in CITY_SCALE
+                    and theirs_km2 <= CITY_MAX_KM2 and iou > best):
                 best = iou
 
         row["best"] = None if best < 0 else round(best, 3)

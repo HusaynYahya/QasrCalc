@@ -2,897 +2,1025 @@
  {
   "asked": "Adelaide",
   "country": "Australia",
-  "lat": -34.889,
-  "lon": 138.5874,
+  "lat": -34.9282,
+  "lon": 138.5999,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Brisbane",
   "country": "Australia",
-  "lat": -27.5054,
-  "lon": 153.0164,
+  "lat": -27.469,
+  "lon": 153.0235,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Butler",
   "country": "Australia",
-  "lat": -31.6597,
-  "lon": 115.7054,
+  "lat": -31.6451,
+  "lon": 115.7052,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Campbelltown",
   "country": "Australia",
-  "lat": -34.0709,
-  "lon": 150.8179,
+  "lat": -34.0637,
+  "lon": 150.8206,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Geelong",
   "country": "Australia",
-  "lat": -38.1404,
-  "lon": 144.3445,
+  "lat": -38.1493,
+  "lon": 144.3598,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gold Coast",
   "country": "Australia",
-  "lat": -28.0265,
-  "lon": 153.4183,
+  "lat": -28.0024,
+  "lon": 153.4146,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Huntfield Heights",
   "country": "Australia",
-  "lat": -35.1071,
-  "lon": 138.5127,
+  "lat": -35.1523,
+  "lon": 138.5123,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Langwarrin",
   "country": "Australia",
-  "lat": -38.1315,
-  "lon": 145.15,
+  "lat": -38.1546,
+  "lon": 145.1974,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Melbourne",
   "country": "Australia",
-  "lat": -37.8483,
-  "lon": 145.0371,
+  "lat": -37.8142,
+  "lon": 144.9632,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Newcastle",
   "country": "Australia",
-  "lat": -32.9357,
-  "lon": 151.7149,
+  "lat": -32.9193,
+  "lon": 151.7795,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "North Lakes",
   "country": "Australia",
-  "lat": -27.2304,
-  "lon": 153.0113,
+  "lat": -27.2381,
+  "lon": 153.0177,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Penrith",
   "country": "Australia",
-  "lat": -33.7584,
-  "lon": 150.7197,
+  "lat": -33.7512,
+  "lon": 150.6942,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Perth",
   "country": "Australia",
-  "lat": -31.9178,
-  "lon": 115.8624,
+  "lat": -31.9559,
+  "lon": 115.8606,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Point Cook",
   "country": "Australia",
-  "lat": -37.8748,
-  "lon": 144.7173,
+  "lat": -37.9065,
+  "lon": 144.7533,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Rockingham",
   "country": "Australia",
-  "lat": -32.3141,
-  "lon": 115.7496,
+  "lat": -32.2852,
+  "lon": 115.7427,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Sunshine Coast",
   "country": "Australia",
-  "lat": -26.6938,
-  "lon": 153.0943,
+  "lat": -26.6544,
+  "lon": 153.0934,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Sydney",
   "country": "Australia",
-  "lat": -33.8712,
-  "lon": 151.0788,
+  "lat": -33.8698,
+  "lon": 151.2083,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Thuringowa Central",
   "country": "Australia",
-  "lat": -19.2876,
-  "lon": 146.7651,
+  "lat": -19.3128,
+  "lon": 146.7263,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Toowoomba",
   "country": "Australia",
-  "lat": -27.5689,
-  "lon": 151.9479,
+  "lat": -27.561,
+  "lon": 151.9534,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wollongong",
   "country": "Australia",
-  "lat": -34.4187,
-  "lon": 150.8807,
+  "lat": -34.4278,
+  "lon": 150.8931,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bregenz",
   "country": "Austria",
-  "lat": 47.4886,
-  "lon": 9.7136,
+  "lat": 47.5026,
+  "lon": 9.7473,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Graz",
   "country": "Austria",
-  "lat": 47.0534,
-  "lon": 15.4362,
+  "lat": 47.0709,
+  "lon": 15.4383,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Innsbruck",
   "country": "Austria",
-  "lat": 47.2685,
-  "lon": 11.4034,
+  "lat": 47.2654,
+  "lon": 11.3928,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Klagenfurt",
   "country": "Austria",
-  "lat": 46.6241,
-  "lon": 14.3122,
+  "lat": 46.6239,
+  "lon": 14.3076,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Linz",
   "country": "Austria",
-  "lat": 48.283,
-  "lon": 14.297,
+  "lat": 48.3059,
+  "lon": 14.2862,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Salzburg",
   "country": "Austria",
-  "lat": 47.7936,
-  "lon": 13.0482,
+  "lat": 47.7981,
+  "lon": 13.0465,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Vienna",
   "country": "Austria",
-  "lat": 48.1841,
-  "lon": 16.3673,
+  "lat": 48.2084,
+  "lon": 16.3725,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wels",
   "country": "Austria",
-  "lat": 48.1699,
-  "lon": 14.0331,
+  "lat": 48.1565,
+  "lon": 14.0244,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Antwerp",
   "country": "Belgium",
-  "lat": 51.2043,
-  "lon": 4.4492,
+  "lat": 51.2211,
+  "lon": 4.3997,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Brussels",
   "country": "Belgium",
-  "lat": 50.8674,
-  "lon": 4.3624,
+  "lat": 50.8467,
+  "lon": 4.3525,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Charleroi",
   "country": "Belgium",
-  "lat": 50.4163,
-  "lon": 4.4616,
+  "lat": 50.4116,
+  "lon": 4.4445,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ghent",
   "country": "Belgium",
-  "lat": 51.0646,
-  "lon": 3.7273,
+  "lat": 51.0538,
+  "lon": 3.725,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kortrijk",
   "country": "Belgium",
-  "lat": 50.8385,
-  "lon": 3.2638,
+  "lat": 50.8276,
+  "lon": 3.266,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "La Louvi\u00e8re",
   "country": "Belgium",
-  "lat": 50.4834,
-  "lon": 4.1943,
+  "lat": 50.4794,
+  "lon": 4.1856,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Leuven",
   "country": "Belgium",
-  "lat": 50.8914,
-  "lon": 4.7097,
+  "lat": 50.8792,
+  "lon": 4.7012,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Li\u00e8ge",
   "country": "Belgium",
-  "lat": 50.6512,
-  "lon": 5.5564,
+  "lat": 50.6451,
+  "lon": 5.5736,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ostend",
   "country": "Belgium",
-  "lat": 51.2284,
-  "lon": 2.9337,
+  "lat": 51.2259,
+  "lon": 2.9195,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Temse",
   "country": "Belgium",
-  "lat": 51.1513,
-  "lon": 4.1656,
+  "lat": 51.1254,
+  "lon": 4.2133,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Abbotsford",
   "country": "Canada",
-  "lat": 49.0488,
-  "lon": -122.3078,
+  "lat": 49.0521,
+  "lon": -122.3295,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Barrie",
   "country": "Canada",
-  "lat": 44.3768,
-  "lon": -79.6873,
+  "lat": 44.3893,
+  "lon": -79.6901,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Brantford",
   "country": "Canada",
-  "lat": 43.1513,
-  "lon": -80.2537,
+  "lat": 43.1408,
+  "lon": -80.2632,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Burlington",
   "country": "Canada",
-  "lat": 43.361,
-  "lon": -79.7885,
+  "lat": 43.3249,
+  "lon": -79.7967,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Calgary",
   "country": "Canada",
-  "lat": 51.0261,
-  "lon": -114.0928,
+  "lat": 51.0456,
+  "lon": -114.0575,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cambridge",
   "country": "Canada",
-  "lat": 43.3975,
-  "lon": -80.3298,
+  "lat": 43.3601,
+  "lon": -80.3123,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Edmonton",
   "country": "Canada",
-  "lat": 53.5352,
-  "lon": -113.5157,
+  "lat": 53.5462,
+  "lon": -113.4912,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gatineau",
   "country": "Canada",
-  "lat": 45.4917,
-  "lon": -75.6608,
+  "lat": 45.4841,
+  "lon": -75.6814,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Guelph",
   "country": "Canada",
-  "lat": 43.5435,
-  "lon": -80.2688,
+  "lat": 43.5461,
+  "lon": -80.2493,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Halifax",
   "country": "Canada",
-  "lat": 44.6617,
-  "lon": -63.5758,
+  "lat": 44.6486,
+  "lon": -63.5859,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Hamilton",
   "country": "Canada",
-  "lat": 43.2424,
-  "lon": -79.8428,
+  "lat": 43.2561,
+  "lon": -79.8729,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kitchener",
   "country": "Canada",
-  "lat": 43.4568,
-  "lon": -80.501,
+  "lat": 43.4513,
+  "lon": -80.4928,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Langley City",
   "country": "Canada",
-  "lat": 49.1057,
-  "lon": -122.7016,
+  "lat": 49.1039,
+  "lon": -122.657,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "London",
   "country": "Canada",
-  "lat": 42.9919,
-  "lon": -81.238,
+  "lat": 42.9837,
+  "lon": -81.2496,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Montreal",
   "country": "Canada",
-  "lat": 45.5379,
-  "lon": -73.6947,
+  "lat": 45.5032,
+  "lon": -73.5698,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Orl\u00e9ans",
   "country": "Canada",
-  "lat": 45.4639,
-  "lon": -75.5005,
+  "lat": 45.481,
+  "lon": -75.51,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Oshawa",
   "country": "Canada",
-  "lat": 43.9093,
-  "lon": -78.8822,
+  "lat": 43.8976,
+  "lon": -78.8635,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ottawa",
   "country": "Canada",
-  "lat": 45.3992,
-  "lon": -75.6824,
+  "lat": 45.4209,
+  "lon": -75.6901,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Pickering",
   "country": "Canada",
-  "lat": 43.8544,
-  "lon": -79.0506,
+  "lat": 43.8358,
+  "lon": -79.0906,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Quebec",
   "country": "Canada",
-  "lat": 46.8246,
-  "lon": -71.2546,
+  "lat": 46.8137,
+  "lon": -71.2084,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Red Deer",
   "country": "Canada",
-  "lat": 52.2741,
-  "lon": -113.7968,
+  "lat": 52.2691,
+  "lon": -113.8141,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Regina",
   "country": "Canada",
-  "lat": 50.4594,
-  "lon": -104.5935,
+  "lat": 50.448,
+  "lon": -104.6159,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Saskatoon",
   "country": "Canada",
-  "lat": 52.1381,
-  "lon": -106.6596,
+  "lat": 52.1318,
+  "lon": -106.6608,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "St. Catharines",
   "country": "Canada",
-  "lat": 43.1695,
-  "lon": -79.2366,
+  "lat": 43.158,
+  "lon": -79.2441,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Toronto",
   "country": "Canada",
-  "lat": 43.708,
-  "lon": -79.5337,
+  "lat": 43.6535,
+  "lon": -79.3839,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Trois-Rivi\u00e8res",
   "country": "Canada",
-  "lat": 46.3542,
-  "lon": -72.5636,
+  "lat": 46.3432,
+  "lon": -72.5428,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Vancouver",
   "country": "Canada",
-  "lat": 49.2385,
-  "lon": -122.9809,
+  "lat": 49.2609,
+  "lon": -123.114,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Victoria",
   "country": "Canada",
-  "lat": 48.4575,
-  "lon": -123.3569,
+  "lat": 48.4283,
+  "lon": -123.365,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Windsor",
   "country": "Canada",
-  "lat": 42.288,
-  "lon": -83.0166,
+  "lat": 42.2859,
+  "lon": -82.9781,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Winnipeg",
   "country": "Canada",
-  "lat": 49.8666,
-  "lon": -97.1964,
+  "lat": 49.8955,
+  "lon": -97.1385,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Aalborg",
   "country": "Denmark",
-  "lat": 57.0398,
-  "lon": 9.9212,
+  "lat": 57.0463,
+  "lon": 9.9215,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Aarhus",
   "country": "Denmark",
-  "lat": 56.1605,
-  "lon": 10.1715,
+  "lat": 56.1496,
+  "lon": 10.2134,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Copenhagen",
   "country": "Denmark",
-  "lat": 55.6934,
-  "lon": 12.5014,
+  "lat": 55.6867,
+  "lon": 12.5701,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Greve Strand",
   "country": "Denmark",
-  "lat": 55.5983,
-  "lon": 12.3323,
+  "lat": 55.5834,
+  "lon": 12.2999,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Odense",
   "country": "Denmark",
-  "lat": 55.4032,
-  "lon": 10.3881,
+  "lat": 55.3997,
+  "lon": 10.3852,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bordeaux",
   "country": "France",
-  "lat": 44.8457,
-  "lon": -0.5933,
+  "lat": 44.8412,
+  "lon": -0.58,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cergy",
   "country": "France",
-  "lat": 49.0251,
-  "lon": 2.0707,
+  "lat": 49.0528,
+  "lon": 2.0389,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Grenoble",
   "country": "France",
-  "lat": 45.1868,
-  "lon": 5.7441,
+  "lat": 45.1876,
+  "lon": 5.7358,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lille",
   "country": "France",
-  "lat": 50.6704,
-  "lon": 3.1304,
+  "lat": 50.6366,
+  "lon": 3.0635,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lyon",
   "country": "France",
-  "lat": 45.7416,
-  "lon": 4.8185,
+  "lat": 45.7578,
+  "lon": 4.832,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Marseille",
   "country": "France",
-  "lat": 43.3154,
-  "lon": 5.4177,
+  "lat": 43.2964,
+  "lon": 5.3778,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Montpellier",
   "country": "France",
-  "lat": 43.6257,
-  "lon": 3.8613,
+  "lat": 43.6112,
+  "lon": 3.8767,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nantes",
   "country": "France",
-  "lat": 47.2217,
-  "lon": -1.581,
+  "lat": 47.2186,
+  "lon": -1.5541,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nice",
   "country": "France",
-  "lat": 43.7034,
-  "lon": 7.2405,
+  "lat": 43.7009,
+  "lon": 7.2684,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Paris",
   "country": "France",
-  "lat": 48.8073,
-  "lon": 2.3823,
+  "lat": 48.8589,
+  "lon": 2.32,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Rennes",
   "country": "France",
-  "lat": 48.1228,
-  "lon": -1.656,
+  "lat": 48.1113,
+  "lon": -1.68,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Rouen",
   "country": "France",
-  "lat": 49.4286,
-  "lon": 1.0831,
+  "lat": 49.4405,
+  "lon": 1.094,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Strasbourg",
   "country": "France",
-  "lat": 48.5756,
-  "lon": 7.7264,
+  "lat": 48.5846,
+  "lon": 7.7507,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Toulon",
   "country": "France",
-  "lat": 43.1148,
-  "lon": 5.8859,
+  "lat": 43.1257,
+  "lon": 5.9305,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Toulouse",
   "country": "France",
-  "lat": 43.6257,
-  "lon": 1.4274,
+  "lat": 43.6045,
+  "lon": 1.4442,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Augsburg",
   "country": "Germany",
-  "lat": 48.3537,
-  "lon": 10.8979,
+  "lat": 48.369,
+  "lon": 10.898,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Berlin",
   "country": "Germany",
-  "lat": 52.5175,
-  "lon": 13.4058,
+  "lat": 52.5174,
+  "lon": 13.3951,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bonn",
   "country": "Germany",
-  "lat": 50.7857,
-  "lon": 7.1408,
+  "lat": 50.7353,
+  "lon": 7.1025,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bremen",
   "country": "Germany",
-  "lat": 53.0937,
-  "lon": 8.8249,
+  "lat": 53.0758,
+  "lon": 8.8072,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cologne",
   "country": "Germany",
-  "lat": 50.9876,
-  "lon": 7.0072,
+  "lat": 50.9384,
+  "lon": 6.96,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dortmund",
   "country": "Germany",
-  "lat": 51.5228,
-  "lon": 7.4414,
+  "lat": 51.5142,
+  "lon": 7.4653,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dresden",
   "country": "Germany",
-  "lat": 51.055,
-  "lon": 13.7539,
+  "lat": 51.0493,
+  "lon": 13.7381,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dusseldorf",
   "country": "Germany",
-  "lat": 51.1947,
-  "lon": 6.7665,
+  "lat": 51.2254,
+  "lon": 6.7763,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Essen",
   "country": "Germany",
-  "lat": 51.489,
-  "lon": 6.9818,
+  "lat": 51.4582,
+  "lon": 7.0158,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Frankfurt",
   "country": "Germany",
-  "lat": 50.1388,
-  "lon": 8.6797,
+  "lat": 50.1106,
+  "lon": 8.6821,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Hamburg",
   "country": "Germany",
-  "lat": 53.5843,
-  "lon": 9.9816,
+  "lat": 53.5502,
+  "lon": 10.0013,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Hanover",
   "country": "Germany",
-  "lat": 52.3714,
-  "lon": 9.7583,
+  "lat": 52.3745,
+  "lon": 9.7386,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Karlsruhe",
   "country": "Germany",
-  "lat": 49.0109,
-  "lon": 8.3983,
+  "lat": 49.0069,
+  "lon": 8.4034,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Leipzig",
   "country": "Germany",
-  "lat": 51.3297,
-  "lon": 12.367,
+  "lat": 51.3406,
+  "lon": 12.3747,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mannheim",
   "country": "Germany",
-  "lat": 49.4761,
-  "lon": 8.4679,
+  "lat": 49.4893,
+  "lon": 8.4673,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Munich",
   "country": "Germany",
-  "lat": 48.1417,
-  "lon": 11.5564,
+  "lat": 48.1371,
+  "lon": 11.5754,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nuremberg",
   "country": "Germany",
-  "lat": 49.4428,
-  "lon": 11.0356,
+  "lat": 49.4539,
+  "lon": 11.0773,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Stuttgart",
   "country": "Germany",
-  "lat": 48.8167,
-  "lon": 9.2129,
+  "lat": 48.7784,
+  "lon": 9.18,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wiesbaden",
   "country": "Germany",
-  "lat": 50.0289,
-  "lon": 8.2463,
+  "lat": 50.082,
+  "lon": 8.2417,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wuppertal",
   "country": "Germany",
-  "lat": 51.1995,
-  "lon": 7.0609,
+  "lat": 51.264,
+  "lon": 7.178,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Blanchardstown",
   "country": "Ireland",
-  "lat": 53.3977,
-  "lon": -6.4107,
+  "lat": 53.3845,
+  "lon": -6.3829,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cork",
   "country": "Ireland",
-  "lat": 51.8955,
-  "lon": -8.4582,
+  "lat": 51.8985,
+  "lon": -8.4726,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dublin",
   "country": "Ireland",
-  "lat": 53.3241,
-  "lon": -6.3279,
+  "lat": 53.3494,
+  "lon": -6.2606,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Galway",
   "country": "Ireland",
-  "lat": 53.2701,
-  "lon": -9.0474,
+  "lat": 53.2744,
+  "lon": -9.0491,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Swords",
   "country": "Ireland",
-  "lat": 53.4566,
-  "lon": -6.2093,
+  "lat": 53.4595,
+  "lon": -6.2192,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bergamo",
   "country": "Italy",
-  "lat": 45.6953,
-  "lon": 9.6507,
+  "lat": 45.6945,
+  "lon": 9.6699,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bologna",
   "country": "Italy",
-  "lat": 44.5054,
-  "lon": 11.3416,
+  "lat": 44.4938,
+  "lon": 11.3426,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Catania",
   "country": "Italy",
-  "lat": 37.5301,
-  "lon": 15.0716,
+  "lat": 37.5024,
+  "lon": 15.0874,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Florence",
   "country": "Italy",
-  "lat": 43.836,
-  "lon": 11.1633,
+  "lat": 43.7698,
+  "lon": 11.2556,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Genoa",
   "country": "Italy",
-  "lat": 44.4227,
-  "lon": 8.8585,
+  "lat": 44.4073,
+  "lon": 8.9339,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Milan",
   "country": "Italy",
-  "lat": 45.5564,
-  "lon": 9.1935,
+  "lat": 45.4642,
+  "lon": 9.1896,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Naples",
   "country": "Italy",
-  "lat": 40.8528,
-  "lon": 14.2779,
+  "lat": 40.8359,
+  "lon": 14.2488,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Palermo",
   "country": "Italy",
-  "lat": 38.1404,
-  "lon": 13.337,
+  "lat": 38.1112,
+  "lon": 13.3524,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Rome",
   "country": "Italy",
-  "lat": 41.8761,
-  "lon": 12.5494,
+  "lat": 41.8933,
+  "lon": 12.4829,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Turin",
   "country": "Italy",
-  "lat": 45.0669,
-  "lon": 7.6198,
+  "lat": 45.0678,
+  "lon": 7.6825,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dadaab",
   "country": "Kenya",
   "lat": 0.0526,
-  "lon": 40.3052,
+  "lon": 40.3076,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "El Wak",
   "country": "Kenya",
-  "lat": 2.8069,
-  "lon": 40.9292,
+  "lat": 2.8076,
+  "lon": 40.9288,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Eldoret",
   "country": "Kenya",
-  "lat": 0.5217,
-  "lon": 35.2773,
+  "lat": 0.5198,
+  "lon": 35.2715,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Embu",
   "country": "Kenya",
-  "lat": -0.4893,
-  "lon": 37.4724,
+  "lat": -0.5377,
+  "lon": 37.4584,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Garissa",
   "country": "Kenya",
-  "lat": -0.457,
-  "lon": 39.6525,
+  "lat": -0.4567,
+  "lon": 39.6405,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
@@ -900,90 +1028,103 @@
   "country": "Kenya",
   "lat": 0.0,
   "lon": 40.3701,
+  "placedBy": "shape",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kisii",
   "country": "Kenya",
-  "lat": -0.6592,
-  "lon": 34.769,
+  "lat": -0.6694,
+  "lon": 34.7678,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kisumu",
   "country": "Kenya",
-  "lat": -0.093,
-  "lon": 34.7726,
+  "lat": -0.1029,
+  "lon": 34.7542,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kitale",
   "country": "Kenya",
-  "lat": 1.0312,
-  "lon": 35.0005,
+  "lat": 1.0181,
+  "lon": 35.0002,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mombasa",
   "country": "Kenya",
-  "lat": -4.0492,
-  "lon": 39.6629,
+  "lat": -4.0505,
+  "lon": 39.6672,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nairobi",
   "country": "Kenya",
-  "lat": -1.2375,
-  "lon": 36.8133,
+  "lat": -1.289,
+  "lon": 36.8173,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Naivasha",
   "country": "Kenya",
-  "lat": -0.7036,
-  "lon": 36.4505,
+  "lat": -0.7224,
+  "lon": 36.4388,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nakuru",
   "country": "Kenya",
-  "lat": -0.279,
-  "lon": 36.1048,
+  "lat": -0.2803,
+  "lon": 36.0712,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ongata Rongai",
   "country": "Kenya",
-  "lat": -1.3911,
-  "lon": 36.7448,
+  "lat": -1.396,
+  "lon": 36.752,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wajir",
   "country": "Kenya",
-  "lat": 1.7511,
-  "lon": 40.0523,
+  "lat": 1.7505,
+  "lon": 40.0595,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ambano",
   "country": "Madagascar",
-  "lat": -19.784,
-  "lon": 47.0551,
+  "lat": -19.7969,
+  "lon": 47.0478,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ambatolahy II",
   "country": "Madagascar",
-  "lat": -21.497,
-  "lon": 47.0714,
+  "lat": -21.4944,
+  "lon": 47.0749,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Ambovombe",
   "country": "Madagascar",
-  "lat": -25.1863,
-  "lon": 46.0904,
+  "lat": -25.1784,
+  "lon": 46.0877,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
@@ -991,195 +1132,223 @@
   "country": "Madagascar",
   "lat": -15.7665,
   "lon": 46.4102,
+  "placedBy": "shape",
   "verdict": "not swept yet"
  },
  {
   "asked": "Antananarivo",
   "country": "Madagascar",
-  "lat": -18.8827,
-  "lon": 47.5399,
+  "lat": -18.91,
+  "lon": 47.5256,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Antetezambaro",
   "country": "Madagascar",
-  "lat": -17.9956,
-  "lon": 49.4158,
+  "lat": -18.012,
+  "lon": 49.4034,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Antsiramandroso",
   "country": "Madagascar",
-  "lat": -18.0574,
-  "lon": 49.3802,
+  "lat": -18.0196,
+  "lon": 49.2946,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mahajanga",
   "country": "Madagascar",
-  "lat": -15.7132,
-  "lon": 46.3362,
+  "lat": -15.7181,
+  "lon": 46.3173,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Almere",
   "country": "Netherlands",
-  "lat": 52.3811,
-  "lon": 5.2364,
+  "lat": 52.3705,
+  "lon": 5.2186,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Amersfoort",
   "country": "Netherlands",
-  "lat": 52.1623,
-  "lon": 5.3893,
+  "lat": 52.1638,
+  "lon": 5.4089,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Amsterdam",
   "country": "Netherlands",
-  "lat": 52.3714,
-  "lon": 4.8893,
+  "lat": 52.3731,
+  "lon": 4.8925,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Arnhem",
   "country": "Netherlands",
-  "lat": 51.9585,
-  "lon": 5.8869,
+  "lat": 51.9843,
+  "lon": 5.9109,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dordrecht",
   "country": "Netherlands",
-  "lat": 51.8179,
-  "lon": 4.6962,
+  "lat": 51.8144,
+  "lon": 4.6692,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Eindhoven",
   "country": "Netherlands",
-  "lat": 51.4455,
-  "lon": 5.4628,
+  "lat": 51.4393,
+  "lon": 5.4786,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Haarlem",
   "country": "Netherlands",
-  "lat": 52.3763,
-  "lon": 4.6384,
+  "lat": 52.3837,
+  "lon": 4.6436,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Leiden",
   "country": "Netherlands",
-  "lat": 52.1769,
-  "lon": 4.4762,
+  "lat": 52.1595,
+  "lon": 4.4909,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nijmegen",
   "country": "Netherlands",
-  "lat": 51.8276,
-  "lon": 5.8154,
+  "lat": 51.8475,
+  "lon": 5.8638,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Rotterdam",
   "country": "Netherlands",
-  "lat": 51.973,
-  "lon": 4.5444,
+  "lat": 51.9244,
+  "lon": 4.4778,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tilburg",
   "country": "Netherlands",
-  "lat": 51.5567,
-  "lon": 5.0751,
+  "lat": 51.5856,
+  "lon": 5.0661,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Utrecht",
   "country": "Netherlands",
-  "lat": 52.0798,
-  "lon": 5.0855,
+  "lat": 52.0907,
+  "lon": 5.1216,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Auckland",
   "country": "New Zealand",
-  "lat": -36.8821,
-  "lon": 174.7685,
+  "lat": -36.8521,
+  "lon": 174.7632,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Christchurch",
   "country": "New Zealand",
-  "lat": -43.5253,
-  "lon": 172.6153,
+  "lat": -43.531,
+  "lon": 172.6364,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dunedin",
   "country": "New Zealand",
-  "lat": -45.8898,
-  "lon": 170.5064,
+  "lat": -45.8741,
+  "lon": 170.5036,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Hamilton",
   "country": "New Zealand",
-  "lat": -37.7775,
-  "lon": 175.2659,
+  "lat": -37.7879,
+  "lon": 175.2818,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lower Hutt",
   "country": "New Zealand",
-  "lat": -41.2308,
-  "lon": 174.9056,
+  "lat": -41.2126,
+  "lon": 174.9058,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Palmerston North",
   "country": "New Zealand",
-  "lat": -40.3502,
-  "lon": 175.6092,
+  "lat": -40.3563,
+  "lon": 175.6112,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tauranga",
   "country": "New Zealand",
-  "lat": -37.6891,
-  "lon": 176.1506,
+  "lat": -37.6859,
+  "lon": 176.1675,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wellington",
   "country": "New Zealand",
-  "lat": -41.2983,
-  "lon": 174.7925,
+  "lat": -41.2888,
+  "lon": 174.7772,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bergen",
   "country": "Norway",
-  "lat": 60.4064,
-  "lon": 5.315,
+  "lat": 60.3943,
+  "lon": 5.3259,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Drammen",
   "country": "Norway",
-  "lat": 59.7464,
-  "lon": 10.2037,
+  "lat": 59.7437,
+  "lon": 10.2044,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Fredrikstad",
   "country": "Norway",
-  "lat": 59.2156,
-  "lon": 10.945,
+  "lat": 59.2134,
+  "lon": 10.9362,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
@@ -1187,153 +1356,175 @@
   "country": "Norway",
   "lat": 60.3013,
   "lon": 5.3119,
+  "placedBy": "shape",
   "verdict": "not swept yet"
  },
  {
   "asked": "Oslo",
   "country": "Norway",
-  "lat": 59.8822,
-  "lon": 10.7763,
+  "lat": 59.9133,
+  "lon": 10.739,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Stavanger",
   "country": "Norway",
-  "lat": 58.9099,
-  "lon": 5.7323,
+  "lat": 58.97,
+  "lon": 5.7318,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Troms\u00f8",
   "country": "Norway",
-  "lat": 69.6656,
-  "lon": 18.941,
+  "lat": 69.6516,
+  "lon": 18.9559,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Trondheim",
   "country": "Norway",
-  "lat": 63.429,
-  "lon": 10.4305,
+  "lat": 63.4304,
+  "lon": 10.3952,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bloemfontein",
   "country": "South Africa",
-  "lat": -29.1526,
-  "lon": 26.2314,
+  "lat": -29.1164,
+  "lon": 26.2155,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cape Town",
   "country": "South Africa",
-  "lat": -33.9536,
-  "lon": 18.5874,
+  "lat": -33.9288,
+  "lon": 18.4172,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Chief Albert Luthuli Park",
   "country": "South Africa",
-  "lat": -26.1287,
-  "lon": 28.4461,
+  "lat": -26.1593,
+  "lon": 28.3811,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Durban",
   "country": "South Africa",
-  "lat": -29.8603,
-  "lon": 30.8247,
+  "lat": -29.8618,
+  "lon": 31.0099,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Evaton",
   "country": "South Africa",
-  "lat": -26.5292,
-  "lon": 27.8552,
+  "lat": -26.5297,
+  "lon": 27.8514,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gqeberha",
   "country": "South Africa",
-  "lat": -33.9102,
-  "lon": 25.5762,
+  "lat": -33.9619,
+  "lon": 25.6187,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Johannesburg",
   "country": "South Africa",
-  "lat": -26.1792,
-  "lon": 28.0376,
+  "lat": -26.205,
+  "lon": 28.0497,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Masetjhaba View",
   "country": "South Africa",
-  "lat": -26.3479,
-  "lon": 28.3779,
+  "lat": -26.3897,
+  "lon": 28.3914,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Pietermaritzburg",
   "country": "South Africa",
-  "lat": -29.6214,
-  "lon": 30.3819,
+  "lat": -29.6,
+  "lon": 30.3789,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Polokwane",
   "country": "South Africa",
-  "lat": -23.8615,
-  "lon": 29.393,
+  "lat": -23.9058,
+  "lon": 29.4614,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Pretoria",
   "country": "South Africa",
-  "lat": -25.7581,
-  "lon": 28.2149,
+  "lat": -25.7459,
+  "lon": 28.1879,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Soshanguve",
   "country": "South Africa",
-  "lat": -25.4805,
-  "lon": 28.052,
+  "lat": -25.5264,
+  "lon": 28.0994,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Alicante",
   "country": "Spain",
-  "lat": 38.3664,
-  "lon": -0.4584,
+  "lat": 38.3436,
+  "lon": -0.4882,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Barcelona",
   "country": "Spain",
-  "lat": 41.4471,
-  "lon": 2.2082,
+  "lat": 41.3826,
+  "lon": 2.1771,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bilbao",
   "country": "Spain",
-  "lat": 43.2971,
-  "lon": -2.9971,
+  "lat": 43.263,
+  "lon": -2.935,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Las Palmas de Gran Canaria",
   "country": "Spain",
-  "lat": 28.1156,
-  "lon": -15.4376,
+  "lat": 28.1289,
+  "lon": -15.4349,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Madrid",
   "country": "Spain",
-  "lat": 40.4039,
-  "lon": -3.6815,
+  "lat": 40.4168,
+  "lon": -3.7035,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
@@ -1341,314 +1532,359 @@
   "country": "Spain",
   "lat": 36.7193,
   "lon": -4.4238,
+  "placedBy": "shape",
   "verdict": "not swept yet"
  },
  {
   "asked": "Palma de Mallorca",
   "country": "Spain",
-  "lat": 39.563,
-  "lon": 2.6505,
+  "lat": 39.5696,
+  "lon": 2.6501,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Seville",
   "country": "Spain",
-  "lat": 37.3889,
-  "lon": -5.9559,
+  "lat": 37.3886,
+  "lon": -5.9953,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Valencia",
   "country": "Spain",
-  "lat": 39.4515,
-  "lon": -0.3808,
+  "lat": 39.4697,
+  "lon": -0.3763,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Zaragoza",
   "country": "Spain",
-  "lat": 41.6547,
-  "lon": -0.891,
+  "lat": 41.6521,
+  "lon": -0.8809,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gothenburg",
   "country": "Sweden",
-  "lat": 57.7223,
-  "lon": 11.9836,
+  "lat": 57.7072,
+  "lon": 11.967,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Handen",
   "country": "Sweden",
-  "lat": 59.2208,
-  "lon": 18.1777,
+  "lat": 59.1676,
+  "lon": 18.1409,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Helsingborg",
   "country": "Sweden",
-  "lat": 56.0397,
-  "lon": 12.716,
+  "lat": 56.0442,
+  "lon": 12.7037,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Link\u00f6ping",
   "country": "Sweden",
-  "lat": 58.4094,
-  "lon": 15.6038,
+  "lat": 58.4098,
+  "lon": 15.6245,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lund",
   "country": "Sweden",
-  "lat": 55.7035,
-  "lon": 13.2036,
+  "lat": 55.7029,
+  "lon": 13.1929,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Malmo",
   "country": "Sweden",
-  "lat": 55.6083,
-  "lon": 13.0263,
+  "lat": 55.6053,
+  "lon": 13.0002,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Norrk\u00f6ping",
   "country": "Sweden",
-  "lat": 58.5897,
-  "lon": 16.188,
+  "lat": 58.5909,
+  "lon": 16.1904,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Stockholm",
   "country": "Sweden",
-  "lat": 59.3506,
-  "lon": 18.0163,
+  "lat": 59.3251,
+  "lon": 18.0711,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "S\u00f6dert\u00e4lje",
   "country": "Sweden",
-  "lat": 59.1948,
-  "lon": 17.6146,
+  "lat": 59.1964,
+  "lon": 17.6272,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Uppsala",
   "country": "Sweden",
-  "lat": 59.8509,
-  "lon": 17.6423,
+  "lat": 59.8586,
+  "lon": 17.6387,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "V\u00e4ster\u00e5s",
   "country": "Sweden",
-  "lat": 59.6212,
-  "lon": 16.5549,
+  "lat": 59.6111,
+  "lon": 16.5464,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "\u00d6rebro",
   "country": "Sweden",
-  "lat": 59.2883,
-  "lon": 15.1964,
+  "lat": 59.2747,
+  "lon": 15.2151,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Basel",
   "country": "Switzerland",
-  "lat": 47.5261,
-  "lon": 7.5896,
+  "lat": 47.5581,
+  "lon": 7.5878,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bern",
   "country": "Switzerland",
-  "lat": 46.946,
-  "lon": 7.4425,
+  "lat": 46.9485,
+  "lon": 7.4522,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Biel/Bienne",
   "country": "Switzerland",
-  "lat": 47.1375,
-  "lon": 7.2564,
+  "lat": 47.1402,
+  "lon": 7.2439,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Geneva",
   "country": "Switzerland",
-  "lat": 46.2054,
-  "lon": 6.1553,
+  "lat": 46.2018,
+  "lon": 6.1466,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lausanne",
   "country": "Switzerland",
-  "lat": 46.531,
-  "lon": 6.6067,
+  "lat": 46.5218,
+  "lon": 6.6327,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lucerne",
   "country": "Switzerland",
-  "lat": 47.0581,
-  "lon": 8.2889,
+  "lat": 47.0521,
+  "lon": 8.3058,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lugano",
   "country": "Switzerland",
-  "lat": 46.0151,
-  "lon": 8.9532,
+  "lat": 46.0038,
+  "lon": 8.9512,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Montreux",
   "country": "Switzerland",
-  "lat": 46.4565,
-  "lon": 6.8716,
+  "lat": 46.4311,
+  "lon": 6.913,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Winterthur",
   "country": "Switzerland",
-  "lat": 47.5027,
-  "lon": 8.7469,
+  "lat": 47.4992,
+  "lon": 8.7291,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Zurich",
   "country": "Switzerland",
-  "lat": 47.3481,
-  "lon": 8.5464,
+  "lat": 47.3744,
+  "lon": 8.541,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Arusha",
   "country": "Tanzania",
-  "lat": -3.3774,
-  "lon": 36.7077,
+  "lat": -3.3697,
+  "lon": 36.6881,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dar es-Salaam",
   "country": "Tanzania",
-  "lat": -6.7957,
-  "lon": 39.1681,
+  "lat": -6.8161,
+  "lon": 39.2804,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dodoma",
   "country": "Tanzania",
-  "lat": -6.1714,
-  "lon": 35.7536,
+  "lat": -6.1791,
+  "lon": 35.7468,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Iringa",
   "country": "Tanzania",
-  "lat": -7.7693,
-  "lon": 35.6884,
+  "lat": -7.7789,
+  "lon": 35.6971,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kasulu",
   "country": "Tanzania",
-  "lat": -4.5714,
-  "lon": 30.1072,
+  "lat": -4.5774,
+  "lon": 30.0992,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kigoma",
   "country": "Tanzania",
-  "lat": -4.871,
-  "lon": 29.6452,
+  "lat": -4.8779,
+  "lon": 29.6296,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mbeya",
   "country": "Tanzania",
-  "lat": -8.9102,
-  "lon": 33.4859,
+  "lat": -8.9065,
+  "lon": 33.4687,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Morogoro",
   "country": "Tanzania",
-  "lat": -6.7917,
-  "lon": 37.6648,
+  "lat": -6.8162,
+  "lon": 37.6694,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Moshi",
   "country": "Tanzania",
-  "lat": -3.345,
-  "lon": 37.3512,
+  "lat": -3.3486,
+  "lon": 37.3435,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Musoma",
   "country": "Tanzania",
-  "lat": -1.5165,
-  "lon": 33.802,
+  "lat": -1.4998,
+  "lon": 33.8083,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mwanza",
   "country": "Tanzania",
-  "lat": -2.552,
-  "lon": 32.9468,
+  "lat": -2.5197,
+  "lon": 32.9014,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Songea",
   "country": "Tanzania",
-  "lat": -10.6629,
-  "lon": 35.6476,
+  "lat": -10.6787,
+  "lon": 35.6484,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tabora",
   "country": "Tanzania",
-  "lat": -5.029,
-  "lon": 32.8151,
+  "lat": -5.0202,
+  "lon": 32.8098,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tanga",
   "country": "Tanzania",
-  "lat": -5.0938,
-  "lon": 39.1085,
+  "lat": -5.0722,
+  "lon": 39.0993,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Zanzibar City",
   "country": "Tanzania",
-  "lat": -6.139,
-  "lon": 39.2319,
+  "lat": -6.1665,
+  "lon": 39.2074,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Arua",
   "country": "Uganda",
-  "lat": 3.0132,
-  "lon": 30.9126,
+  "lat": 3.0225,
+  "lon": 30.9105,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bukalasi",
   "country": "Uganda",
-  "lat": 1.0069,
-  "lon": 34.3518,
+  "lat": 1.0067,
+  "lon": 34.4022,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gulu",
   "country": "Uganda",
-  "lat": 2.7664,
-  "lon": 32.2863,
+  "lat": 2.7702,
+  "lon": 32.3044,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
@@ -1656,678 +1892,775 @@
   "country": "Uganda",
   "lat": 0.6187,
   "lon": 33.4816,
+  "placedBy": "shape",
   "verdict": "not swept yet"
  },
  {
   "asked": "Jinja",
   "country": "Uganda",
-  "lat": 0.465,
-  "lon": 33.2317,
+  "lat": 0.4353,
+  "lon": 33.2056,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Kampala",
   "country": "Uganda",
-  "lat": 0.2588,
-  "lon": 32.5377,
+  "lat": 0.3177,
+  "lon": 32.5814,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Lira",
   "country": "Uganda",
-  "lat": 2.2446,
-  "lon": 32.8873,
+  "lat": 2.2457,
+  "lon": 32.8962,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Masaka",
   "country": "Uganda",
-  "lat": -0.3316,
-  "lon": 31.7446,
+  "lat": -0.339,
+  "lon": 31.7466,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mbale City",
   "country": "Uganda",
-  "lat": 1.0878,
-  "lon": 34.2226,
+  "lat": 1.0712,
+  "lon": 34.175,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mbarara",
   "country": "Uganda",
-  "lat": -0.6106,
-  "lon": 30.6578,
+  "lat": -0.6108,
+  "lon": 30.6533,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Aberdeen",
   "country": "United Kingdom",
-  "lat": 57.1363,
-  "lon": -2.1075,
+  "lat": 57.1482,
+  "lon": -2.0928,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Belfast",
   "country": "United Kingdom",
-  "lat": 54.6215,
-  "lon": -5.9133,
+  "lat": 54.5964,
+  "lon": -5.9302,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Birmingham",
   "country": "United Kingdom",
-  "lat": 52.5175,
-  "lon": -1.9598,
+  "lat": 52.4949,
+  "lon": -1.8518,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Blackpool",
   "country": "United Kingdom",
-  "lat": 53.8403,
-  "lon": -3.0255,
+  "lat": 53.8179,
+  "lon": -3.051,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bournemouth",
   "country": "United Kingdom",
-  "lat": 50.7377,
-  "lon": -1.9118,
+  "lat": 50.7202,
+  "lon": -1.8799,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Brighton",
   "country": "United Kingdom",
-  "lat": 50.8337,
-  "lon": -0.2592,
+  "lat": 50.8215,
+  "lon": -0.1401,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bristol",
   "country": "United Kingdom",
-  "lat": 51.4793,
-  "lon": -2.5885,
+  "lat": 51.443,
+  "lon": -2.5817,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cardiff",
   "country": "United Kingdom",
-  "lat": 51.489,
-  "lon": -3.179,
+  "lat": 51.4817,
+  "lon": -3.1792,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Coventry",
   "country": "United Kingdom",
-  "lat": 52.4298,
-  "lon": -1.502,
+  "lat": 52.4082,
+  "lon": -1.5105,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Derby",
   "country": "United Kingdom",
-  "lat": 52.9176,
-  "lon": -1.4784,
+  "lat": 52.9142,
+  "lon": -1.472,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Edinburgh",
   "country": "United Kingdom",
-  "lat": 55.9493,
-  "lon": -3.1707,
+  "lat": 55.9533,
+  "lon": -3.1884,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Gillingham",
   "country": "United Kingdom",
-  "lat": 51.3731,
-  "lon": 0.5558,
+  "lat": 51.3872,
+  "lon": 0.5462,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Glasgow",
   "country": "United Kingdom",
-  "lat": 55.8589,
-  "lon": -4.2763,
+  "lat": 55.8612,
+  "lon": -4.2502,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Grays",
   "country": "United Kingdom",
-  "lat": 51.4697,
-  "lon": 0.3084,
+  "lat": 51.4781,
+  "lon": 0.3233,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Hull",
   "country": "United Kingdom",
-  "lat": 53.7713,
-  "lon": -0.3466,
+  "lat": 53.7624,
+  "lon": -0.3301,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Leeds",
   "country": "United Kingdom",
-  "lat": 53.7959,
-  "lon": -1.6296,
+  "lat": 53.7974,
+  "lon": -1.5438,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Leicester",
   "country": "United Kingdom",
-  "lat": 52.6393,
-  "lon": -1.1248,
+  "lat": 52.6362,
+  "lon": -1.1332,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Liverpool",
   "country": "United Kingdom",
-  "lat": 53.4173,
-  "lon": -2.9512,
+  "lat": 53.3933,
+  "lon": -2.9166,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "London",
   "country": "United Kingdom",
-  "lat": 51.5373,
-  "lon": -0.1275,
+  "lat": 51.5074,
+  "lon": -0.1278,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Luton",
   "country": "United Kingdom",
-  "lat": 51.8955,
-  "lon": -0.4519,
+  "lat": 51.8911,
+  "lon": -0.423,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Manchester",
   "country": "United Kingdom",
-  "lat": 53.486,
-  "lon": -2.2087,
+  "lat": 53.4425,
+  "lon": -2.2325,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Middlesbrough",
   "country": "United Kingdom",
-  "lat": 54.5719,
-  "lon": -1.2421,
+  "lat": 54.576,
+  "lon": -1.2344,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Milton Keynes",
   "country": "United Kingdom",
-  "lat": 52.0313,
-  "lon": -0.7704,
+  "lat": 52.0407,
+  "lon": -0.7594,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Newcastle upon Tyne",
   "country": "United Kingdom",
-  "lat": 54.9892,
-  "lon": -1.554,
+  "lat": 54.9738,
+  "lon": -1.6132,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Northampton",
   "country": "United Kingdom",
-  "lat": 52.2352,
-  "lon": -0.9082,
+  "lat": 52.2379,
+  "lon": -0.8964,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Norwich",
   "country": "United Kingdom",
-  "lat": 52.6442,
-  "lon": 1.2885,
+  "lat": 52.6286,
+  "lon": 1.2924,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Nottingham",
   "country": "United Kingdom",
-  "lat": 52.9714,
-  "lon": -1.1508,
+  "lat": 52.9534,
+  "lon": -1.1496,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Peterborough",
   "country": "United Kingdom",
-  "lat": 52.5759,
-  "lon": -0.252,
+  "lat": 52.5726,
+  "lon": -0.2427,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Plymouth",
   "country": "United Kingdom",
-  "lat": 50.3876,
-  "lon": -4.156,
+  "lat": 50.3714,
+  "lon": -4.1424,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Portsmouth",
   "country": "United Kingdom",
-  "lat": 50.8433,
-  "lon": -1.1035,
+  "lat": 50.8,
+  "lon": -1.0906,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Preston",
   "country": "United Kingdom",
-  "lat": 53.7418,
-  "lon": -2.7022,
+  "lat": 53.7593,
+  "lon": -2.6993,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Reading",
   "country": "United Kingdom",
-  "lat": 51.4455,
-  "lon": -0.9719,
+  "lat": 51.4564,
+  "lon": -0.9701,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Sheffield",
   "country": "United Kingdom",
-  "lat": 53.3878,
-  "lon": -1.4543,
+  "lat": 53.3807,
+  "lon": -1.4702,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Southampton",
   "country": "United Kingdom",
-  "lat": 50.901,
-  "lon": -1.3905,
+  "lat": 50.9025,
+  "lon": -1.4042,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Southend-on-Sea",
   "country": "United Kingdom",
-  "lat": 51.5663,
-  "lon": 0.6244,
+  "lat": 51.5388,
+  "lon": 0.7128,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Stoke-on-Trent",
   "country": "United Kingdom",
-  "lat": 53.0203,
-  "lon": -2.1867,
+  "lat": 53.0162,
+  "lon": -2.1813,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Sunderland",
   "country": "United Kingdom",
-  "lat": 54.9096,
-  "lon": -1.4039,
+  "lat": 54.9059,
+  "lon": -1.3829,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Swindon",
   "country": "United Kingdom",
-  "lat": 51.576,
-  "lon": -1.7862,
+  "lat": 51.5615,
+  "lon": -1.7854,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Wakefield",
   "country": "United Kingdom",
-  "lat": 53.7024,
-  "lon": -1.655,
+  "lat": 53.683,
+  "lon": -1.4967,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Walton-on-Thames",
   "country": "United Kingdom",
-  "lat": 51.3538,
-  "lon": -0.4887,
+  "lat": 51.3857,
+  "lon": -0.4198,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Albuquerque",
   "country": "United States",
-  "lat": 35.1246,
-  "lon": -106.5842,
+  "lat": 35.0841,
+  "lon": -106.651,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Arlington",
   "country": "United States",
-  "lat": 32.6937,
-  "lon": -97.106,
+  "lat": 32.7356,
+  "lon": -97.1071,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Atlanta",
   "country": "United States",
-  "lat": 33.7974,
-  "lon": -84.3091,
+  "lat": 33.7545,
+  "lon": -84.3898,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Austin",
   "country": "United States",
-  "lat": 30.3646,
-  "lon": -97.7149,
+  "lat": 30.2711,
+  "lon": -97.7437,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Bakersfield",
   "country": "United States",
-  "lat": 35.3648,
-  "lon": -119.0391,
+  "lat": 35.3739,
+  "lon": -119.0195,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Baltimore",
   "country": "United States",
-  "lat": 39.3222,
-  "lon": -76.6411,
+  "lat": 39.2909,
+  "lon": -76.6108,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Boston",
   "country": "United States",
-  "lat": 42.3696,
-  "lon": -71.1118,
+  "lat": 42.3588,
+  "lon": -71.0578,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Buffalo",
   "country": "United States",
-  "lat": 42.9146,
-  "lon": -78.7881,
+  "lat": 42.8864,
+  "lon": -78.8781,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Chicago",
   "country": "United States",
-  "lat": 41.8625,
-  "lon": -87.8159,
+  "lat": 41.8756,
+  "lon": -87.6244,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Cleveland",
   "country": "United States",
-  "lat": 41.4922,
-  "lon": -81.6248,
+  "lat": 41.4997,
+  "lon": -81.6937,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Colorado Springs",
   "country": "United States",
-  "lat": 38.886,
-  "lon": -104.7661,
+  "lat": 38.834,
+  "lon": -104.8253,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Columbus",
   "country": "United States",
-  "lat": 40.0456,
-  "lon": -82.9818,
+  "lat": 39.9623,
+  "lon": -83.0007,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Dallas",
   "country": "United States",
-  "lat": 32.9097,
-  "lon": -96.7582,
+  "lat": 32.7763,
+  "lon": -96.7969,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Denver",
   "country": "United States",
-  "lat": 39.7416,
-  "lon": -104.9772,
+  "lat": 39.7392,
+  "lon": -104.9849,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Detroit",
   "country": "United States",
-  "lat": 42.4058,
-  "lon": -83.0841,
+  "lat": 42.3316,
+  "lon": -83.0466,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "El Paso",
   "country": "United States",
-  "lat": 31.7973,
-  "lon": -106.2777,
+  "lat": 31.7601,
+  "lon": -106.487,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Escondido",
   "country": "United States",
-  "lat": 33.1865,
-  "lon": -117.2655,
+  "lat": 33.1217,
+  "lon": -117.0815,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Fresno",
   "country": "United States",
-  "lat": 36.7897,
-  "lon": -119.7743,
+  "lat": 36.7394,
+  "lon": -119.7848,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Honolulu",
   "country": "United States",
-  "lat": 21.3349,
-  "lon": -157.8863,
+  "lat": 21.3045,
+  "lon": -157.8557,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Houston",
   "country": "United States",
-  "lat": 29.8219,
-  "lon": -95.4481,
+  "lat": 29.7589,
+  "lon": -95.3677,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Las Vegas",
   "country": "United States",
-  "lat": 36.122,
-  "lon": -115.1798,
+  "lat": 36.1674,
+  "lon": -115.1484,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Los Angeles",
   "country": "United States",
-  "lat": 33.958,
-  "lon": -118.2227,
+  "lat": 34.0537,
+  "lon": -118.2428,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Louisville",
   "country": "United States",
-  "lat": 38.2024,
-  "lon": -85.6967,
+  "lat": 38.2542,
+  "lon": -85.7594,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Mesa",
   "country": "United States",
-  "lat": 33.351,
-  "lon": -111.859,
+  "lat": 33.4151,
+  "lon": -111.8315,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Miami",
   "country": "United States",
-  "lat": 26.213,
-  "lon": -80.1905,
+  "lat": 25.7742,
+  "lon": -80.1936,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Milwaukee",
   "country": "United States",
-  "lat": 43.042,
-  "lon": -87.9675,
+  "lat": 43.0386,
+  "lon": -87.9091,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Minneapolis",
   "country": "United States",
-  "lat": 44.9747,
-  "lon": -93.1644,
+  "lat": 44.9773,
+  "lon": -93.2655,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "New Orleans",
   "country": "United States",
-  "lat": 29.9543,
-  "lon": -90.113,
+  "lat": 29.9561,
+  "lon": -90.0734,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "New York City",
   "country": "United States",
-  "lat": 40.736,
-  "lon": -73.7292,
+  "lat": 40.7127,
+  "lon": -74.006,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Norfolk",
   "country": "United States",
-  "lat": 36.8513,
-  "lon": -76.2192,
+  "lat": 36.8494,
+  "lon": -76.29,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "North Richland Hills",
   "country": "United States",
-  "lat": 32.8492,
-  "lon": -97.1784,
+  "lat": 32.8343,
+  "lon": -97.2289,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Oklahoma City",
   "country": "United States",
-  "lat": 35.4653,
-  "lon": -97.5775,
+  "lat": 35.473,
+  "lon": -97.5171,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Orlando",
   "country": "United States",
-  "lat": 28.4977,
-  "lon": -81.3866,
+  "lat": 28.5421,
+  "lon": -81.379,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Philadelphia",
   "country": "United States",
-  "lat": 39.9741,
-  "lon": -75.1873,
+  "lat": 39.9527,
+  "lon": -75.1635,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Phoenix",
   "country": "United States",
-  "lat": 33.5589,
-  "lon": -112.0932,
+  "lat": 33.4484,
+  "lon": -112.0741,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Pittsburgh",
   "country": "United States",
-  "lat": 40.4219,
-  "lon": -80.026,
+  "lat": 40.4407,
+  "lon": -80.0026,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Portland",
   "country": "United States",
-  "lat": 45.5379,
-  "lon": -122.5484,
+  "lat": 45.5202,
+  "lon": -122.6742,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Provo",
   "country": "United States",
-  "lat": 40.3188,
-  "lon": -111.7049,
+  "lat": 40.2337,
+  "lon": -111.6587,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Riverside",
   "country": "United States",
-  "lat": 33.9146,
-  "lon": -117.4627,
+  "lat": 33.9825,
+  "lon": -117.3742,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Sacramento",
   "country": "United States",
-  "lat": 38.5927,
-  "lon": -121.4041,
+  "lat": 38.5811,
+  "lon": -121.4939,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Saint Petersburg",
   "country": "United States",
-  "lat": 27.8994,
-  "lon": -82.7735,
+  "lat": 27.7712,
+  "lon": -82.634,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Salt Lake City",
   "country": "United States",
-  "lat": 40.6552,
-  "lon": -111.9374,
+  "lat": 40.7596,
+  "lon": -111.8868,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "San Antonio",
   "country": "United States",
-  "lat": 29.4593,
-  "lon": -98.5123,
+  "lat": 29.4246,
+  "lon": -98.4951,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "San Diego",
   "country": "United States",
-  "lat": 32.7196,
-  "lon": -117.0858,
+  "lat": 32.7174,
+  "lon": -117.1628,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "San Francisco",
   "country": "United States",
-  "lat": 37.6052,
-  "lon": -122.0608,
+  "lat": 37.7879,
+  "lon": -122.4075,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Seattle",
   "country": "United States",
-  "lat": 47.6246,
-  "lon": -122.1644,
+  "lat": 47.6038,
+  "lon": -122.3301,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "St. Louis",
   "country": "United States",
-  "lat": 38.6904,
-  "lon": -90.383,
+  "lat": 38.6254,
+  "lon": -90.19,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tampa",
   "country": "United States",
-  "lat": 27.9884,
-  "lon": -82.4926,
+  "lat": 27.945,
+  "lon": -82.4583,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Tucson",
   "country": "United States",
-  "lat": 32.2365,
-  "lon": -110.9119,
+  "lat": 32.2229,
+  "lon": -110.9748,
+  "placedBy": "name",
   "verdict": "not swept yet"
  },
  {
   "asked": "Washington",
   "country": "United States",
-  "lat": 38.9571,
-  "lon": -76.9878,
+  "lat": 38.8951,
+  "lon": -77.0364,
+  "placedBy": "name",
   "verdict": "not swept yet"
  }
 ]

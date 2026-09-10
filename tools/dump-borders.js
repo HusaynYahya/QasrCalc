@@ -56,10 +56,19 @@ function engine() {
     localStorage: { getItem: function () { return null; }, setItem: function () {} },
     fetch: function (url, opts) {
       url = String(url);
-      if (/^urban-areas\.json/.test(url)) {
+      /* The index and the shards both. The shapes moved into one file per
+         country, and intercepting only the index left every shard fetch going
+         to a network that has no such path — so the borders came back empty
+         and a hundred and ninety cities quietly fell back to OpenStreetMap
+         while their official border sat on disk. */
+      if (/^urban-areas(\.json|\/)/.test(url)) {
+        var onDisk = path.join(ROOT, url.split("?")[0]);
+        if (!fs.existsSync(onDisk)) {
+          return Promise.resolve({ ok: false, status: 404,
+            json: function () { return Promise.resolve({}); } });
+        }
         return Promise.resolve({ ok: true, json: function () {
-          return Promise.resolve(JSON.parse(
-            fs.readFileSync(path.join(ROOT, "urban-areas.json"), "utf8")));
+          return Promise.resolve(JSON.parse(fs.readFileSync(onDisk, "utf8")));
         } });
       }
       opts = opts || {};
