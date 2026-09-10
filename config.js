@@ -35,5 +35,38 @@ window.QasrConfig = {
      — but the two chosen here are the ones the legend's colours were picked
      against. */
   mapboxLight: "light-v11",
-  mapboxDark: "dark-v11"
+  mapboxDark: "dark-v11",
+
+  /* ------------------------------------------------------------------ */
+  /* Where the border review sends its answers.
+
+     Leave the url empty and the review tool keeps answers in the browser
+     and hands each reviewer a file to pass on. That works with no account
+     anywhere, and it is what happens by default.
+
+     Give it a url and each answer is also posted there as it is given, so
+     several people reviewing separately land in one place and nobody has
+     to send anything. The page is served from a static host and has no
+     server of its own, which is why this has to point somewhere else.
+
+     Anything that accepts a POST and allows the browser to call it will
+     do. Two that need least setup:
+
+       Google Apps Script — a script bound to a spreadsheet, with a
+       doPost(e) that appends JSON.parse(e.postData.contents) as a row,
+       deployed as a web app that anyone can reach. Answers arrive in the
+       sheet. Leave headers empty: the plain-text body avoids the browser
+       asking permission first, which Apps Script does not answer well.
+
+       Supabase — a table and its anon key, with a row-level policy that
+       allows inserts. Set headers to { apikey: "...", Authorization:
+       "Bearer ...", Prefer: "return=minimal" }.
+
+     Whatever is behind this url can be written to by anyone who opens the
+     page, because the address is in the page. Point it at something that
+     holds review answers and nothing else.                                */
+  review: {
+    url: "",
+    headers: null
+  }
 };

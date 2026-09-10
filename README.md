@@ -298,6 +298,28 @@ words both times, and neither is dismissible: it is a statement about what the
 page is rather than a nag to be cleared. **Consult your scholar and double-check
 before listening to this ruling.**
 
+## Collecting other people's judgement
+
+`tools/review-borders.html` shows each border in turn and takes Yes, Nearly or
+No with a note. Reviewers put a name in first, so two on one machine stay apart
+and a verdict can be asked about afterwards, and a continent filter lets someone
+who knows the Gulf judge the Gulf rather than guessing at Antananarivo.
+
+Where the answers go depends on `review.url` in `config.js`. Empty, and they
+stay in the reviewer's browser until they download a file to pass on — which
+works with no account anywhere and is the default. Set, and each answer is
+posted the moment it is given: nothing to remember at the end, and closing the
+tab loses nothing. The local copy is written first either way, so a network
+that is down cannot lose an answer, and one that fails to send is offered again
+rather than dropped.
+
+`tools/collect.gs` is an Apps Script that puts them in a Google Sheet, with its
+own setup written at the top. `tools/merge-reviews.js` reads downloaded files
+instead and prints a row per city with each reviewer's verdict beside the
+others, saying where they disagree rather than averaging — two people splitting
+on whether Mississauga's border is Toronto's is not a fault in the map but the
+judgement of custom the page defers on purpose, and it wants asking about.
+
 ## Caveat
 
 A tool for estimating distance and applying the common cases — not a substitute
