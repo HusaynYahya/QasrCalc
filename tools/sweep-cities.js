@@ -71,6 +71,17 @@ function engine() {
                 addEventListener: function () {} },
     localStorage: { getItem: function () { return null; }, setItem: function () {} },
     fetch: function (url, opts) {
+      url = String(url);
+      /* Served off disk: the page fetches it by relative path, which has no
+         meaning outside a browser. Without this the sweep ran with no
+         built-up areas at all and reported city after city as having no
+         border while the answers sat in the repository. */
+      if (/^urban-areas\.json/.test(url)) {
+        return Promise.resolve({ ok: true, json: function () {
+          return Promise.resolve(JSON.parse(
+            fs.readFileSync(path.join(__dirname, "..", "urban-areas.json"), "utf8")));
+        } });
+      }
       opts = opts || {};
       opts.headers = Object.assign({}, opts.headers, { "User-Agent": UA });
       return global.fetch(url, opts);
@@ -118,6 +129,8 @@ function verdict(r) {
   if (wasRefused(r)) return "REFUSED by the address service — not a finding";
   if (r.error) return "asking failed: " + r.error;
   if (r.ring) return "drawn by hand (" + r.ring + ")";
+  if (r.urban) return "the official built-up area (" + r.shapeKm2 + " km\u00b2)" +
+    (r.regionKm2 ? ", in place of " + r.regionKm2 + " km\u00b2 of administrative boundary" : "");
   if (!r.hasShape) return "no border published" + (r.why ? " — " + r.why : "");
   /* What the reader is actually told comes first. An earlier draft of this
      tool tested the area before the guards and reported Glasgow as having no
@@ -131,7 +144,6 @@ function verdict(r) {
   if (r.holdsCentre === false) return "WRONG: its own centre falls outside it";
   if (r.shapeKm2 < 1) return "a border enclosing under a square kilometre";
   if (r.spanKm > 60) return "reaches " + Math.round(r.spanKm) + " km across — look at it";
-  if (r.urban) return "region, replaced by its built-up area";
   return "nothing obviously wrong";
 }
 
@@ -155,6 +167,8 @@ var out = [];
       r.hasShape = !!city.shape;
       r.ring = city.fromRing || null;
       r.urban = city.fromUrban || null;
+      r.urbanSource = city.urbanSource || null;
+      r.regionKm2 = city.regionKm2 || null;
       r.rank = typeof city.rank === "number" ? city.rank : null;
       r.kind = city.kind || null;
       r.shapeKm2 = city.shape ? Math.round(areaKm2(city.shape)) : null;

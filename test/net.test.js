@@ -850,6 +850,74 @@ test("a hand-drawn border is refused where it does not hold the reader", functio
 
 section("A city with no border of its own");
 
+test("the official built-up area is preferred to the administrative boundary", function () {
+  /* Leeds. OpenStreetMap publishes the metropolitan district, 552 km2, which
+     takes in farmland and three market towns; Ordnance Survey publishes the
+     town, 119. The sweep called the district "nothing obviously wrong",
+     because 552 is well under the size a region is caught at, and a reader in
+     Leeds had an hour's drive of other people's towns counted as home. */
+  var LEEDS = { lat: 53.8008, lon: -1.5491 };
+  var DISTRICT = box(LEEDS.lat, LEEDS.lon, 0.20, 0.34);
+  var TOWN = box(LEEDS.lat, LEEDS.lon, 0.09, 0.15);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      return reply({ areas: [{ name: "Leeds", areaKm2: 119, source: "Ordnance Survey",
+        box: [LEEDS.lat - 0.1, LEEDS.lon - 0.16, LEEDS.lat + 0.1, LEEDS.lon + 0.16],
+        shape: TOWN }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Leeds, West Yorkshire, England",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Leeds", state: "England" }, geojson: DISTRICT });
+    }
+    return reply([]);
+  });
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(LEEDS, false).then(function (city) {
+    assert.strictEqual(city.name, "Leeds");
+    assert.strictEqual(city.fromUrban, "Leeds",
+      "the metropolitan district was drawn as the city");
+    assert.strictEqual(city.urbanSource, "Ordnance Survey",
+      "the source was not carried through, so the page cannot name it");
+    var drawn = G.ringAreaKm2(city.shape.coordinates[0]);
+    var district = G.ringAreaKm2(DISTRICT.coordinates[0]);
+    assert.ok(drawn < district / 2,
+      "still measuring from the district: " + Math.round(drawn) + " km²");
+    assert.strictEqual(G.inShape(LEEDS.lat, LEEDS.lon, city.shape), true);
+    assert.strictEqual(city.regionKm2 > 0, true,
+      "what it replaced was not recorded, so the page cannot say what changed");
+  });
+});
+
+test("a border taken from an official source is not then doubted", function () {
+  /* Melbourne's urban centre is 2,885 km2 and Sydney's 2,195. Both are the
+     right answer and both are near the size at which a border is called a
+     region — and warning about a line the page went and fetched on purpose
+     tells the reader nothing they can do anything about. */
+  var M = { lat: -37.8136, lon: 144.9631 };
+  var HUGE = box(M.lat, M.lon, 0.40, 0.50);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      return reply({ areas: [{ name: "Melbourne", areaKm2: 2885,
+        source: "the Australian Bureau of Statistics",
+        box: [M.lat - 0.5, M.lon - 0.6, M.lat + 0.5, M.lon + 0.6], shape: HUGE }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Melbourne, Victoria, Australia",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Melbourne", state: "Victoria" }, geojson: null });
+    }
+    return reply([]);
+  });
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(M, false).then(function (city) {
+    assert.strictEqual(city.fromUrban, "Melbourne");
+    assert.strictEqual(G.cityTooBig(city), false,
+      "the page is warning about a border it chose from an official source");
+    assert.strictEqual(G.cityTooSmall(city), false);
+  });
+});
+
 test("a built-up area is used where no border is published at all", function () {
   /* Perth. Every polygon the address service publishes under the name is a
      namesake — Perth, Ontario; Perth, Tasmania — so nothing survives the
