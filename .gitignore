@@ -1,3 +1,4 @@
 node_modules/
 test/shots/
 tools/drawn-borders.json
+__pycache__/
