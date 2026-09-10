@@ -889,6 +889,36 @@ test("the official built-up area is preferred to the administrative boundary", f
   });
 });
 
+test("the official source names the city, not the ward the point landed in", function () {
+  /* Auckland. The address service answers "Waitematā" — a local board area —
+     and at 28 km2 it is over the floor at which a border is called too small,
+     so nothing caught it. The built-up area found by asking what holds the
+     address is Auckland's, and so is the name that comes with it. */
+  var AK = { lat: -36.8485, lon: 174.7633 };
+  var AREA = box(AK.lat, AK.lon, 0.14, 0.17);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      return reply({ areas: [{ name: "Auckland", areaKm2: 637,
+        source: "the EC Joint Research Centre",
+        box: [AK.lat - 0.2, AK.lon - 0.2, AK.lat + 0.2, AK.lon + 0.2], shape: AREA }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Waitematā, Auckland, New Zealand",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Waitematā", country: "New Zealand" },
+        geojson: box(AK.lat, AK.lon, 0.02, 0.02) });
+    }
+    return reply([]);
+  });
+  return b.window.QasrEngine.cityWithRing(AK, false).then(function (city) {
+    assert.strictEqual(city.name, "Auckland",
+      "still calling it " + city.name + ", which is a local board area");
+    assert.strictEqual(city.insteadOf, "Waitematā",
+      "what the address service said was thrown away rather than shown");
+    assert.strictEqual(city.fromUrban, "Auckland");
+  });
+});
+
 test("a border taken from an official source is not then doubted", function () {
   /* Melbourne's urban centre is 2,885 km2 and Sydney's 2,195. Both are the
      right answer and both are near the size at which a border is called a

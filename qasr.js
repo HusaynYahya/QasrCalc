@@ -2931,9 +2931,14 @@
      it replaced nothing, so that showCity can tell the two apart. */
   function takeUrbanArea(city, urban) {
     if (city.shape) city.regionKm2 = Math.round(cityAreaKm2(city));
-    /* Luton comes back from the address service with no name at all. The
-       statistics office knows what the town is called. */
-    if (!city.name) city.name = urban.name;
+    /* The name comes with the border. The area was found by asking what holds
+       this address, and the source's answer to that is the town — where the
+       address service's answer is whatever administrative object happens to
+       sit at the point: "Waitematā" for Auckland, a local board area; nothing
+       at all for Luton. Where the two disagree, what was said is kept so the
+       page can show both. */
+    if (city.name && city.name !== urban.name) city.insteadOf = city.name;
+    city.name = urban.name;
     city.shape = urban.shape;
     city.fromUrban = urban.name;
     city.urbanKm2 = urban.areaKm2;

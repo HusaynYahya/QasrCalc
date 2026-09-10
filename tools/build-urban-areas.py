@@ -32,9 +32,13 @@ except ImportError:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from references import REFERENCES, NOT_YET               # noqa: E402
+from references import REFERENCES, GLOBAL, NOT_YET       # noqa: E402
 
 ROOT = os.path.dirname(HERE)
+
+# The same limit the page uses to decide a border is a region and not a city
+# — see CITY_MAX_KM2 in qasr.js. Kept in step by test/geo.test.js.
+CITY_MAX_KM2 = 3000
 
 
 def ask(ref, lat, lon):
@@ -58,6 +62,38 @@ def ask(ref, lat, lon):
     f = feats[0]
     label = (f.get("properties") or {}).get(ref["name_field"])
     return shape(f["geometry"]).buffer(0), label
+
+
+_GLOBAL_LAYER = [None]
+
+
+def global_layer(path):
+    """The world's urban centres, read once and kept.
+
+       285 MB of geopackage, so it is not in the repository: pass --ghs with
+       the file from GLOBAL["download"]. Without it the global tier is simply
+       skipped and the national sources still run."""
+    if _GLOBAL_LAYER[0] is None:
+        if not path or not os.path.exists(path):
+            _GLOBAL_LAYER[0] = False
+            return None
+        import geopandas as gpd
+        g = gpd.read_file(path, layer=GLOBAL["layer"],
+                          columns=[GLOBAL["name_field"], GLOBAL["area_field"]])
+        _GLOBAL_LAYER[0] = g.to_crs(4326)
+    return _GLOBAL_LAYER[0] if _GLOBAL_LAYER[0] is not False else None
+
+
+def ask_global(path, lat, lon):
+    g = global_layer(path)
+    if g is None:
+        return None, None
+    from shapely.geometry import Point
+    hit = g[g.contains(Point(lon, lat))]
+    if not len(hit):
+        return None, None
+    row = hit.iloc[0]
+    return row.geometry.buffer(0), row[GLOBAL["name_field"]]
 
 
 def flat(lat, lon):
@@ -93,7 +129,12 @@ def tidy(s):
     import re, unicodedata
     s = unicodedata.normalize("NFKD", str(s or ""))
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    s = re.sub(r"\(.*?\)", " ", s)
+    # Both kinds of bracket. The global layer marks a merged cluster by
+    # listing what it swallowed — "Rotterdam [The Hague]", "Birmingham
+    # [Wolverhampton]" — so comparing against the whole string let a city
+    # match the cluster that had eaten it, and The Hague was written down as
+    # 678 km2 of Randstad. Only the main name counts.
+    s = re.sub(r"\(.*?\)|\[.*?\]", " ", s)
     s = re.sub(r"\b(urban area|urban centre|city|town|built[- ]up area)\b", " ",
                s, flags=re.I)
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
@@ -128,6 +169,8 @@ def main():
                    help="also write agglomeration sources — see references.py "
                         "for why they are held back")
     p.add_argument("--out", default=os.path.join(ROOT, "urban-areas.json"))
+    p.add_argument("--ghs", default=os.environ.get("GHS_UCDB"),
+                   help="the GHS-UCDB geopackage, for the global fallback tier")
     args = p.parse_args()
 
     cities = json.load(open(os.path.join(HERE, "sweep-cities.json")))
@@ -136,37 +179,62 @@ def main():
 
     areas, used, missed, skipped, refused = [], {}, [], [], []
     for c in cities:
-        ref = REFERENCES.get(c.get("country"))
-        if not ref:
-            skipped.append(c["asked"])
-            continue
-        if ref.get("granularity") != "town" and not args.all_granularities:
-            refused.append((c["asked"], ref["short"]))
-            continue
-        geom, label = ask(ref, c["lat"], c["lon"])
-        if geom is None:
-            missed.append(c["asked"])
-            print("%-15s no built-up area contains its centre" % c["asked"])
-            continue
-        """The official area has to be the city that was asked about.
+        national = REFERENCES.get(c.get("country"))
+        town_level = national and (national.get("granularity") == "town"
+                                   or args.all_granularities)
+        if national and not town_level:
+            refused.append((c["asked"], national["short"]))
 
-           Great Britain's 2022 scheme has no single London: the point in
-           Trafalgar Square falls inside the City of Westminster, eighteen
-           square kilometres, and writing that down as London's border would
-           have put most of London outside its own city. The check is on the
-           name because that is where the mismatch shows; a parenthetical or a
-           duplicated district — "Watford (Watford)", "Perth (WA)" — is fine."""
-        if not names_agree(c["asked"], label):
+        # The country's own answer first, the world's if that has none or
+        # names something else. A name that is not the city's is the sign of a
+        # merge or a mis-scheme: Great Britain's 2022 layer has no single
+        # London and puts Trafalgar Square inside the City of Westminster,
+        # eighteen square kilometres, and the global layer merges Wolverhampton
+        # into Birmingham and San Jose into San Francisco. Neither is that
+        # reader's city, so neither is written down. A parenthetical or a
+        # doubled district — "Watford (Watford)", "Perth (WA)" — is fine.
+        ref, geom, label, why = None, None, None, []
+        for candidate in ([national] if town_level else []) + [GLOBAL]:
+            if candidate is GLOBAL:
+                got, name = ask_global(args.ghs, c["lat"], c["lon"])
+            else:
+                got, name = ask(candidate, c["lat"], c["lon"])
+            if got is None:
+                why.append("%s has none" % candidate["short"])
+                continue
+            if not names_agree(c["asked"], name):
+                why.append("%s calls it %r" % (candidate["short"], name))
+                continue
+            ref, geom, label = candidate, got, name
+            break
+
+        if geom is None:
+            if not why:
+                skipped.append(c["asked"])
+                continue
             missed.append(c["asked"])
-            print("%-15s the area holding it is called %r — not adopted"
-                  % (c["asked"], label))
+            print("%-15s not adopted — %s" % (c["asked"], "; ".join(why)))
             continue
+
         small, was, now = thin(geom, c["lat"], c["lon"], args.thin_km)
+
+        # Anything the page would itself call a region is not written down.
+        # The global layer gives Los Angeles as 4,487 km2 and New York as
+        # 3,031 — the basin and the conurbation, not the city — and adopting
+        # one would have put a border past the size at which the page warns
+        # that a border is not a city, so the page would have been drawing a
+        # line it does not itself believe.
+        if now > CITY_MAX_KM2:
+            missed.append(c["asked"])
+            print("%-15s %s gives %.0f km2, past the size of a city — not adopted"
+                  % (c["asked"], ref["short"], now))
+            continue
         areas.append({
             "name": c["asked"],
             "official": label,
             "areaKm2": round(now, 1),
             "source": ref["short"],
+            "tier": ref.get("granularity"),
             "country": c["country"],
             "box": bbox(small),
             "shape": mapping(small)
@@ -183,7 +251,7 @@ def main():
                 "Built by tools/build-urban-areas.py; do not edit by hand.",
         # One line naming every source and licence, because that is what the
         # attributions require and what test/geo.test.js reads.
-        "source": "  ".join(sorted(used.values())),
+        "source": "  ".join(sorted(set(used.values()))),
         "sources": used,
         "thinnedToKm": args.thin_km,
         "areas": sorted(areas, key=lambda a: a["name"])

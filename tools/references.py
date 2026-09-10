@@ -81,8 +81,38 @@ REFERENCES = {
     }
 }
 
-# Countries in the sweep list with no open built-up-area source found yet.
-# Listed so that the gap is a known one rather than a silence.
-NOT_YET = ["New Zealand", "Germany", "Sweden", "Denmark", "Norway",
-           "Netherlands", "Belgium", "France", "Austria", "Ireland",
-           "Tanzania", "Kenya", "Uganda", "Madagascar"]
+# The global fallback, for a country with no town-level source of its own.
+#
+# GHS-UCDB is 11,422 urban centres covering the whole world, derived from
+# built-up density on a satellite grid rather than from any country's
+# paperwork — so it reaches Zanzibar City and Antananarivo, where no national
+# statistics office publishes anything this app can use.
+#
+# It is a fallback and not a first choice because it merges: an urban centre
+# is everything built-up and touching, so Wolverhampton comes back as
+# Birmingham (685 km2), Bradford as Leeds (321), and San Jose as San
+# Francisco (1,614). Ordnance Survey, asked the same question, gives
+# Wolverhampton as 58 km2 and Bradford as 64. Where a country publishes town
+# by town, that wins; where none does, this is better than nothing — and the
+# name check refuses the merges, so a city swallowed by its neighbour gets no
+# border rather than the wrong one.
+GLOBAL = {
+    "short": "the EC Joint Research Centre",
+    "granularity": "cluster",
+    "attribution": "GHS Urban Centre Database R2024A (GHS-UCDB), European "
+                   "Commission Joint Research Centre. Licensed CC BY 4.0.",
+    "name_field": "GC_UCN_MAI_2025",
+    "area_field": "GC_UCA_KM2_2025",
+    "layer": "GHSL_UCDB_THEME_GENERAL_CHARACTERISTICS_GLOBE_R2024A",
+    "download": ("https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/"
+                 "GHS_UCDB_GLOBE_R2024A/GHS_UCDB_GLOBE_R2024A/V1-2/"
+                 "GHS_UCDB_GLOBE_R2024A_V1_2.zip")
+}
+
+# Countries where a town-level source is still to be found, and which
+# therefore fall back to GLOBAL. Working order is the diaspora's, largest
+# communities first.
+NOT_YET = ["Canada", "United States", "Germany", "Sweden", "Denmark",
+           "Norway", "Netherlands", "Belgium", "France", "Austria",
+           "Ireland", "New Zealand", "Tanzania", "Kenya", "Uganda",
+           "Madagascar"]

@@ -742,8 +742,15 @@ test("every one of them is small enough to be a city", function () {
 });
 
 test("each carries a box that holds it", function () {
+  /* Both shapes. Every area on file was a MultiPolygon until the global
+     source was added, and this walked a Polygon's rings as if they were
+     polygons — comparing a longitude against a latitude, and reporting
+     Amsterdam as outside its own box on geometry that was correct. */
+  function polygons(shape) {
+    return shape.type === "Polygon" ? [shape.coordinates] : shape.coordinates;
+  }
   URBAN.areas.forEach(function (a) {
-    a.shape.coordinates.forEach(function (poly) {
+    polygons(a.shape).forEach(function (poly) {
       poly[0].forEach(function (p) {
         assert.ok(p[1] >= a.box[0] && p[1] <= a.box[2] && p[0] >= a.box[1] && p[0] <= a.box[3],
           a.name + " runs outside its own box at " + p + " — the lookup would skip it");
