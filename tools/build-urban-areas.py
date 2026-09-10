@@ -33,7 +33,7 @@ sys.path.insert(0, HERE)
 from references import (REFERENCES, GLOBAL, NOT_YET,     # noqa: E402
                         KEEP_MUNICIPAL)
 from borders import (ask, ask_global, names_agree, thin, bbox,   # noqa: E402
-                     CITY_MAX_KM2)
+                     CITY_MAX_KM2, Refused)
 
 ROOT = os.path.dirname(HERE)
 
@@ -52,12 +52,7 @@ def write_sharded(out, areas, index_path):
        and bounding boxes, tens of kilobytes; the shape only arrives once a
        box has matched, and only for that country."""
     folder = os.path.splitext(index_path)[0]
-    if os.path.isdir(folder):
-        for old in os.listdir(folder):
-            if old.endswith(".json"):
-                os.remove(os.path.join(folder, old))
-    else:
-        os.makedirs(folder, exist_ok=True)
+    os.makedirs(folder, exist_ok=True)
 
     shards = {}
     index = []
@@ -65,16 +60,43 @@ def write_sharded(out, areas, index_path):
         shards.setdefault(a["shard"], {})[a["name"]] = a["shape"]
         index.append({k: v for k, v in a.items() if k != "shape"})
 
+    # A partial run keeps what it did not rebuild.
+    #
+    # This used to empty the folder and rewrite the index from whatever this
+    # run produced — so `--country France`, which the usage line above offers,
+    # deleted seventeen countries' borders and left an index naming only
+    # France. The page reads a missing shard as no data and says nothing, so
+    # the loss was silent at both ends.
+    #
+    # Now only the countries this run rebuilt are touched, and the index keeps
+    # every entry whose shard is still on disk.
+    keep = []
+    if os.path.exists(index_path):
+        try:
+            was = json.load(open(index_path))
+            keep = [a for a in was.get("areas", [])
+                    if a.get("shard") not in shards
+                    and os.path.exists(os.path.join(folder, str(a.get("shard")) + ".json"))]
+        except (IOError, ValueError):
+            keep = []
+
+    # Written to a temporary name and moved into place, so that a run which
+    # dies partway leaves the old shard rather than half a new one.
     for name, shapes in shards.items():
-        with open(os.path.join(folder, name + ".json"), "w") as fh:
+        final = os.path.join(folder, name + ".json")
+        with open(final + ".part", "w") as fh:
             json.dump(shapes, fh, separators=(",", ":"))
             fh.write("\n")
+        os.replace(final + ".part", final)
 
-    out["areas"] = index
+    out["areas"] = sorted(index + keep, key=lambda a: (a.get("country", ""), a["name"]))
     out["shards"] = os.path.basename(folder) + "/"
-    with open(index_path, "w") as fh:
+    with open(index_path + ".part", "w") as fh:
         json.dump(out, fh, separators=(",", ":"))
         fh.write("\n")
+    os.replace(index_path + ".part", index_path)
+    if keep:
+        print("kept %d area(s) from countries this run did not rebuild" % len(keep))
     return folder, len(shards)
 
 
@@ -122,7 +144,14 @@ def main():
             if candidate is GLOBAL:
                 got, name = ask_global(GLOBAL, args.ghs, c["lat"], c["lon"])
             else:
-                got, name = ask(candidate, c["lat"], c["lon"])
+                try:
+                    got, name = ask(candidate, c["lat"], c["lon"])
+                except Refused as no:
+                    # Never recorded as a gap. A refusal that got written down
+                    # as "nothing published" would replace a good committed
+                    # border with a coarser one, or with none.
+                    sys.exit("\nstopped: %s\nNothing has been written. Wait and "
+                             "run again." % no)
             if got is None:
                 why.append("%s has none" % candidate["short"])
                 continue
@@ -180,8 +209,8 @@ def main():
         "sources": used,
         "thinnedToKm": args.thin_km
     }
-    out["areas"] = sorted(areas, key=lambda a: a["name"])
-    folder, shard_count = write_sharded(out, out["areas"], args.out)
+    folder, shard_count = write_sharded(out, sorted(areas, key=lambda a: a["name"]),
+                                        args.out)
 
     whole = os.path.getsize(args.out) + sum(
         os.path.getsize(os.path.join(folder, f)) for f in os.listdir(folder))

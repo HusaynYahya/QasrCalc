@@ -45,7 +45,8 @@ except ImportError:
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from references import REFERENCES, MUNICIPAL, GLOBAL, NOT_YET   # noqa: E402
-from borders import ask, ask_global, names_agree, overlap       # noqa: E402
+from borders import (ask, ask_global, names_agree, overlap,     # noqa: E402
+                     Refused)
 
 
 def verdict(iou, covered, agrees):
@@ -85,12 +86,20 @@ def main():
 
         if args.against == "municipal":
             ref = MUNICIPAL.get(country)
-            got, label = ask(ref, lat, lon) if ref else (None, None)
+            try:
+                got, label = ask(ref, lat, lon) if ref else (None, None)
+            except Refused as no:
+                print("%-15s  %s — not a finding, ask again later" % (name, no))
+                continue
         else:
             ref = REFERENCES.get(country)
-            got, label = ((ask(ref, lat, lon))
-                          if ref and ref.get("granularity") == "town"
-                          else (None, None))
+            try:
+                got, label = ((ask(ref, lat, lon))
+                              if ref and ref.get("granularity") == "town"
+                              else (None, None))
+            except Refused as no:
+                print("%-15s  %s — not a finding, ask again later" % (name, no))
+                continue
             if got is None:
                 ref = GLOBAL
                 got, label = ask_global(GLOBAL, args.ghs, lat, lon)

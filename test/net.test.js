@@ -919,6 +919,45 @@ test("the official source names the city, not the ward the point landed in", fun
   });
 });
 
+test("a city looked up twice is not annotated by the first lookup", function () {
+  /* The page asks for the starting city twice on an ordinary calculation —
+     once when the address is picked, once on Calculate. The address cache
+     handed out the same object both times, and takeUrbanArea writes into it:
+     regionKm2 is the size of the boundary the built-up area replaced, and on
+     the second pass it was recomputed from the border already swapped in. The
+     reader was told the built-up area of 119 km2 had replaced an
+     administrative boundary of 119 km2 — the same number twice. */
+  var LEEDS = { lat: 53.8008, lon: -1.5491 };
+  var DISTRICT = box(LEEDS.lat, LEEDS.lon, 0.20, 0.34);
+  var TOWN = box(LEEDS.lat, LEEDS.lon, 0.09, 0.15);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      return reply({ areas: [{ name: "Leeds", areaKm2: 119, source: "Ordnance Survey",
+        box: [LEEDS.lat - 0.1, LEEDS.lon - 0.16, LEEDS.lat + 0.1, LEEDS.lon + 0.16],
+        shape: TOWN }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Leeds, West Yorkshire, England",
+        addresstype: "city", place_rank: 16,
+        address: { city: "Leeds", state: "England" }, geojson: DISTRICT });
+    }
+    return reply([]);
+  });
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(LEEDS, false).then(function (first) {
+    var was = first.regionKm2;
+    assert.ok(was > 300, "the district should be the thing replaced, got " + was);
+    return G.cityWithRing(LEEDS, false).then(function (again) {
+      assert.notStrictEqual(first, again, "the same object was handed out twice");
+      assert.strictEqual(again.regionKm2, was,
+        "the second lookup reports " + again.regionKm2 + " km² replaced, where the " +
+        "first reported " + was + " — the first lookup wrote into the cache");
+      assert.ok(again.regionKm2 > again.urbanKm2,
+        "the border replaced came out no larger than the one that replaced it");
+    });
+  });
+});
+
 test("the smallest official area wins, not whichever is first on file", function () {
   /* Rockingham. It has its own 53 km2 on file and sits inside the 1,723 km2
      the statistics office draws round Perth. The lookup took the first box

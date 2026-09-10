@@ -63,7 +63,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from references import REFERENCES, MUNICIPAL, GLOBAL          # noqa: E402
 from borders import (ask, ask_global, names_agree, overlap,    # noqa: E402
-                     CITY_MAX_KM2)
+                     CITY_MAX_KM2, Refused)
 
 ROOT = os.path.dirname(HERE)
 
@@ -143,7 +143,12 @@ def main():
             if ref is GLOBAL:
                 got, label = ask_global(GLOBAL, args.ghs, lat, lon)
             else:
-                got, label = ask(ref, lat, lon)
+                try:
+                    got, label = ask(ref, lat, lon)
+                except Refused as no:
+                    # Recorded as a refusal, never as an absence of data.
+                    row.setdefault("refused", []).append(str(no))
+                    continue
             if got is None:
                 continue
             iou, covered, mine_km2, theirs_km2 = overlap(mine, got, lat)

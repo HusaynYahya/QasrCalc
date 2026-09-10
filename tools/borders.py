@@ -16,22 +16,47 @@ import pyproj
 CITY_MAX_KM2 = 3000
 
 
+class Refused(Exception):
+    """The service would not answer. Not the same thing as an empty answer.
+
+       Everything used to collapse to (None, None): a 429, a 403, an ArcGIS
+       error object, a connection that never opened, and a genuine "nothing
+       published here" all looked identical. The builder then recorded a rate
+       limit as a gap in the map — and with the old write_sharded, replaced
+       good committed borders with fewer. This repository has been bitten by
+       exactly that confusion three times in one day, so it is now an
+       exception rather than a value, and a caller has to decide what to do
+       with it."""
+
+
 def ask(ref, lat, lon):
-    """What this service publishes around this point, with its geometry."""
+    """What this service publishes around this point, with its geometry.
+
+       Returns (None, None) only for a real, empty answer. Raises Refused for
+       anything that is a failure to answer."""
     q = {"geometry": json.dumps({"x": lon, "y": lat,
                                  "spatialReference": {"wkid": 4326}}),
          "geometryType": "esriGeometryPoint", "inSR": "4326",
          "spatialRel": "esriSpatialRelIntersects",
          "outFields": ref["name_field"], "outSR": "4326",
          "returnGeometry": "true", "f": "geojson"}
-    got = subprocess.run(
-        ["curl", "-s", "--max-time", "180",
+    run = subprocess.run(
+        ["curl", "-s", "--max-time", "180", "-w", "\n%{http_code}",
          ref["url"] + "?" + urllib.parse.urlencode(q)],
-        capture_output=True, text=True).stdout
+        capture_output=True, text=True)
+    if run.returncode != 0:
+        raise Refused("curl exited %d for %s" % (run.returncode, ref["short"]))
+    body, _, status = run.stdout.rpartition("\n")
+    if status.strip() != "200":
+        raise Refused("%s returned HTTP %s" % (ref["short"], status.strip()))
     try:
-        d = json.loads(got)
+        d = json.loads(body)
     except ValueError:
-        return None, None
+        raise Refused("%s sent something that is not JSON" % ref["short"])
+    # ArcGIS reports its failures inside a 200.
+    if isinstance(d, dict) and d.get("error"):
+        raise Refused("%s: %s" % (ref["short"],
+                                  str(d["error"].get("message", d["error"]))[:80]))
     feats = [f for f in (d.get("features") or []) if f.get("geometry")]
     if not feats:
         return None, None

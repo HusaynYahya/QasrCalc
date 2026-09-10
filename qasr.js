@@ -246,7 +246,15 @@
      chooses; the county is not offered at all.                               */
   function cityAt(place, zoom) {
     var key = zoom + "|" + place.lat.toFixed(3) + "," + place.lon.toFixed(3);
-    if (cityCache[key]) return Promise.resolve(cityCache[key]);
+    /* A copy, never the cached object — the same rule cityByName keeps, and
+       for the same reason. Callers annotate what they are given, and handing
+       out one shared object let those annotations pile up: takeUrbanArea
+       writes regionKm2, the size of the boundary it replaced, and on a second
+       lookup of the same address it was recomputing that from the border it
+       had already swapped in. Leeds reported "the built-up area, 119 km2,
+       rather than the 119 km2 administrative boundary" — the same number
+       twice, and the second one a lie. */
+    if (cityCache[key]) return Promise.resolve(copyCity(cityCache[key]));
 
     var url = NOMINATIM.replace("/search", "/reverse") +
               "?format=jsonv2&zoom=" + zoom + "&addressdetails=1&polygon_geojson=1" +
@@ -269,7 +277,7 @@
           shape: row.geojson && /Polygon/.test(row.geojson.type) ? row.geojson : null
         };
         cityCache[key] = city;
-        return city;
+        return copyCity(city);
       })
       .catch(function (err) {
         return { name: null, area: null, shape: null, reason: err && err.message };
