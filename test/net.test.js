@@ -848,6 +848,69 @@ test("a hand-drawn border is refused where it does not hold the reader", functio
   assert.ok(G.ringByName("Toronto"), "“Greater” should not be needed to find it");
 });
 
+section("A city with no border of its own");
+
+test("a built-up area is used where no border is published at all", function () {
+  /* Perth. Every polygon the address service publishes under the name is a
+     namesake — Perth, Ontario; Perth, Tasmania — so nothing survives the
+     containment filter and the page had no border to draw. Its built-up area
+     was in urban-areas.json the whole time, and unreachable: the fallback ran
+     only for a border that was too big, never for one that was missing. */
+  var PERTH = { lat: -31.9505, lon: 115.8605 };
+  var AREA = box(PERTH.lat, PERTH.lon, 0.20, 0.20);
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) {
+      return reply({ areas: [{ name: "Perth", areaKm2: 1727,
+        box: [PERTH.lat - 0.3, PERTH.lon - 0.3, PERTH.lat + 0.3, PERTH.lon + 0.3],
+        shape: AREA }] });
+    }
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Perth, Western Australia, Australia",
+        addresstype: "suburb", place_rank: 19,
+        address: { city: "Perth", state: "Western Australia" },
+        geojson: null });
+    }
+    if (/nominatim/.test(url)) {
+      /* Perth, Ontario: the right name, four continents away. */
+      return reply([{ place_rank: 16, category: "boundary", type: "administrative",
+        display_name: "Perth, Lanark County, Ontario, Canada",
+        address: { town: "Perth", country: "Canada" },
+        geojson: box(44.90, -76.25, 0.03, 0.03) }]);
+    }
+    return { ok: false, status: 504, json: function () { return Promise.resolve({}); } };
+  });
+  var G = b.window.QasrEngine;
+  return G.cityWithRing(PERTH, false).then(function (city) {
+    assert.strictEqual(city.name, "Perth");
+    assert.ok(city.shape, "no border drawn, and the built-up area was on hand");
+    assert.strictEqual(city.fromUrban, "Perth");
+    assert.strictEqual(city.regionKm2, undefined,
+      "a region was reported as replaced when there was none");
+    assert.strictEqual(G.inShape(PERTH.lat, PERTH.lon, city.shape), true);
+  });
+});
+
+test("a city with no border and no built-up area still says so", function () {
+  /* Antananarivo. Nothing is published and nothing is carried, and inventing
+     something would be worse than the gap. */
+  var TANA = { lat: -18.8792, lon: 47.5079 };
+  var b = browser(function (url) {
+    if (/urban-areas\.json/.test(url)) return reply({ areas: [] });
+    if (/nominatim.*\/reverse/.test(url)) {
+      return reply({ display_name: "Antananarivo, Madagascar",
+        addresstype: "suburb", place_rank: 19,
+        address: { city: "Antananarivo", country: "Madagascar" }, geojson: null });
+    }
+    if (/nominatim/.test(url)) return reply([]);
+    return { ok: false, status: 504, json: function () { return Promise.resolve({}); } };
+  });
+  return b.window.QasrEngine.cityWithRing(TANA, false).then(function (city) {
+    assert.strictEqual(city.name, "Antananarivo");
+    assert.strictEqual(city.shape, null, "a border was drawn from nowhere");
+    assert.strictEqual(city.fromUrban, undefined);
+  });
+});
+
 queue.then(function () {
   console.log("\n" + passed + " passed, " + failed + " failed\n");
   process.exit(failed ? 1 : 0);

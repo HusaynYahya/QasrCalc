@@ -2923,6 +2923,21 @@
     }).catch(function () { return doubted; });
   }
 
+  /* The built-up area put in place of whatever the address service gave —
+     a region too large to be a city, or nothing at all. regionKm2 is the size
+     of what it replaced, and is left unset where it replaced nothing, so that
+     showCity can tell the two apart. */
+  function withUrbanArea(place, city, regionKm2) {
+    return urbanAreaAt(place).then(function (urban) {
+      if (!urban) return city;
+      if (regionKm2 != null) city.regionKm2 = regionKm2;
+      city.shape = urban.shape;
+      city.fromUrban = urban.name;
+      city.urbanKm2 = urban.areaKm2;
+      return city;
+    });
+  }
+
   /* The city for a place, taking a ring road as the edge wherever the place
      falls inside one.
 
@@ -2943,18 +2958,21 @@
          in for the whole town. Where the city around it can be found, that
          is the answer; where it cannot, the doubt is reported as before. */
       if (cityTooSmall(city)) return cityAround(place, city);
+
+      /* Named, and with no border at all. The built-up areas were fetched for
+         the opposite case and gated on it, so Perth — whose polygon sits in
+         urban-areas.json, holds the reader, and encloses 1,727 km2 — was
+         reported as having no border published, while Sydney four cities
+         further down used the file happily. The gate was the fault, not the
+         data: a city with no border needs a built-up area at least as much as
+         a city with too much of one. */
+      if (city.name && !city.shape) return withUrbanArea(place, city);
+
       /* A region rather than a city. Where the built-up area is known, that
          is the city, and it is what the measuring runs from [1704]. Where it
          is not, the city is left as it came and showCity says so. */
       if (!cityTooBig(city)) return city;
-      return urbanAreaAt(place).then(function (urban) {
-        if (!urban) return city;
-        city.regionKm2 = Math.round(cityAreaKm2(city));
-        city.shape = urban.shape;
-        city.fromUrban = urban.name;
-        city.urbanKm2 = urban.areaKm2;
-        return city;
-      });
+      return withUrbanArea(place, city, Math.round(cityAreaKm2(city)));
     });
   }
 
@@ -4499,10 +4517,13 @@
           : city.ringFailed ? " — the " + city.ringFailed + " could not be traced just now, " +
               "so its published boundary is outlined instead. Press Refresh to try again."
           : city.fromRing ? " — the " + city.fromRing + " is outlined on the map as its edge."
-          : city.fromUrban ? " — the border published under that name encloses about " +
-              city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
-              "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
-              " km² is outlined instead."
+          : city.fromUrban ? (city.regionKm2 == null
+              ? " — OpenStreetMap publishes no border for it, so its built-up area of " +
+                city.urbanKm2.toLocaleString("en-GB") + " km² is outlined instead."
+              : " — the border published under that name encloses about " +
+                city.regionKm2.toLocaleString("en-GB") + " km², which is a region rather than a " +
+                "city, so its built-up area of " + city.urbanKm2.toLocaleString("en-GB") +
+                " km² is outlined instead.")
           /* The swap is said out loud. A reader who typed a Sharjah address
              and is shown Sharjah would otherwise never learn that the
              address service disagreed, and could not judge which of the two
