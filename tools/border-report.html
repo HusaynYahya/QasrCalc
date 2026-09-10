@@ -1,0 +1,177 @@
+<!-- The log, as a page. Reads tools/border-report.json, which is written by
+     tools/border-report.py and committed beside it, so this needs nothing but
+     a browser. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Border check — QasrCalc</title>
+<style>
+  :root {
+    --ink: #16181d; --dim: #5b6070; --line: #dfe2ea; --paper: #fbfbfd;
+    --card: #fff; --ok: #1c7a4a; --near: #8a6100; --bad: #b0202f; --none: #5b6070;
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8eaf0; --dim: #9aa1b4; --line: #2a2e39; --paper: #14161b;
+      --card: #1b1e25; --ok: #5fd39b; --near: #e0b558; --bad: #ff8a94; --none: #9aa1b4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding-block: 2rem; padding-left: 1rem; padding-right: 1rem;
+         background: var(--paper); color: var(--ink);
+         font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 60rem; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  .lede { color: var(--dim); margin: 0 0 1.5rem; max-width: 46rem; }
+  .tally { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.25rem; padding: 0; list-style: none; }
+  .tally button { font: inherit; cursor: pointer; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); border-radius: 999px; padding: .35rem .85rem; }
+  .tally button[aria-pressed="true"] { border-color: currentColor; font-weight: 600; }
+  .n { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .correct { color: var(--ok); } .nearly { color: var(--near); }
+  .adopted, .by.hand { color: var(--dim); }
+  .wrong, .no.border { color: var(--bad); } .unchecked { color: var(--none); }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: .6rem; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; min-width: 44rem; }
+  th, td { text-align: left; padding: .55rem .75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .verdict { font-weight: 600; white-space: nowrap; }
+  .src { color: var(--dim); font-size: .85rem; }
+  details summary { cursor: pointer; color: var(--dim); font-size: .85rem; }
+  details ul { margin: .4rem 0 0; padding-left: 1.1rem; font-size: .85rem; color: var(--dim); }
+  .note { color: var(--dim); font-size: .87rem; margin-top: 1.25rem; max-width: 46rem; }
+  a { color: inherit; }
+</style>
+
+<div class="wrap">
+  <h1>Border check</h1>
+  <p class="lede" id="lede">Loading…</p>
+  <ul class="tally" id="tally"></ul>
+  <div class="scroll">
+    <table>
+      <thead><tr>
+        <th>City</th><th>Border drawn</th><th class="num">km²</th>
+        <th>Verdict</th><th class="num">Best</th><th>Checked against</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+(function () {
+  var LABEL = { correct: "correct", nearly: "nearly", wrong: "wrong",
+                adopted: "from an official source", "by hand": "drawn by hand",
+                unchecked: "unchecked", "no border": "no border" };
+  var show = null, data = null;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function cls(v) { return v.replace(/\s+/g, "-"); }
+
+  function draw() {
+    var body = document.getElementById("rows");
+    body.textContent = "";
+    data.cities.filter(function (c) { return !show || c.verdict === show; })
+      .sort(function (a, b) {
+        var order = ["wrong", "no border", "unchecked", "nearly", "correct",
+                     "adopted", "by hand"];
+        var d = order.indexOf(a.verdict) - order.indexOf(b.verdict);
+        return d || (a.best === b.best ? a.asked.localeCompare(b.asked)
+                                       : (a.best || 0) - (b.best || 0));
+      })
+      .forEach(function (c) {
+        var tr = el("tr");
+        var first = el("td");
+        first.appendChild(el("div", null, c.asked));
+        first.appendChild(el("div", "src", c.country || ""));
+        tr.appendChild(first);
+
+        var drew = el("td");
+        drew.appendChild(el("div", null, (c.drawn && c.drawn.name) || "—"));
+        drew.appendChild(el("div", "src", (c.drawn && c.drawn.from) || ""));
+        tr.appendChild(drew);
+
+        tr.appendChild(el("td", "num", c.drawn && c.drawn.km2 != null
+          ? c.drawn.km2.toLocaleString("en-GB") : "—"));
+        tr.appendChild(el("td", "verdict " + cls(c.verdict), LABEL[c.verdict] || c.verdict));
+        tr.appendChild(el("td", "num", c.best == null ? "—" : c.best.toFixed(2)));
+
+        var against = el("td");
+        if (!c.against || !c.against.length) {
+          against.appendChild(el("span", "src", c.why || "nothing published there"));
+        } else {
+          var d = el("details");
+          d.appendChild(el("summary", null, c.against.length +
+            (c.against.length === 1 ? " source" : " sources")));
+          var ul = el("ul");
+          c.against.forEach(function (a) {
+            ul.appendChild(el("li", null,
+              a.source + " (" + a.kind + ", " + a.scale + "): " +
+              a.km2.toLocaleString("en-GB") + " km², overlap " + a.iou.toFixed(2) +
+              (a.adopted ? " — this border was taken from it, so it is not a check"
+                : a.scale === "cluster" ? " — a different scale, so not a check"
+                : !a.namesAgree ? " — it calls this place “" + a.calls_it + "”, so not a check"
+                : "")));
+          });
+          d.appendChild(ul);
+          against.appendChild(d);
+        }
+        tr.appendChild(against);
+        body.appendChild(tr);
+      });
+  }
+
+  function chips() {
+    var box = document.getElementById("tally");
+    var order = ["correct", "nearly", "wrong", "adopted", "by hand",
+                 "no border", "unchecked"];
+    var all = el("li");
+    order.unshift(null);
+    order.forEach(function (v) {
+      var n = v === null ? data.cities.length : (data.tally[v] || 0);
+      if (v !== null && !n) return;
+      var li = el("li");
+      var b = el("button");
+      b.className = v || "";
+      b.setAttribute("aria-pressed", String(show === v));
+      b.appendChild(el("span", "n " + (v ? cls(v) : ""), String(n)));
+      b.appendChild(document.createTextNode(" " + (v === null ? "cities" : LABEL[v])));
+      b.addEventListener("click", function () {
+        show = (show === v) ? null : v;
+        chips(); draw();
+      });
+      li.appendChild(b);
+      box.appendChild(li);
+    });
+    void all;
+  }
+
+  fetch("border-report.json").then(function (r) {
+    if (!r.ok) throw new Error("border-report.json returned " + r.status);
+    return r.json();
+  }).then(function (d) {
+    data = d;
+    document.getElementById("lede").textContent =
+      "Every city measured against every official body that publishes a boundary " +
+      "at its coordinate. “Correct” means one of them draws the same line, " +
+      "to an overlap of " + d.thresholds.correct.toFixed(2) + " or better — not " +
+      "that the border is where a resident would draw it.";
+    document.getElementById("note").textContent = d.notGoogle +
+      " To say where the line should really be, use the review page.";
+    document.getElementById("tally").textContent = "";
+    chips(); draw();
+  }).catch(function (e) {
+    document.getElementById("lede").textContent =
+      "Could not read the report: " + e.message +
+      " — run tools/border-report.py to write it.";
+  });
+})();
+</script>

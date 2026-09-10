@@ -1,0 +1,2617 @@
+{
+ "what": "Every city, measured against every official source that publishes a boundary at its coordinate. Written by tools/border-report.py; do not edit by hand.",
+ "notGoogle": "Not a comparison against Google Maps: Google publishes no boundary geometry through any API, so there is nothing there to measure against. These are the public bodies whose data such maps are themselves built from.",
+ "thresholds": {
+  "correct": 0.8,
+  "nearly": 0.5
+ },
+ "tally": {
+  "by hand": 5,
+  "adopted": 38,
+  "correct": 19,
+  "nearly": 2,
+  "unchecked": 1
+ },
+ "cities": [
+  {
+   "asked": "London",
+   "country": "United Kingdom",
+   "lat": 51.5074,
+   "lon": -0.1278,
+   "drawn": {
+    "name": "London",
+    "from": "M25 and A282",
+    "km2": 2312
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "City of Westminster",
+     "km2": 18,
+     "iou": 0.008,
+     "covered": 1.0,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "London",
+     "km2": 1651,
+     "iou": 0.677,
+     "covered": 0.969,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": null,
+   "verdict": "by hand"
+  },
+  {
+   "asked": "Birmingham",
+   "country": "United Kingdom",
+   "lat": 52.4949,
+   "lon": -1.8518,
+   "drawn": {
+    "name": "Birmingham",
+    "from": "Ordnance Survey",
+    "km2": 219
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Birmingham",
+     "km2": 221,
+     "iou": 0.963,
+     "covered": 0.978,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Birmingham",
+     "km2": 686,
+     "iou": 0.268,
+     "covered": 0.279,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Manchester",
+   "country": "United Kingdom",
+   "lat": 53.4425,
+   "lon": -2.2325,
+   "drawn": {
+    "name": "Manchester",
+    "from": "Ordnance Survey",
+    "km2": 75
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Manchester",
+     "km2": 75,
+     "iou": 0.958,
+     "covered": 0.975,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Manchester",
+     "km2": 752,
+     "iou": 0.1,
+     "covered": 0.1,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Luton",
+   "country": "United Kingdom",
+   "lat": 51.8784,
+   "lon": -0.4153,
+   "drawn": {
+    "name": "Luton",
+    "from": "Ordnance Survey",
+    "km2": 41
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Luton",
+     "km2": 41,
+     "iou": 0.954,
+     "covered": 0.971,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Luton",
+     "km2": 60,
+     "iou": 0.57,
+     "covered": 0.61,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Leicester",
+   "country": "United Kingdom",
+   "lat": 52.6362,
+   "lon": -1.1332,
+   "drawn": {
+    "name": "Leicester",
+    "from": "Ordnance Survey",
+    "km2": 74
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Leicester",
+     "km2": 74,
+     "iou": 0.952,
+     "covered": 0.971,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Leicester",
+     "km2": 127,
+     "iou": 0.544,
+     "covered": 0.556,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Peterborough",
+   "country": "United Kingdom",
+   "lat": 52.5726,
+   "lon": -0.2427,
+   "drawn": {
+    "name": "Peterborough",
+    "from": "Ordnance Survey",
+    "km2": 48
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Peterborough",
+     "km2": 49,
+     "iou": 0.887,
+     "covered": 0.93,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Peterborough",
+     "km2": 63,
+     "iou": 0.63,
+     "covered": 0.678,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Glasgow",
+   "country": "United Kingdom",
+   "lat": 55.8612,
+   "lon": -4.2502,
+   "drawn": {
+    "name": "Glasgow",
+    "from": "Ordnance Survey",
+    "km2": 138
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Glasgow",
+     "km2": 139,
+     "iou": 0.925,
+     "covered": 0.954,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Glasgow",
+     "km2": 310,
+     "iou": 0.417,
+     "covered": 0.425,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Leeds",
+   "country": "United Kingdom",
+   "lat": 53.7974,
+   "lon": -1.5438,
+   "drawn": {
+    "name": "Leeds",
+    "from": "Ordnance Survey",
+    "km2": 119
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Leeds",
+     "km2": 120,
+     "iou": 0.937,
+     "covered": 0.963,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Leeds",
+     "km2": 322,
+     "iou": 0.307,
+     "covered": 0.322,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Milton Keynes",
+   "country": "United Kingdom",
+   "lat": 52.0407,
+   "lon": -0.7594,
+   "drawn": {
+    "name": "Milton Keynes",
+    "from": "Ordnance Survey",
+    "km2": 51
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Milton Keynes",
+     "km2": 52,
+     "iou": 0.909,
+     "covered": 0.947,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Milton Keynes",
+     "km2": 73,
+     "iou": 0.345,
+     "covered": 0.437,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Watford",
+   "country": "United Kingdom",
+   "lat": 51.6554,
+   "lon": -0.3957,
+   "drawn": {
+    "name": "London",
+    "from": "M25 and A282",
+    "km2": 2312
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Watford (Watford)",
+     "km2": 24,
+     "iou": 0.008,
+     "covered": 0.798,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "town",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "London",
+     "km2": 1651,
+     "iou": 0.677,
+     "covered": 0.969,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.008,
+   "copiedFrom": null,
+   "verdict": "by hand"
+  },
+  {
+   "asked": "Wolverhampton",
+   "country": "United Kingdom",
+   "lat": 52.5848,
+   "lon": -2.1276,
+   "drawn": {
+    "name": "Wolverhampton",
+    "from": "Ordnance Survey",
+    "km2": 57
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Wolverhampton",
+     "km2": 58,
+     "iou": 0.94,
+     "covered": 0.965,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Birmingham",
+     "km2": 686,
+     "iou": 0.078,
+     "covered": 0.078,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Bradford",
+   "country": "United Kingdom",
+   "lat": 53.7944,
+   "lon": -1.7519,
+   "drawn": {
+    "name": "Bradford",
+    "from": "Ordnance Survey",
+    "km2": 63
+   },
+   "against": [
+    {
+     "source": "Ordnance Survey",
+     "kind": "built-up",
+     "calls_it": "Bradford",
+     "km2": 64,
+     "iou": 0.939,
+     "covered": 0.961,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Leeds",
+     "km2": 322,
+     "iou": 0.175,
+     "covered": 0.178,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "Ordnance Survey",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Toronto",
+   "country": "Canada",
+   "lat": 43.6535,
+   "lon": -79.3839,
+   "drawn": {
+    "name": "Greater Toronto",
+    "from": "GTA boundary",
+    "km2": 4572
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1844,
+     "iou": 0.386,
+     "covered": 0.97,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Toronto",
+     "km2": 635,
+     "iou": 0.139,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1619,
+     "iou": 0.349,
+     "covered": 0.989,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.139,
+   "copiedFrom": null,
+   "verdict": "by hand"
+  },
+  {
+   "asked": "Mississauga",
+   "country": "Canada",
+   "lat": 43.5885,
+   "lon": -79.6437,
+   "drawn": {
+    "name": "Greater Toronto",
+    "from": "GTA boundary",
+    "km2": 4572
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1844,
+     "iou": 0.386,
+     "covered": 0.97,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Mississauga",
+     "km2": 294,
+     "iou": 0.046,
+     "covered": 0.731,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1619,
+     "iou": 0.349,
+     "covered": 0.989,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.046,
+   "copiedFrom": null,
+   "verdict": "by hand"
+  },
+  {
+   "asked": "Richmond Hill",
+   "country": "Canada",
+   "lat": 43.8801,
+   "lon": -79.4393,
+   "drawn": {
+    "name": "Greater Toronto",
+    "from": "GTA boundary",
+    "km2": 4572
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1844,
+     "iou": 0.386,
+     "covered": 0.97,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Richmond Hill",
+     "km2": 102,
+     "iou": 0.022,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Toronto",
+     "km2": 1619,
+     "iou": 0.349,
+     "covered": 0.989,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.022,
+   "copiedFrom": null,
+   "verdict": "by hand"
+  },
+  {
+   "asked": "Montreal",
+   "country": "Canada",
+   "lat": 45.5032,
+   "lon": -73.5698,
+   "drawn": {
+    "name": "Montreal",
+    "from": "OpenStreetMap",
+    "km2": 441
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Montr\u00e9al",
+     "km2": 1397,
+     "iou": 0.237,
+     "covered": 0.252,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Montr\u00e9al",
+     "km2": 366,
+     "iou": 0.81,
+     "covered": 0.987,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Montreal",
+     "km2": 1020,
+     "iou": 0.348,
+     "covered": 0.37,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.81,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Vancouver",
+   "country": "Canada",
+   "lat": 49.2609,
+   "lon": -123.114,
+   "drawn": {
+    "name": "Vancouver",
+    "from": "OpenStreetMap",
+    "km2": 137
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Vancouver",
+     "km2": 936,
+     "iou": 0.125,
+     "covered": 0.127,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Vancouver",
+     "km2": 115,
+     "iou": 0.813,
+     "covered": 0.98,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Vancouver",
+     "km2": 650,
+     "iou": 0.209,
+     "covered": 0.209,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.813,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Calgary",
+   "country": "Canada",
+   "lat": 51.0456,
+   "lon": -114.0575,
+   "drawn": {
+    "name": "Calgary",
+    "from": "OpenStreetMap",
+    "km2": 853
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Calgary",
+     "km2": 640,
+     "iou": 0.722,
+     "covered": 0.978,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Calgary",
+     "km2": 849,
+     "iou": 0.986,
+     "covered": 0.995,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Calgary",
+     "km2": 534,
+     "iou": 0.614,
+     "covered": 0.988,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.986,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Edmonton",
+   "country": "Canada",
+   "lat": 53.5462,
+   "lon": -113.4912,
+   "drawn": {
+    "name": "Edmonton",
+    "from": "OpenStreetMap",
+    "km2": 785
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Edmonton",
+     "km2": 639,
+     "iou": 0.581,
+     "covered": 0.819,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Edmonton",
+     "km2": 784,
+     "iou": 0.995,
+     "covered": 0.998,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Edmonton",
+     "km2": 436,
+     "iou": 0.479,
+     "covered": 0.907,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.995,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Ottawa",
+   "country": "Canada",
+   "lat": 45.4209,
+   "lon": -75.6901,
+   "drawn": {
+    "name": "Ottawa",
+    "from": "OpenStreetMap",
+    "km2": 2890
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Ottawa - Gatineau",
+     "km2": 387,
+     "iou": 0.086,
+     "covered": 0.673,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Ottawa",
+     "km2": 2892,
+     "iou": 0.997,
+     "covered": 0.998,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Ottawa",
+     "km2": 208,
+     "iou": 0.042,
+     "covered": 0.601,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.997,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Windsor",
+   "country": "Canada",
+   "lat": 42.3167,
+   "lon": -83.0373,
+   "drawn": {
+    "name": "Windsor",
+    "from": "OpenStreetMap",
+    "km2": 159
+   },
+   "against": [
+    {
+     "source": "Statistics Canada",
+     "kind": "built-up",
+     "calls_it": "Windsor",
+     "km2": 186,
+     "iou": 0.523,
+     "covered": 0.637,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "Statistics Canada",
+     "kind": "municipal",
+     "calls_it": "Windsor",
+     "km2": 146,
+     "iou": 0.913,
+     "covered": 0.995,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Windsor",
+     "km2": 122,
+     "iou": 0.617,
+     "covered": 0.879,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.913,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Dearborn",
+   "country": "United States",
+   "lat": 42.3223,
+   "lon": -83.1763,
+   "drawn": {
+    "name": "Dearborn",
+    "from": "OpenStreetMap",
+    "km2": 63
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Detroit, MI Urban Area",
+     "km2": 3415,
+     "iou": 0.019,
+     "covered": 0.019,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Dearborn city",
+     "km2": 63,
+     "iou": 0.996,
+     "covered": 0.997,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Detroit",
+     "km2": 1169,
+     "iou": 0.045,
+     "covered": 0.045,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.996,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Detroit",
+   "country": "United States",
+   "lat": 42.3316,
+   "lon": -83.0466,
+   "drawn": {
+    "name": "Detroit",
+    "from": "OpenStreetMap",
+    "km2": 371
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Detroit, MI Urban Area",
+     "km2": 3415,
+     "iou": 0.109,
+     "covered": 0.109,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Detroit city",
+     "km2": 370,
+     "iou": 0.992,
+     "covered": 0.997,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Detroit",
+     "km2": 1169,
+     "iou": 0.3,
+     "covered": 0.304,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.992,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "New York",
+   "country": "United States",
+   "lat": 40.7127,
+   "lon": -74.006,
+   "drawn": {
+    "name": "New York",
+    "from": "OpenStreetMap",
+    "km2": 1219
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "New York--Jersey City--Newark, NY--NJ Urban Area",
+     "km2": 8961,
+     "iou": 0.095,
+     "covered": 0.098,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "New York city",
+     "km2": 1224,
+     "iou": 0.992,
+     "covered": 0.994,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "New York City",
+     "km2": 3028,
+     "iou": 0.251,
+     "covered": 0.282,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.992,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Los Angeles",
+   "country": "United States",
+   "lat": 34.0537,
+   "lon": -118.2428,
+   "drawn": {
+    "name": "Los Angeles",
+    "from": "OpenStreetMap",
+    "km2": 1362
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Los Angeles--Long Beach--Anaheim, CA Urban Area",
+     "km2": 4288,
+     "iou": 0.219,
+     "covered": 0.236,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Los Angeles city",
+     "km2": 1300,
+     "iou": 0.884,
+     "covered": 0.961,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Los Angeles",
+     "km2": 4487,
+     "iou": 0.169,
+     "covered": 0.188,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.884,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Chicago",
+   "country": "United States",
+   "lat": 41.8756,
+   "lon": -87.6244,
+   "drawn": {
+    "name": "Chicago",
+    "from": "OpenStreetMap",
+    "km2": 607
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Chicago, IL--IN Urban Area",
+     "km2": 6156,
+     "iou": 0.091,
+     "covered": 0.091,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Chicago city",
+     "km2": 607,
+     "iou": 0.972,
+     "covered": 0.985,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Chicago",
+     "km2": 2044,
+     "iou": 0.28,
+     "covered": 0.284,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.972,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Houston",
+   "country": "United States",
+   "lat": 29.7589,
+   "lon": -95.3677,
+   "drawn": {
+    "name": "Houston",
+    "from": "OpenStreetMap",
+    "km2": 1589
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Houston, TX Urban Area",
+     "km2": 4606,
+     "iou": 0.3,
+     "covered": 0.31,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Houston city",
+     "km2": 1741,
+     "iou": 0.743,
+     "covered": 0.815,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Houston",
+     "km2": 1853,
+     "iou": 0.41,
+     "covered": 0.54,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.743,
+   "copiedFrom": null,
+   "verdict": "nearly"
+  },
+  {
+   "asked": "Atlanta",
+   "country": "United States",
+   "lat": 33.7545,
+   "lon": -84.3898,
+   "drawn": {
+    "name": "Atlanta",
+    "from": "OpenStreetMap",
+    "km2": 352
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Atlanta, GA Urban Area",
+     "km2": 6712,
+     "iou": 0.052,
+     "covered": 0.052,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Atlanta city",
+     "km2": 353,
+     "iou": 0.991,
+     "covered": 0.994,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Atlanta",
+     "km2": 291,
+     "iou": 0.499,
+     "covered": 0.736,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.991,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Minneapolis",
+   "country": "United States",
+   "lat": 44.9773,
+   "lon": -93.2655,
+   "drawn": {
+    "name": "Minneapolis",
+    "from": "OpenStreetMap",
+    "km2": 149
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Minneapolis--St. Paul, MN Urban Area",
+     "km2": 2802,
+     "iou": 0.053,
+     "covered": 0.053,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Minneapolis city",
+     "km2": 149,
+     "iou": 0.997,
+     "covered": 0.998,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Minneapolis [Saint Paul]",
+     "km2": 611,
+     "iou": 0.237,
+     "covered": 0.238,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.997,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Seattle",
+   "country": "United States",
+   "lat": 47.6038,
+   "lon": -122.3301,
+   "drawn": {
+    "name": "Seattle",
+    "from": "OpenStreetMap",
+    "km2": 373
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Seattle--Tacoma, WA Urban Area",
+     "km2": 2696,
+     "iou": 0.135,
+     "covered": 0.135,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Seattle city",
+     "km2": 368,
+     "iou": 0.974,
+     "covered": 0.994,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Seattle",
+     "km2": 1124,
+     "iou": 0.264,
+     "covered": 0.278,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.974,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "San Jose",
+   "country": "United States",
+   "lat": 37.3362,
+   "lon": -121.8906,
+   "drawn": {
+    "name": "San Jose",
+    "from": "OpenStreetMap",
+    "km2": 468
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "San Jose, CA Urban Area",
+     "km2": 740,
+     "iou": 0.4,
+     "covered": 0.466,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "San Jose city",
+     "km2": 469,
+     "iou": 0.99,
+     "covered": 0.994,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "San Francisco",
+     "km2": 1611,
+     "iou": 0.027,
+     "covered": 0.033,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.99,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Orlando",
+   "country": "United States",
+   "lat": 28.5421,
+   "lon": -81.379,
+   "drawn": {
+    "name": "Orlando",
+    "from": "OpenStreetMap",
+    "km2": 353
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Orlando, FL Urban Area",
+     "km2": 1838,
+     "iou": 0.143,
+     "covered": 0.149,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Orlando city",
+     "km2": 357,
+     "iou": 0.957,
+     "covered": 0.972,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Orlando",
+     "km2": 747,
+     "iou": 0.202,
+     "covered": 0.248,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.957,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Sacramento",
+   "country": "United States",
+   "lat": 38.5811,
+   "lon": -121.4939,
+   "drawn": {
+    "name": "Sacramento",
+    "from": "OpenStreetMap",
+    "km2": 257
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Sacramento, CA Urban Area",
+     "km2": 1224,
+     "iou": 0.143,
+     "covered": 0.151,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Sacramento city",
+     "km2": 261,
+     "iou": 0.953,
+     "covered": 0.968,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Sacramento",
+     "km2": 758,
+     "iou": 0.251,
+     "covered": 0.269,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.953,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Boston",
+   "country": "United States",
+   "lat": 42.3588,
+   "lon": -71.0578,
+   "drawn": {
+    "name": "Boston",
+    "from": "OpenStreetMap",
+    "km2": 246
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Boston, MA--NH Urban Area",
+     "km2": 4474,
+     "iou": 0.045,
+     "covered": 0.046,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Boston city",
+     "km2": 232,
+     "iou": 0.699,
+     "covered": 0.847,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Boston",
+     "km2": 508,
+     "iou": 0.255,
+     "covered": 0.301,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.699,
+   "copiedFrom": null,
+   "verdict": "nearly"
+  },
+  {
+   "asked": "Philadelphia",
+   "country": "United States",
+   "lat": 39.9527,
+   "lon": -75.1635,
+   "drawn": {
+    "name": "Philadelphia",
+    "from": "OpenStreetMap",
+    "km2": 369
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Philadelphia, PA--NJ--DE--MD Urban Area",
+     "km2": 5050,
+     "iou": 0.073,
+     "covered": 0.073,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Philadelphia city",
+     "km2": 369,
+     "iou": 0.995,
+     "covered": 0.998,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Philadelphia",
+     "km2": 653,
+     "iou": 0.425,
+     "covered": 0.467,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.995,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Washington",
+   "country": "United States",
+   "lat": 38.8951,
+   "lon": -77.0364,
+   "drawn": {
+    "name": "Washington",
+    "from": "OpenStreetMap",
+    "km2": 177
+   },
+   "against": [
+    {
+     "source": "the US Census Bureau",
+     "kind": "built-up",
+     "calls_it": "Washington--Arlington, DC--VA--MD Urban Area",
+     "km2": 3420,
+     "iou": 0.05,
+     "covered": 0.05,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "agglomeration",
+     "checks": false
+    },
+    {
+     "source": "the US Census Bureau",
+     "kind": "municipal",
+     "calls_it": "Washington city",
+     "km2": 177,
+     "iou": 0.997,
+     "covered": 0.999,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "municipality",
+     "checks": true
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Washington",
+     "km2": 1299,
+     "iou": 0.105,
+     "covered": 0.108,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": 0.997,
+   "copiedFrom": null,
+   "verdict": "correct"
+  },
+  {
+   "asked": "Sydney",
+   "country": "Australia",
+   "lat": -33.8698,
+   "lon": 151.2083,
+   "drawn": {
+    "name": "Sydney",
+    "from": "the Australian Bureau of Statistics",
+    "km2": 2195
+   },
+   "against": [
+    {
+     "source": "the Australian Bureau of Statistics",
+     "kind": "built-up",
+     "calls_it": "Sydney",
+     "km2": 2194,
+     "iou": 0.985,
+     "covered": 0.993,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Sydney",
+     "km2": 1374,
+     "iou": 0.524,
+     "covered": 0.893,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the Australian Bureau of Statistics",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Melbourne",
+   "country": "Australia",
+   "lat": -37.8142,
+   "lon": 144.9632,
+   "drawn": {
+    "name": "Melbourne",
+    "from": "the Australian Bureau of Statistics",
+    "km2": 2885
+   },
+   "against": [
+    {
+     "source": "the Australian Bureau of Statistics",
+     "kind": "built-up",
+     "calls_it": "Melbourne",
+     "km2": 2881,
+     "iou": 0.991,
+     "covered": 0.996,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Melbourne",
+     "km2": 1608,
+     "iou": 0.534,
+     "covered": 0.972,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the Australian Bureau of Statistics",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Brisbane",
+   "country": "Australia",
+   "lat": -27.469,
+   "lon": 153.0235,
+   "drawn": {
+    "name": "Brisbane",
+    "from": "the Australian Bureau of Statistics",
+    "km2": 2025
+   },
+   "against": [
+    {
+     "source": "the Australian Bureau of Statistics",
+     "kind": "built-up",
+     "calls_it": "Brisbane",
+     "km2": 2027,
+     "iou": 0.988,
+     "covered": 0.993,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Brisbane",
+     "km2": 698,
+     "iou": 0.325,
+     "covered": 0.955,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the Australian Bureau of Statistics",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Perth",
+   "country": "Australia",
+   "lat": -31.9559,
+   "lon": 115.8606,
+   "drawn": {
+    "name": "Perth",
+    "from": "the Australian Bureau of Statistics",
+    "km2": 1723
+   },
+   "against": [
+    {
+     "source": "the Australian Bureau of Statistics",
+     "kind": "built-up",
+     "calls_it": "Perth (WA)",
+     "km2": 1720,
+     "iou": 0.986,
+     "covered": 0.994,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Perth",
+     "km2": 782,
+     "iou": 0.381,
+     "covered": 0.884,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the Australian Bureau of Statistics",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Adelaide",
+   "country": "Australia",
+   "lat": -34.9282,
+   "lon": 138.5999,
+   "drawn": {
+    "name": "Adelaide",
+    "from": "the Australian Bureau of Statistics",
+    "km2": 855
+   },
+   "against": [
+    {
+     "source": "the Australian Bureau of Statistics",
+     "kind": "built-up",
+     "calls_it": "Adelaide",
+     "km2": 854,
+     "iou": 0.991,
+     "covered": 0.996,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "town",
+     "checks": false
+    },
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Adelaide",
+     "km2": 492,
+     "iou": 0.509,
+     "covered": 0.924,
+     "namesAgree": true,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the Australian Bureau of Statistics",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Auckland",
+   "country": "New Zealand",
+   "lat": -36.8521,
+   "lon": 174.7632,
+   "drawn": {
+    "name": "Auckland",
+    "from": "the EC Joint Research Centre",
+    "km2": 637
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Auckland",
+     "km2": 637,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Hamburg",
+   "country": "Germany",
+   "lat": 53.5502,
+   "lon": 10.0013,
+   "drawn": {
+    "name": "Hamburg",
+    "from": "the EC Joint Research Centre",
+    "km2": 479
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Hamburg",
+     "km2": 479,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Berlin",
+   "country": "Germany",
+   "lat": 52.5174,
+   "lon": 13.3951,
+   "drawn": {
+    "name": "Berlin",
+    "from": "the EC Joint Research Centre",
+    "km2": 682
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Berlin",
+     "km2": 682,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Frankfurt",
+   "country": "Germany",
+   "lat": 50.1106,
+   "lon": 8.6821,
+   "drawn": {
+    "name": "Frankfurt",
+    "from": "the EC Joint Research Centre",
+    "km2": 193
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Frankfurt",
+     "km2": 193,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Munich",
+   "country": "Germany",
+   "lat": 48.1371,
+   "lon": 11.5754,
+   "drawn": {
+    "name": "Munich",
+    "from": "the EC Joint Research Centre",
+    "km2": 345
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Munich",
+     "km2": 345,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Essen",
+   "country": "Germany",
+   "lat": 51.4582,
+   "lon": 7.0158,
+   "drawn": {
+    "name": "Essen",
+    "from": "the EC Joint Research Centre",
+    "km2": 881
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Essen",
+     "km2": 881,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Stockholm",
+   "country": "Sweden",
+   "lat": 59.3251,
+   "lon": 18.0711,
+   "drawn": {
+    "name": "Stockholm",
+    "from": "the EC Joint Research Centre",
+    "km2": 340
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Stockholm",
+     "km2": 340,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Gothenburg",
+   "country": "Sweden",
+   "lat": 57.7072,
+   "lon": 11.967,
+   "drawn": {
+    "name": "Gothenburg",
+    "from": "the EC Joint Research Centre",
+    "km2": 192
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Gothenburg",
+     "km2": 192,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Malmo",
+   "country": "Sweden",
+   "lat": 55.6053,
+   "lon": 13.0002,
+   "drawn": {
+    "name": "Malmo",
+    "from": "the EC Joint Research Centre",
+    "km2": 84
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Malmo",
+     "km2": 84,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Copenhagen",
+   "country": "Denmark",
+   "lat": 55.6867,
+   "lon": 12.5701,
+   "drawn": {
+    "name": "Copenhagen",
+    "from": "the EC Joint Research Centre",
+    "km2": 303
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Copenhagen",
+     "km2": 303,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Oslo",
+   "country": "Norway",
+   "lat": 59.9133,
+   "lon": 10.739,
+   "drawn": {
+    "name": "Oslo",
+    "from": "the EC Joint Research Centre",
+    "km2": 245
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Oslo",
+     "km2": 245,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "The Hague",
+   "country": "Netherlands",
+   "lat": 52.0749,
+   "lon": 4.2697,
+   "drawn": {
+    "name": "The Hague",
+    "from": "OpenStreetMap",
+    "km2": 98
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Rotterdam [The Hague]",
+     "km2": 678,
+     "iou": 0.111,
+     "covered": 0.114,
+     "namesAgree": false,
+     "adopted": false,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": null,
+   "verdict": "unchecked"
+  },
+  {
+   "asked": "Amsterdam",
+   "country": "Netherlands",
+   "lat": 52.3731,
+   "lon": 4.8925,
+   "drawn": {
+    "name": "Amsterdam",
+    "from": "the EC Joint Research Centre",
+    "km2": 309
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Amsterdam",
+     "km2": 309,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Brussels",
+   "country": "Belgium",
+   "lat": 50.8467,
+   "lon": 4.3525,
+   "drawn": {
+    "name": "Brussels",
+    "from": "the EC Joint Research Centre",
+    "km2": 235
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Brussels",
+     "km2": 235,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Antwerp",
+   "country": "Belgium",
+   "lat": 51.2211,
+   "lon": 4.3997,
+   "drawn": {
+    "name": "Antwerp",
+    "from": "the EC Joint Research Centre",
+    "km2": 327
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Antwerp",
+     "km2": 327,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Paris",
+   "country": "France",
+   "lat": 48.8535,
+   "lon": 2.3484,
+   "drawn": {
+    "name": "Paris",
+    "from": "the EC Joint Research Centre",
+    "km2": 1422
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Paris",
+     "km2": 1422,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Vienna",
+   "country": "Austria",
+   "lat": 48.2084,
+   "lon": 16.3725,
+   "drawn": {
+    "name": "Vienna",
+    "from": "the EC Joint Research Centre",
+    "km2": 325
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Vienna",
+     "km2": 325,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Dar es Salaam",
+   "country": "Tanzania",
+   "lat": -6.8161,
+   "lon": 39.2804,
+   "drawn": {
+    "name": "Dar es Salaam",
+    "from": "the EC Joint Research Centre",
+    "km2": 901
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Dar es-Salaam",
+     "km2": 901,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Arusha",
+   "country": "Tanzania",
+   "lat": -3.3697,
+   "lon": 36.6881,
+   "drawn": {
+    "name": "Arusha",
+    "from": "the EC Joint Research Centre",
+    "km2": 168
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Arusha",
+     "km2": 168,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Zanzibar City",
+   "country": "Tanzania",
+   "lat": -6.1665,
+   "lon": 39.2074,
+   "drawn": {
+    "name": "Zanzibar City",
+    "from": "the EC Joint Research Centre",
+    "km2": 120
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Zanzibar City",
+     "km2": 120,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Nairobi",
+   "country": "Kenya",
+   "lat": -1.289,
+   "lon": 36.8173,
+   "drawn": {
+    "name": "Nairobi",
+    "from": "the EC Joint Research Centre",
+    "km2": 594
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Nairobi",
+     "km2": 594,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Mombasa",
+   "country": "Kenya",
+   "lat": -4.0505,
+   "lon": 39.6672,
+   "drawn": {
+    "name": "Mombasa",
+    "from": "the EC Joint Research Centre",
+    "km2": 180
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Mombasa",
+     "km2": 180,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Kampala",
+   "country": "Uganda",
+   "lat": 0.3177,
+   "lon": 32.5814,
+   "drawn": {
+    "name": "Kampala",
+    "from": "the EC Joint Research Centre",
+    "km2": 805
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Kampala",
+     "km2": 805,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  },
+  {
+   "asked": "Antananarivo",
+   "country": "Madagascar",
+   "lat": -18.91,
+   "lon": 47.5256,
+   "drawn": {
+    "name": "Antananarivo",
+    "from": "the EC Joint Research Centre",
+    "km2": 440
+   },
+   "against": [
+    {
+     "source": "the EC Joint Research Centre",
+     "kind": "built-up",
+     "calls_it": "Antananarivo",
+     "km2": 440,
+     "iou": 1.0,
+     "covered": 1.0,
+     "namesAgree": true,
+     "adopted": true,
+     "scale": "cluster",
+     "checks": false
+    }
+   ],
+   "best": null,
+   "copiedFrom": "the EC Joint Research Centre",
+   "verdict": "adopted"
+  }
+ ]
+}
