@@ -4755,6 +4755,14 @@
     if (!city.shape) {
       say("No published border for <b>" + city.name + "</b>, so the count runs from the address itself. " +
           "Name another city above, or type the distance to your city's edge here.", "hint--warn");
+      /* The deduction has to go with the border it was measured to. Every
+         other way out of here clears it and this one did not, so a reader who
+         corrected the page about their city kept the old city's figure: told
+         in three places that nothing could be deducted, while 12.8 km
+         measured to the M25 stayed in the field and in the sum. It changed
+         the ruling — the same journey came out "pray in full" with the stale
+         figure and "shorten your prayers" without it. */
+      if (!edgeTouched) $("edgeKm").value = "";
       fail("No border is published for " + city.name + ", so the distance is counted from the address itself — which overstates it. Name another city, or enter the distance to your city's edge by hand.");
       return;
     }
@@ -5221,6 +5229,11 @@
       routes = [];
       roadRoute = crowRoute = lastRoute = null;
       edgeTouched = false;
+      /* form.reset() does not reach it: the field sits in the result section,
+         outside the form. Left behind, a deduction measured to one town's
+         border was applied to the next journey — "not counted, inside
+         Testfield, 9.7 km", where the 9.7 was measured to the M25. */
+      $("edgeKm").value = "";
       cityConfirmed = false;
       cityOptions = null;
       $("cityPick").hidden = true;
@@ -5288,7 +5301,17 @@
           if (!isNaN(v)) el.value = (unit === "mi" ? v / KM_PER_MI : v * KM_PER_MI).toFixed(1);
         });
       }
+      /* Everything on the page that carries a distance, not only the ones
+         recalc touches. The gauge's own scale is written in the markup and
+         nothing ever rewrote it, so it read "8 farsakh — 44 km" directly
+         under a row saying 27.3 miles; and the border hint is rewritten by
+         applyBorderDeduction rather than by recalc, so it went on saying "the
+         road from your door to that border is 9.7 km" beside a field showing
+         6.0. */
+      var limit = document.querySelector(".gauge__limit");
+      if (limit) limit.innerHTML = "8 <i>farsakh</i> — " + fmtKm(Fiqh.THRESHOLD_KM);
       recalc();
+      applyBorderDeduction();
     }
 
     /* The hadd is a drawing, not a ruling, so turning it off only redraws. */
@@ -5300,6 +5323,12 @@
         try { localStorage.setItem("qasr.hadd", showHadd ? "on" : "off"); } catch (e) {}
         if (mapState.map) renderMap(lastResult ? metricsFor(lastResult) : null);
       });
+    }
+
+      /* And on first paint, for a reader whose remembered unit is miles. */
+    var limitAtStart = document.querySelector(".gauge__limit");
+    if (limitAtStart) {
+      limitAtStart.innerHTML = "8 <i>farsakh</i> — " + fmtKm(Fiqh.THRESHOLD_KM);
     }
 
     Array.prototype.forEach.call(

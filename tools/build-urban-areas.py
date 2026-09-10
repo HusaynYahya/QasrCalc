@@ -70,15 +70,25 @@ def write_sharded(out, areas, index_path):
     #
     # Now only the countries this run rebuilt are touched, and the index keeps
     # every entry whose shard is still on disk.
-    keep = []
+    keep, kept_sources = [], {}
     if os.path.exists(index_path):
         try:
             was = json.load(open(index_path))
             keep = [a for a in was.get("areas", [])
                     if a.get("shard") not in shards
                     and os.path.exists(os.path.join(folder, str(a.get("shard")) + ".json"))]
+            # And their attribution with them. Keeping Ordnance Survey's
+            # borders while dropping Ordnance Survey's licence off the file is
+            # not a tidying-up problem, it is publishing their data uncredited
+            # — which the licence is the permission for.
+            countries = {a.get("country") for a in keep}
+            kept_sources = {k: v for k, v in (was.get("sources") or {}).items()
+                            if k in countries}
         except (IOError, ValueError):
-            keep = []
+            keep, kept_sources = [], {}
+    for k, v in kept_sources.items():
+        out.setdefault("sources", {}).setdefault(k, v)
+    out["source"] = "  ".join(sorted(set((out.get("sources") or {}).values())))
 
     # Written to a temporary name and moved into place, so that a run which
     # dies partway leaves the old shard rather than half a new one.

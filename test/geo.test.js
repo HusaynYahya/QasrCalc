@@ -731,6 +731,28 @@ function urban(name) {
 test("it says where it came from", function () {
   assert.ok(/Australian Bureau of Statistics/.test(URBAN.source), "the source is not named");
   assert.ok(/CC BY/.test(URBAN.source), "the licence is not named");
+  /* Every country that contributed an area has to be credited, whether or not
+     the last run happened to touch it. Rebuilding one country used to rewrite
+     the attribution line from that run alone, leaving Ordnance Survey's
+     borders on file with Ordnance Survey's licence struck off — which is not
+     an untidiness but publishing their data uncredited, the licence being the
+     permission for it.
+
+     Matched on country rather than on the source's short name: "Ordnance
+     Survey" is credited as "OS Open Built Up Areas, via the ONS Open
+     Geography Portal", and a first draft of this check looked for the word
+     "Ordnance", failed to find it, and called a correct file wrong. */
+  var credited = URBAN.sources || {};
+  var uncredited = URBAN.areas
+    .map(function (a) { return a.country; })
+    .filter(function (c, i, all) { return c && all.indexOf(c) === i; })
+    .filter(function (c) { return !credited[c]; });
+  assert.strictEqual(uncredited.length, 0,
+    "areas on file from " + uncredited.join(", ") + " with no attribution");
+  Object.keys(credited).forEach(function (c) {
+    assert.ok(/licen[cs]e|copyright|public domain/i.test(credited[c]),
+      c + "'s attribution names no licence: " + credited[c]);
+  });
   assert.ok(URBAN.areas.length >= 5, "only " + URBAN.areas.length + " built-up area(s) on file");
 });
 
