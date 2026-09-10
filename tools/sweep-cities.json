@@ -1,1432 +1,2333 @@
 [
  {
-  "asked": "London",
-  "country": "United Kingdom",
-  "lat": 51.5074,
-  "lon": -0.1278,
-  "got": "London",
-  "hasShape": true,
-  "ring": "M25 and A282",
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": null,
-  "kind": null,
-  "shapeKm2": 2308,
-  "spanKm": 58,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "drawn by hand (M25 and A282)"
- },
- {
-  "asked": "Birmingham",
-  "country": "United Kingdom",
-  "lat": 52.4949,
-  "lon": -1.8518,
-  "got": "Birmingham",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Birmingham",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 268,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 219,
-  "spanKm": 23,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (219 km²), in place of 268 km² of administrative boundary"
- },
- {
-  "asked": "Manchester",
-  "country": "United Kingdom",
-  "lat": 53.4425,
-  "lon": -2.2325,
-  "got": "Manchester",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Manchester",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 116,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 75,
-  "spanKm": 15,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (75 km²), in place of 116 km² of administrative boundary"
- },
- {
-  "asked": "Luton",
-  "country": "United Kingdom",
-  "lat": 51.8784,
-  "lon": -0.4153,
-  "got": "Luton",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Luton",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": null,
-  "rank": 12,
-  "kind": "county",
-  "shapeKm2": 41,
-  "spanKm": 12,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (41 km²)"
- },
- {
-  "asked": "Leicester",
-  "country": "United Kingdom",
-  "lat": 52.6362,
-  "lon": -1.1332,
-  "got": "Leicester",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Leicester",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 74,
-  "spanKm": 13,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (74 km²)"
- },
- {
-  "asked": "Peterborough",
-  "country": "United Kingdom",
-  "lat": 52.5726,
-  "lon": -0.2427,
-  "got": "Peterborough",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Peterborough",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 47,
-  "spanKm": 12,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (47 km²)"
- },
- {
-  "asked": "Glasgow",
-  "country": "United Kingdom",
-  "lat": 55.8612,
-  "lon": -4.2502,
-  "got": "Glasgow",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Glasgow",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 137,
-  "spanKm": 19,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (137 km²)"
- },
- {
-  "asked": "Leeds",
-  "country": "United Kingdom",
-  "lat": 53.7974,
-  "lon": -1.5438,
-  "got": "Leeds",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Leeds",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 551,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 119,
-  "spanKm": 17,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (119 km²), in place of 551 km² of administrative boundary"
- },
- {
-  "asked": "Milton Keynes",
-  "country": "United Kingdom",
-  "lat": 52.0407,
-  "lon": -0.7594,
-  "got": "Milton Keynes",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Milton Keynes",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 114,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 51,
-  "spanKm": 15,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (51 km²), in place of 114 km² of administrative boundary"
- },
- {
-  "asked": "Watford",
-  "country": "United Kingdom",
-  "lat": 51.6554,
-  "lon": -0.3957,
-  "got": "London",
-  "hasShape": true,
-  "ring": "M25 and A282",
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": null,
-  "kind": null,
-  "shapeKm2": 2308,
-  "spanKm": 58,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "drawn by hand (M25 and A282)"
- },
- {
-  "asked": "Wolverhampton",
-  "country": "United Kingdom",
-  "lat": 52.5848,
-  "lon": -2.1276,
-  "got": "Wolverhampton",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Wolverhampton",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 69,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 57,
-  "spanKm": 11,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (57 km²), in place of 69 km² of administrative boundary"
- },
- {
-  "asked": "Bradford",
-  "country": "United Kingdom",
-  "lat": 53.7944,
-  "lon": -1.7519,
-  "got": "Bradford",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Bradford",
-  "urbanSource": "Ordnance Survey",
-  "regionKm2": 366,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 63,
-  "spanKm": 13,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (63 km²), in place of 366 km² of administrative boundary"
- },
- {
-  "asked": "Toronto",
-  "country": "Canada",
-  "lat": 43.6535,
-  "lon": -79.3839,
-  "got": "Greater Toronto",
-  "hasShape": true,
-  "ring": "GTA boundary",
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": null,
-  "kind": null,
-  "shapeKm2": 4580,
-  "spanKm": 103,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "drawn by hand (GTA boundary)"
- },
- {
-  "asked": "Mississauga",
-  "country": "Canada",
-  "lat": 43.5885,
-  "lon": -79.6437,
-  "got": "Greater Toronto",
-  "hasShape": true,
-  "ring": "GTA boundary",
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": null,
-  "kind": null,
-  "shapeKm2": 4580,
-  "spanKm": 103,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "drawn by hand (GTA boundary)"
- },
- {
-  "asked": "Richmond Hill",
-  "country": "Canada",
-  "lat": 43.8801,
-  "lon": -79.4393,
-  "got": "Greater Toronto",
-  "hasShape": true,
-  "ring": "GTA boundary",
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": null,
-  "kind": null,
-  "shapeKm2": 4580,
-  "spanKm": 103,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "drawn by hand (GTA boundary)"
- },
- {
-  "asked": "Montreal",
-  "country": "Canada",
-  "lat": 45.5032,
-  "lon": -73.5698,
-  "got": "Montreal",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 463,
-  "spanKm": 39,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Vancouver",
-  "country": "Canada",
-  "lat": 49.2609,
-  "lon": -123.114,
-  "got": "Vancouver",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 137,
-  "spanKm": 15,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Calgary",
-  "country": "Canada",
-  "lat": 51.0456,
-  "lon": -114.0575,
-  "got": "Calgary",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 855,
-  "spanKm": 41,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Edmonton",
-  "country": "Canada",
-  "lat": 53.5462,
-  "lon": -113.4912,
-  "got": "Edmonton",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 783,
-  "spanKm": 42,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Ottawa",
-  "country": "Canada",
-  "lat": 45.4209,
-  "lon": -75.6901,
-  "got": "Ottawa",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 2884,
-  "spanKm": 87,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "reaches 87 km across — look at it"
- },
- {
-  "asked": "Windsor",
-  "country": "Canada",
-  "lat": 42.3167,
-  "lon": -83.0373,
-  "got": "Windsor",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 12,
-  "kind": "county",
-  "shapeKm2": 159,
-  "spanKm": 18,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Dearborn",
-  "country": "United States",
-  "lat": 42.3223,
-  "lon": -83.1763,
-  "got": "Dearborn",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 63,
-  "spanKm": 12,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Detroit",
-  "country": "United States",
-  "lat": 42.3316,
-  "lon": -83.0466,
-  "got": "Detroit",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 14,
-  "kind": "city",
-  "shapeKm2": 384,
-  "spanKm": 31,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "New York",
-  "country": "United States",
-  "lat": 40.7127,
-  "lon": -74.006,
-  "got": "New York",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 10,
-  "kind": "city",
-  "shapeKm2": 1219,
-  "spanKm": 49,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Los Angeles",
-  "country": "United States",
-  "lat": 34.0537,
-  "lon": -118.2428,
-  "got": "Los Angeles",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 1427,
-  "spanKm": 75,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "reaches 75 km across — look at it"
- },
- {
-  "asked": "Chicago",
-  "country": "United States",
-  "lat": 41.8756,
-  "lon": -87.6244,
-  "got": "Chicago",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 616,
-  "spanKm": 42,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Houston",
-  "country": "United States",
-  "lat": 29.7589,
-  "lon": -95.3677,
-  "got": "Houston",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 1649,
-  "spanKm": 87,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "reaches 87 km across — look at it"
- },
- {
-  "asked": "Atlanta",
-  "country": "United States",
-  "lat": 33.7545,
-  "lon": -84.3898,
-  "got": "Atlanta",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 353,
-  "spanKm": 27,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Minneapolis",
-  "country": "United States",
-  "lat": 44.9773,
-  "lon": -93.2655,
-  "got": "Minneapolis",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 149,
-  "spanKm": 18,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Seattle",
-  "country": "United States",
-  "lat": 47.6038,
-  "lon": -122.3301,
-  "got": "Seattle",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 374,
-  "spanKm": 28,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "San Jose",
-  "country": "United States",
-  "lat": 37.3362,
-  "lon": -121.8906,
-  "got": "San Jose",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 478,
-  "spanKm": 41,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Orlando",
-  "country": "United States",
-  "lat": 28.5421,
-  "lon": -81.379,
-  "got": "Orlando",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 360,
-  "spanKm": 38,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Sacramento",
-  "country": "United States",
-  "lat": 38.5811,
-  "lon": -121.4939,
-  "got": "Sacramento",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 257,
-  "spanKm": 28,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Boston",
-  "country": "United States",
-  "lat": 42.3588,
-  "lon": -71.0578,
-  "got": "Boston",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 247,
-  "spanKm": 32,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Philadelphia",
-  "country": "United States",
-  "lat": 39.9527,
-  "lon": -75.1635,
-  "got": "Philadelphia",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 370,
-  "spanKm": 30,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Washington",
-  "country": "United States",
-  "lat": 38.8951,
-  "lon": -77.0364,
-  "got": "Washington",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 178,
-  "spanKm": 23,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Sydney",
+  "asked": "Adelaide",
   "country": "Australia",
-  "lat": -33.8698,
-  "lon": 151.2083,
-  "got": "Sydney",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Sydney",
-  "urbanSource": "the Australian Bureau of Statistics",
-  "regionKm2": 4811,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 2201,
-  "spanKm": 76,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (2201 km²), in place of 4811 km² of administrative boundary"
- },
- {
-  "asked": "Melbourne",
-  "country": "Australia",
-  "lat": -37.8142,
-  "lon": 144.9632,
-  "got": "Melbourne",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Melbourne",
-  "urbanSource": "the Australian Bureau of Statistics",
-  "regionKm2": 8892,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 2888,
-  "spanKm": 103,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (2888 km²), in place of 8892 km² of administrative boundary"
+  "lat": -34.889,
+  "lon": 138.5874,
+  "verdict": "not swept yet"
  },
  {
   "asked": "Brisbane",
   "country": "Australia",
-  "lat": -27.469,
-  "lon": 153.0235,
-  "got": "Brisbane",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Brisbane",
-  "urbanSource": "the Australian Bureau of Statistics",
-  "regionKm2": 6437,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 2033,
-  "spanKm": 86,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (2033 km²), in place of 6437 km² of administrative boundary"
+  "lat": -27.5054,
+  "lon": 153.0164,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Butler",
+  "country": "Australia",
+  "lat": -31.6597,
+  "lon": 115.7054,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Campbelltown",
+  "country": "Australia",
+  "lat": -34.0709,
+  "lon": 150.8179,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Geelong",
+  "country": "Australia",
+  "lat": -38.1404,
+  "lon": 144.3445,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gold Coast",
+  "country": "Australia",
+  "lat": -28.0265,
+  "lon": 153.4183,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Huntfield Heights",
+  "country": "Australia",
+  "lat": -35.1071,
+  "lon": 138.5127,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Langwarrin",
+  "country": "Australia",
+  "lat": -38.1315,
+  "lon": 145.15,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Melbourne",
+  "country": "Australia",
+  "lat": -37.8483,
+  "lon": 145.0371,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Newcastle",
+  "country": "Australia",
+  "lat": -32.9357,
+  "lon": 151.7149,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "North Lakes",
+  "country": "Australia",
+  "lat": -27.2304,
+  "lon": 153.0113,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Penrith",
+  "country": "Australia",
+  "lat": -33.7584,
+  "lon": 150.7197,
+  "verdict": "not swept yet"
  },
  {
   "asked": "Perth",
   "country": "Australia",
-  "lat": -31.9559,
-  "lon": 115.8606,
-  "got": "Perth",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Perth",
-  "urbanSource": "the Australian Bureau of Statistics",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 1728,
-  "spanKm": 123,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (1728 km²)"
+  "lat": -31.9178,
+  "lon": 115.8624,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Adelaide",
+  "asked": "Point Cook",
   "country": "Australia",
-  "lat": -34.9282,
-  "lon": 138.5999,
-  "got": "Adelaide",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Adelaide",
-  "urbanSource": "the Australian Bureau of Statistics",
-  "regionKm2": 1630,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 857,
-  "spanKm": 78,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (857 km²), in place of 1630 km² of administrative boundary"
+  "lat": -37.8748,
+  "lon": 144.7173,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Auckland",
-  "country": "New Zealand",
-  "lat": -36.8521,
-  "lon": 174.7632,
-  "got": "Auckland",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Auckland",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 28,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 645,
-  "spanKm": 44,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": "Waitematā",
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (645 km²), in place of 28 km² of administrative boundary"
+  "asked": "Rockingham",
+  "country": "Australia",
+  "lat": -32.3141,
+  "lon": 115.7496,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Hamburg",
-  "country": "Germany",
-  "lat": 53.5502,
-  "lon": 10.0013,
-  "got": "Hamburg",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Hamburg",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 979,
-  "rank": 8,
-  "kind": "city",
-  "shapeKm2": 478,
-  "spanKm": 35,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (478 km²), in place of 979 km² of administrative boundary"
+  "asked": "Sunshine Coast",
+  "country": "Australia",
+  "lat": -26.6938,
+  "lon": 153.0943,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Berlin",
-  "country": "Germany",
-  "lat": 52.5174,
-  "lon": 13.3951,
-  "got": "Berlin",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Berlin",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 889,
-  "rank": 8,
-  "kind": "city",
-  "shapeKm2": 681,
-  "spanKm": 37,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (681 km²), in place of 889 km² of administrative boundary"
+  "asked": "Sydney",
+  "country": "Australia",
+  "lat": -33.8712,
+  "lon": 151.0788,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Frankfurt",
-  "country": "Germany",
-  "lat": 50.1106,
-  "lon": 8.6821,
-  "got": "Frankfurt",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Frankfurt",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 248,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 193,
-  "spanKm": 24,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (193 km²), in place of 248 km² of administrative boundary"
+  "asked": "Thuringowa Central",
+  "country": "Australia",
+  "lat": -19.2876,
+  "lon": 146.7651,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Munich",
-  "country": "Germany",
-  "lat": 48.1371,
-  "lon": 11.5754,
-  "got": "Munich",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Munich",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 311,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 345,
-  "spanKm": 26,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (345 km²), in place of 311 km² of administrative boundary"
+  "asked": "Toowoomba",
+  "country": "Australia",
+  "lat": -27.5689,
+  "lon": 151.9479,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Essen",
-  "country": "Germany",
-  "lat": 51.4582,
-  "lon": 7.0158,
-  "got": "Essen",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Essen",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 210,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 880,
-  "spanKm": 49,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (880 km²), in place of 210 km² of administrative boundary"
+  "asked": "Wollongong",
+  "country": "Australia",
+  "lat": -34.4187,
+  "lon": 150.8807,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Stockholm",
-  "country": "Sweden",
-  "lat": 59.3251,
-  "lon": 18.0711,
-  "got": "Stockholm",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Stockholm",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 215,
-  "rank": 14,
-  "kind": "municipality",
-  "shapeKm2": 339,
-  "spanKm": 30,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (339 km²), in place of 215 km² of administrative boundary"
+  "asked": "Bregenz",
+  "country": "Austria",
+  "lat": 47.4886,
+  "lon": 9.7136,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Gothenburg",
-  "country": "Sweden",
-  "lat": 57.7072,
-  "lon": 11.967,
-  "got": "Gothenburg",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Gothenburg",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 191,
-  "spanKm": 25,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (191 km²)"
+  "asked": "Graz",
+  "country": "Austria",
+  "lat": 47.0534,
+  "lon": 15.4362,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Malmo",
-  "country": "Sweden",
-  "lat": 55.6053,
-  "lon": 13.0002,
-  "got": "Malmo",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Malmo",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 86,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 84,
-  "spanKm": 12,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": "Malmö",
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (84 km²), in place of 86 km² of administrative boundary"
+  "asked": "Innsbruck",
+  "country": "Austria",
+  "lat": 47.2685,
+  "lon": 11.4034,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Copenhagen",
-  "country": "Denmark",
-  "lat": 55.6867,
-  "lon": 12.5701,
-  "got": "Copenhagen",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Copenhagen",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": null,
-  "rank": 15,
-  "kind": "city",
-  "shapeKm2": 302,
-  "spanKm": 23,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (302 km²)"
+  "asked": "Klagenfurt",
+  "country": "Austria",
+  "lat": 46.6241,
+  "lon": 14.3122,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Oslo",
-  "country": "Norway",
-  "lat": 59.9133,
-  "lon": 10.739,
-  "got": "Oslo",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Oslo",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 479,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 245,
-  "spanKm": 30,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (245 km²), in place of 479 km² of administrative boundary"
+  "asked": "Linz",
+  "country": "Austria",
+  "lat": 48.283,
+  "lon": 14.297,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "The Hague",
-  "country": "Netherlands",
-  "lat": 52.0749,
-  "lon": 4.2697,
-  "got": "The Hague",
-  "hasShape": true,
-  "ring": null,
-  "urban": null,
-  "urbanSource": null,
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 98,
-  "spanKm": 16,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "nothing obviously wrong"
- },
- {
-  "asked": "Amsterdam",
-  "country": "Netherlands",
-  "lat": 52.3731,
-  "lon": 4.8925,
-  "got": "Amsterdam",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Amsterdam",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 219,
-  "rank": 15,
-  "kind": "city",
-  "shapeKm2": 308,
-  "spanKm": 34,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (308 km²), in place of 219 km² of administrative boundary"
- },
- {
-  "asked": "Brussels",
-  "country": "Belgium",
-  "lat": 50.8467,
-  "lon": 4.3525,
-  "got": "Brussels",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Brussels",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 33,
-  "rank": 14,
-  "kind": "city",
-  "shapeKm2": 235,
-  "spanKm": 20,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (235 km²), in place of 33 km² of administrative boundary"
- },
- {
-  "asked": "Antwerp",
-  "country": "Belgium",
-  "lat": 51.2211,
-  "lon": 4.3997,
-  "got": "Antwerp",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Antwerp",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 208,
-  "rank": 14,
-  "kind": "city",
-  "shapeKm2": 327,
-  "spanKm": 35,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (327 km²), in place of 208 km² of administrative boundary"
- },
- {
-  "asked": "Paris",
-  "country": "France",
-  "lat": 48.8535,
-  "lon": 2.3484,
-  "got": "Paris",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Paris",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 105,
-  "rank": 15,
-  "kind": "suburb",
-  "shapeKm2": 1422,
-  "spanKm": 56,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (1422 km²), in place of 105 km² of administrative boundary"
+  "asked": "Salzburg",
+  "country": "Austria",
+  "lat": 47.7936,
+  "lon": 13.0482,
+  "verdict": "not swept yet"
  },
  {
   "asked": "Vienna",
   "country": "Austria",
-  "lat": 48.2084,
-  "lon": 16.3725,
-  "got": "Vienna",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Vienna",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 415,
-  "rank": 7,
-  "kind": "city",
-  "shapeKm2": 325,
-  "spanKm": 29,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (325 km²), in place of 415 km² of administrative boundary"
+  "lat": 48.1841,
+  "lon": 16.3673,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Dar es Salaam",
-  "country": "Tanzania",
-  "lat": -6.8161,
-  "lon": 39.2804,
-  "got": "Dar es Salaam",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Dar es Salaam",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 1647,
-  "rank": 8,
-  "kind": "city",
-  "shapeKm2": 907,
-  "spanKm": 51,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (907 km²), in place of 1647 km² of administrative boundary"
+  "asked": "Wels",
+  "country": "Austria",
+  "lat": 48.1699,
+  "lon": 14.0331,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Arusha",
-  "country": "Tanzania",
-  "lat": -3.3697,
-  "lon": 36.6881,
-  "got": "Arusha",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Arusha",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 37221,
-  "rank": 8,
-  "kind": "state",
-  "shapeKm2": 169,
-  "spanKm": 20,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (169 km²), in place of 37221 km² of administrative boundary"
+  "asked": "Antwerp",
+  "country": "Belgium",
+  "lat": 51.2043,
+  "lon": 4.4492,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Zanzibar City",
-  "country": "Tanzania",
-  "lat": -6.1665,
-  "lon": 39.2074,
-  "got": "Zanzibar City",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Zanzibar City",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": null,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 121,
-  "spanKm": 24,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (121 km²)"
+  "asked": "Brussels",
+  "country": "Belgium",
+  "lat": 50.8674,
+  "lon": 4.3624,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Nairobi",
+  "asked": "Charleroi",
+  "country": "Belgium",
+  "lat": 50.4163,
+  "lon": 4.4616,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ghent",
+  "country": "Belgium",
+  "lat": 51.0646,
+  "lon": 3.7273,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kortrijk",
+  "country": "Belgium",
+  "lat": 50.8385,
+  "lon": 3.2638,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "La Louvi\u00e8re",
+  "country": "Belgium",
+  "lat": 50.4834,
+  "lon": 4.1943,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Leuven",
+  "country": "Belgium",
+  "lat": 50.8914,
+  "lon": 4.7097,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Li\u00e8ge",
+  "country": "Belgium",
+  "lat": 50.6512,
+  "lon": 5.5564,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ostend",
+  "country": "Belgium",
+  "lat": 51.2284,
+  "lon": 2.9337,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Temse",
+  "country": "Belgium",
+  "lat": 51.1513,
+  "lon": 4.1656,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Abbotsford",
+  "country": "Canada",
+  "lat": 49.0488,
+  "lon": -122.3078,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Barrie",
+  "country": "Canada",
+  "lat": 44.3768,
+  "lon": -79.6873,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Brantford",
+  "country": "Canada",
+  "lat": 43.1513,
+  "lon": -80.2537,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Burlington",
+  "country": "Canada",
+  "lat": 43.361,
+  "lon": -79.7885,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Calgary",
+  "country": "Canada",
+  "lat": 51.0261,
+  "lon": -114.0928,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cambridge",
+  "country": "Canada",
+  "lat": 43.3975,
+  "lon": -80.3298,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Edmonton",
+  "country": "Canada",
+  "lat": 53.5352,
+  "lon": -113.5157,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gatineau",
+  "country": "Canada",
+  "lat": 45.4917,
+  "lon": -75.6608,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Guelph",
+  "country": "Canada",
+  "lat": 43.5435,
+  "lon": -80.2688,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Halifax",
+  "country": "Canada",
+  "lat": 44.6617,
+  "lon": -63.5758,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hamilton",
+  "country": "Canada",
+  "lat": 43.2424,
+  "lon": -79.8428,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kitchener",
+  "country": "Canada",
+  "lat": 43.4568,
+  "lon": -80.501,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Langley City",
+  "country": "Canada",
+  "lat": 49.1057,
+  "lon": -122.7016,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "London",
+  "country": "Canada",
+  "lat": 42.9919,
+  "lon": -81.238,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Montreal",
+  "country": "Canada",
+  "lat": 45.5379,
+  "lon": -73.6947,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Orl\u00e9ans",
+  "country": "Canada",
+  "lat": 45.4639,
+  "lon": -75.5005,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Oshawa",
+  "country": "Canada",
+  "lat": 43.9093,
+  "lon": -78.8822,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ottawa",
+  "country": "Canada",
+  "lat": 45.3992,
+  "lon": -75.6824,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Pickering",
+  "country": "Canada",
+  "lat": 43.8544,
+  "lon": -79.0506,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Quebec",
+  "country": "Canada",
+  "lat": 46.8246,
+  "lon": -71.2546,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Red Deer",
+  "country": "Canada",
+  "lat": 52.2741,
+  "lon": -113.7968,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Regina",
+  "country": "Canada",
+  "lat": 50.4594,
+  "lon": -104.5935,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Saskatoon",
+  "country": "Canada",
+  "lat": 52.1381,
+  "lon": -106.6596,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "St. Catharines",
+  "country": "Canada",
+  "lat": 43.1695,
+  "lon": -79.2366,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Toronto",
+  "country": "Canada",
+  "lat": 43.708,
+  "lon": -79.5337,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Trois-Rivi\u00e8res",
+  "country": "Canada",
+  "lat": 46.3542,
+  "lon": -72.5636,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Vancouver",
+  "country": "Canada",
+  "lat": 49.2385,
+  "lon": -122.9809,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Victoria",
+  "country": "Canada",
+  "lat": 48.4575,
+  "lon": -123.3569,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Windsor",
+  "country": "Canada",
+  "lat": 42.288,
+  "lon": -83.0166,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Winnipeg",
+  "country": "Canada",
+  "lat": 49.8666,
+  "lon": -97.1964,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Aalborg",
+  "country": "Denmark",
+  "lat": 57.0398,
+  "lon": 9.9212,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Aarhus",
+  "country": "Denmark",
+  "lat": 56.1605,
+  "lon": 10.1715,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Copenhagen",
+  "country": "Denmark",
+  "lat": 55.6934,
+  "lon": 12.5014,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Greve Strand",
+  "country": "Denmark",
+  "lat": 55.5983,
+  "lon": 12.3323,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Odense",
+  "country": "Denmark",
+  "lat": 55.4032,
+  "lon": 10.3881,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bordeaux",
+  "country": "France",
+  "lat": 44.8457,
+  "lon": -0.5933,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cergy",
+  "country": "France",
+  "lat": 49.0251,
+  "lon": 2.0707,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Grenoble",
+  "country": "France",
+  "lat": 45.1868,
+  "lon": 5.7441,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lille",
+  "country": "France",
+  "lat": 50.6704,
+  "lon": 3.1304,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lyon",
+  "country": "France",
+  "lat": 45.7416,
+  "lon": 4.8185,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Marseille",
+  "country": "France",
+  "lat": 43.3154,
+  "lon": 5.4177,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Montpellier",
+  "country": "France",
+  "lat": 43.6257,
+  "lon": 3.8613,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nantes",
+  "country": "France",
+  "lat": 47.2217,
+  "lon": -1.581,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nice",
+  "country": "France",
+  "lat": 43.7034,
+  "lon": 7.2405,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Paris",
+  "country": "France",
+  "lat": 48.8073,
+  "lon": 2.3823,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Rennes",
+  "country": "France",
+  "lat": 48.1228,
+  "lon": -1.656,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Rouen",
+  "country": "France",
+  "lat": 49.4286,
+  "lon": 1.0831,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Strasbourg",
+  "country": "France",
+  "lat": 48.5756,
+  "lon": 7.7264,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Toulon",
+  "country": "France",
+  "lat": 43.1148,
+  "lon": 5.8859,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Toulouse",
+  "country": "France",
+  "lat": 43.6257,
+  "lon": 1.4274,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Augsburg",
+  "country": "Germany",
+  "lat": 48.3537,
+  "lon": 10.8979,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Berlin",
+  "country": "Germany",
+  "lat": 52.5175,
+  "lon": 13.4058,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bonn",
+  "country": "Germany",
+  "lat": 50.7857,
+  "lon": 7.1408,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bremen",
+  "country": "Germany",
+  "lat": 53.0937,
+  "lon": 8.8249,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cologne",
+  "country": "Germany",
+  "lat": 50.9876,
+  "lon": 7.0072,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dortmund",
+  "country": "Germany",
+  "lat": 51.5228,
+  "lon": 7.4414,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dresden",
+  "country": "Germany",
+  "lat": 51.055,
+  "lon": 13.7539,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dusseldorf",
+  "country": "Germany",
+  "lat": 51.1947,
+  "lon": 6.7665,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Essen",
+  "country": "Germany",
+  "lat": 51.489,
+  "lon": 6.9818,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Frankfurt",
+  "country": "Germany",
+  "lat": 50.1388,
+  "lon": 8.6797,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hamburg",
+  "country": "Germany",
+  "lat": 53.5843,
+  "lon": 9.9816,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hanover",
+  "country": "Germany",
+  "lat": 52.3714,
+  "lon": 9.7583,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Karlsruhe",
+  "country": "Germany",
+  "lat": 49.0109,
+  "lon": 8.3983,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Leipzig",
+  "country": "Germany",
+  "lat": 51.3297,
+  "lon": 12.367,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mannheim",
+  "country": "Germany",
+  "lat": 49.4761,
+  "lon": 8.4679,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Munich",
+  "country": "Germany",
+  "lat": 48.1417,
+  "lon": 11.5564,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nuremberg",
+  "country": "Germany",
+  "lat": 49.4428,
+  "lon": 11.0356,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Stuttgart",
+  "country": "Germany",
+  "lat": 48.8167,
+  "lon": 9.2129,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Wiesbaden",
+  "country": "Germany",
+  "lat": 50.0289,
+  "lon": 8.2463,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Wuppertal",
+  "country": "Germany",
+  "lat": 51.1995,
+  "lon": 7.0609,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Blanchardstown",
+  "country": "Ireland",
+  "lat": 53.3977,
+  "lon": -6.4107,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cork",
+  "country": "Ireland",
+  "lat": 51.8955,
+  "lon": -8.4582,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dublin",
+  "country": "Ireland",
+  "lat": 53.3241,
+  "lon": -6.3279,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Galway",
+  "country": "Ireland",
+  "lat": 53.2701,
+  "lon": -9.0474,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Swords",
+  "country": "Ireland",
+  "lat": 53.4566,
+  "lon": -6.2093,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bergamo",
+  "country": "Italy",
+  "lat": 45.6953,
+  "lon": 9.6507,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bologna",
+  "country": "Italy",
+  "lat": 44.5054,
+  "lon": 11.3416,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Catania",
+  "country": "Italy",
+  "lat": 37.5301,
+  "lon": 15.0716,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Florence",
+  "country": "Italy",
+  "lat": 43.836,
+  "lon": 11.1633,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Genoa",
+  "country": "Italy",
+  "lat": 44.4227,
+  "lon": 8.8585,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Milan",
+  "country": "Italy",
+  "lat": 45.5564,
+  "lon": 9.1935,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Naples",
+  "country": "Italy",
+  "lat": 40.8528,
+  "lon": 14.2779,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Palermo",
+  "country": "Italy",
+  "lat": 38.1404,
+  "lon": 13.337,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Rome",
+  "country": "Italy",
+  "lat": 41.8761,
+  "lon": 12.5494,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Turin",
+  "country": "Italy",
+  "lat": 45.0669,
+  "lon": 7.6198,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dadaab",
   "country": "Kenya",
-  "lat": -1.289,
-  "lon": 36.8173,
-  "got": "Nairobi",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Nairobi",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 700,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 598,
-  "spanKm": 47,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (598 km²), in place of 700 km² of administrative boundary"
+  "lat": 0.0526,
+  "lon": 40.3052,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "El Wak",
+  "country": "Kenya",
+  "lat": 2.8069,
+  "lon": 40.9292,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Eldoret",
+  "country": "Kenya",
+  "lat": 0.5217,
+  "lon": 35.2773,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Embu",
+  "country": "Kenya",
+  "lat": -0.4893,
+  "lon": 37.4724,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Garissa",
+  "country": "Kenya",
+  "lat": -0.457,
+  "lon": 39.6525,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hagadera Refugee Camp",
+  "country": "Kenya",
+  "lat": 0.0,
+  "lon": 40.3701,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kisii",
+  "country": "Kenya",
+  "lat": -0.6592,
+  "lon": 34.769,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kisumu",
+  "country": "Kenya",
+  "lat": -0.093,
+  "lon": 34.7726,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kitale",
+  "country": "Kenya",
+  "lat": 1.0312,
+  "lon": 35.0005,
+  "verdict": "not swept yet"
  },
  {
   "asked": "Mombasa",
   "country": "Kenya",
-  "lat": -4.0505,
-  "lon": 39.6672,
-  "got": "Mombasa",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Mombasa",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 2,
-  "rank": 16,
-  "kind": "city",
-  "shapeKm2": 182,
-  "spanKm": 22,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": "Tononoka ward",
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (182 km²), in place of 2 km² of administrative boundary"
+  "lat": -4.0492,
+  "lon": 39.6629,
+  "verdict": "not swept yet"
  },
  {
-  "asked": "Kampala",
-  "country": "Uganda",
-  "lat": 0.3177,
-  "lon": 32.5814,
-  "got": "Kampala",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Kampala",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": 197,
-  "rank": 12,
-  "kind": "city",
-  "shapeKm2": 810,
-  "spanKm": 50,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (810 km²), in place of 197 km² of administrative boundary"
+  "asked": "Nairobi",
+  "country": "Kenya",
+  "lat": -1.2375,
+  "lon": 36.8133,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Naivasha",
+  "country": "Kenya",
+  "lat": -0.7036,
+  "lon": 36.4505,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nakuru",
+  "country": "Kenya",
+  "lat": -0.279,
+  "lon": 36.1048,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ongata Rongai",
+  "country": "Kenya",
+  "lat": -1.3911,
+  "lon": 36.7448,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Wajir",
+  "country": "Kenya",
+  "lat": 1.7511,
+  "lon": 40.0523,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ambano",
+  "country": "Madagascar",
+  "lat": -19.784,
+  "lon": 47.0551,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ambatolahy II",
+  "country": "Madagascar",
+  "lat": -21.497,
+  "lon": 47.0714,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Ambovombe",
+  "country": "Madagascar",
+  "lat": -25.1863,
+  "lon": 46.0904,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Amparihimahitsy",
+  "country": "Madagascar",
+  "lat": -15.7665,
+  "lon": 46.4102,
+  "verdict": "not swept yet"
  },
  {
   "asked": "Antananarivo",
   "country": "Madagascar",
-  "lat": -18.91,
-  "lon": 47.5256,
-  "got": "Antananarivo",
-  "hasShape": true,
-  "ring": null,
-  "urban": "Antananarivo",
-  "urbanSource": "the EC Joint Research Centre",
-  "regionKm2": null,
-  "rank": 15,
-  "kind": "city",
-  "shapeKm2": 442,
-  "spanKm": 36,
-  "holdsCentre": true,
-  "tooBig": false,
-  "tooSmall": false,
-  "insteadOf": null,
-  "insteadOfKm2": null,
-  "verdict": "the official built-up area (442 km²)"
+  "lat": -18.8827,
+  "lon": 47.5399,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Antetezambaro",
+  "country": "Madagascar",
+  "lat": -17.9956,
+  "lon": 49.4158,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Antsiramandroso",
+  "country": "Madagascar",
+  "lat": -18.0574,
+  "lon": 49.3802,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mahajanga",
+  "country": "Madagascar",
+  "lat": -15.7132,
+  "lon": 46.3362,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Almere",
+  "country": "Netherlands",
+  "lat": 52.3811,
+  "lon": 5.2364,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Amersfoort",
+  "country": "Netherlands",
+  "lat": 52.1623,
+  "lon": 5.3893,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Amsterdam",
+  "country": "Netherlands",
+  "lat": 52.3714,
+  "lon": 4.8893,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Arnhem",
+  "country": "Netherlands",
+  "lat": 51.9585,
+  "lon": 5.8869,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dordrecht",
+  "country": "Netherlands",
+  "lat": 51.8179,
+  "lon": 4.6962,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Eindhoven",
+  "country": "Netherlands",
+  "lat": 51.4455,
+  "lon": 5.4628,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Haarlem",
+  "country": "Netherlands",
+  "lat": 52.3763,
+  "lon": 4.6384,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Leiden",
+  "country": "Netherlands",
+  "lat": 52.1769,
+  "lon": 4.4762,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nijmegen",
+  "country": "Netherlands",
+  "lat": 51.8276,
+  "lon": 5.8154,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Rotterdam",
+  "country": "Netherlands",
+  "lat": 51.973,
+  "lon": 4.5444,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tilburg",
+  "country": "Netherlands",
+  "lat": 51.5567,
+  "lon": 5.0751,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Utrecht",
+  "country": "Netherlands",
+  "lat": 52.0798,
+  "lon": 5.0855,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Auckland",
+  "country": "New Zealand",
+  "lat": -36.8821,
+  "lon": 174.7685,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Christchurch",
+  "country": "New Zealand",
+  "lat": -43.5253,
+  "lon": 172.6153,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dunedin",
+  "country": "New Zealand",
+  "lat": -45.8898,
+  "lon": 170.5064,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hamilton",
+  "country": "New Zealand",
+  "lat": -37.7775,
+  "lon": 175.2659,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lower Hutt",
+  "country": "New Zealand",
+  "lat": -41.2308,
+  "lon": 174.9056,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Palmerston North",
+  "country": "New Zealand",
+  "lat": -40.3502,
+  "lon": 175.6092,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tauranga",
+  "country": "New Zealand",
+  "lat": -37.6891,
+  "lon": 176.1506,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Wellington",
+  "country": "New Zealand",
+  "lat": -41.2983,
+  "lon": 174.7925,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bergen",
+  "country": "Norway",
+  "lat": 60.4064,
+  "lon": 5.315,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Drammen",
+  "country": "Norway",
+  "lat": 59.7464,
+  "lon": 10.2037,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Fredrikstad",
+  "country": "Norway",
+  "lat": 59.2156,
+  "lon": 10.945,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lagunen",
+  "country": "Norway",
+  "lat": 60.3013,
+  "lon": 5.3119,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Oslo",
+  "country": "Norway",
+  "lat": 59.8822,
+  "lon": 10.7763,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Stavanger",
+  "country": "Norway",
+  "lat": 58.9099,
+  "lon": 5.7323,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Troms\u00f8",
+  "country": "Norway",
+  "lat": 69.6656,
+  "lon": 18.941,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Trondheim",
+  "country": "Norway",
+  "lat": 63.429,
+  "lon": 10.4305,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bloemfontein",
+  "country": "South Africa",
+  "lat": -29.1526,
+  "lon": 26.2314,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cape Town",
+  "country": "South Africa",
+  "lat": -33.9536,
+  "lon": 18.5874,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Chief Albert Luthuli Park",
+  "country": "South Africa",
+  "lat": -26.1287,
+  "lon": 28.4461,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Durban",
+  "country": "South Africa",
+  "lat": -29.8603,
+  "lon": 30.8247,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Evaton",
+  "country": "South Africa",
+  "lat": -26.5292,
+  "lon": 27.8552,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gqeberha",
+  "country": "South Africa",
+  "lat": -33.9102,
+  "lon": 25.5762,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Johannesburg",
+  "country": "South Africa",
+  "lat": -26.1792,
+  "lon": 28.0376,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Masetjhaba View",
+  "country": "South Africa",
+  "lat": -26.3479,
+  "lon": 28.3779,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Pietermaritzburg",
+  "country": "South Africa",
+  "lat": -29.6214,
+  "lon": 30.3819,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Polokwane",
+  "country": "South Africa",
+  "lat": -23.8615,
+  "lon": 29.393,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Pretoria",
+  "country": "South Africa",
+  "lat": -25.7581,
+  "lon": 28.2149,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Soshanguve",
+  "country": "South Africa",
+  "lat": -25.4805,
+  "lon": 28.052,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Alicante",
+  "country": "Spain",
+  "lat": 38.3664,
+  "lon": -0.4584,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Barcelona",
+  "country": "Spain",
+  "lat": 41.4471,
+  "lon": 2.2082,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bilbao",
+  "country": "Spain",
+  "lat": 43.2971,
+  "lon": -2.9971,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Las Palmas de Gran Canaria",
+  "country": "Spain",
+  "lat": 28.1156,
+  "lon": -15.4376,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Madrid",
+  "country": "Spain",
+  "lat": 40.4039,
+  "lon": -3.6815,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "M\u00e1laga",
+  "country": "Spain",
+  "lat": 36.7193,
+  "lon": -4.4238,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Palma de Mallorca",
+  "country": "Spain",
+  "lat": 39.563,
+  "lon": 2.6505,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Seville",
+  "country": "Spain",
+  "lat": 37.3889,
+  "lon": -5.9559,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Valencia",
+  "country": "Spain",
+  "lat": 39.4515,
+  "lon": -0.3808,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Zaragoza",
+  "country": "Spain",
+  "lat": 41.6547,
+  "lon": -0.891,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gothenburg",
+  "country": "Sweden",
+  "lat": 57.7223,
+  "lon": 11.9836,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Handen",
+  "country": "Sweden",
+  "lat": 59.2208,
+  "lon": 18.1777,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Helsingborg",
+  "country": "Sweden",
+  "lat": 56.0397,
+  "lon": 12.716,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Link\u00f6ping",
+  "country": "Sweden",
+  "lat": 58.4094,
+  "lon": 15.6038,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lund",
+  "country": "Sweden",
+  "lat": 55.7035,
+  "lon": 13.2036,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Malmo",
+  "country": "Sweden",
+  "lat": 55.6083,
+  "lon": 13.0263,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Norrk\u00f6ping",
+  "country": "Sweden",
+  "lat": 58.5897,
+  "lon": 16.188,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Stockholm",
+  "country": "Sweden",
+  "lat": 59.3506,
+  "lon": 18.0163,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "S\u00f6dert\u00e4lje",
+  "country": "Sweden",
+  "lat": 59.1948,
+  "lon": 17.6146,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Uppsala",
+  "country": "Sweden",
+  "lat": 59.8509,
+  "lon": 17.6423,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "V\u00e4ster\u00e5s",
+  "country": "Sweden",
+  "lat": 59.6212,
+  "lon": 16.5549,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "\u00d6rebro",
+  "country": "Sweden",
+  "lat": 59.2883,
+  "lon": 15.1964,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Basel",
+  "country": "Switzerland",
+  "lat": 47.5261,
+  "lon": 7.5896,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bern",
+  "country": "Switzerland",
+  "lat": 46.946,
+  "lon": 7.4425,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Biel/Bienne",
+  "country": "Switzerland",
+  "lat": 47.1375,
+  "lon": 7.2564,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Geneva",
+  "country": "Switzerland",
+  "lat": 46.2054,
+  "lon": 6.1553,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lausanne",
+  "country": "Switzerland",
+  "lat": 46.531,
+  "lon": 6.6067,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lucerne",
+  "country": "Switzerland",
+  "lat": 47.0581,
+  "lon": 8.2889,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lugano",
+  "country": "Switzerland",
+  "lat": 46.0151,
+  "lon": 8.9532,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Montreux",
+  "country": "Switzerland",
+  "lat": 46.4565,
+  "lon": 6.8716,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Winterthur",
+  "country": "Switzerland",
+  "lat": 47.5027,
+  "lon": 8.7469,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Zurich",
+  "country": "Switzerland",
+  "lat": 47.3481,
+  "lon": 8.5464,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Arusha",
+  "country": "Tanzania",
+  "lat": -3.3774,
+  "lon": 36.7077,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dar es-Salaam",
+  "country": "Tanzania",
+  "lat": -6.7957,
+  "lon": 39.1681,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dodoma",
+  "country": "Tanzania",
+  "lat": -6.1714,
+  "lon": 35.7536,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Iringa",
+  "country": "Tanzania",
+  "lat": -7.7693,
+  "lon": 35.6884,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kasulu",
+  "country": "Tanzania",
+  "lat": -4.5714,
+  "lon": 30.1072,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kigoma",
+  "country": "Tanzania",
+  "lat": -4.871,
+  "lon": 29.6452,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mbeya",
+  "country": "Tanzania",
+  "lat": -8.9102,
+  "lon": 33.4859,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Morogoro",
+  "country": "Tanzania",
+  "lat": -6.7917,
+  "lon": 37.6648,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Moshi",
+  "country": "Tanzania",
+  "lat": -3.345,
+  "lon": 37.3512,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Musoma",
+  "country": "Tanzania",
+  "lat": -1.5165,
+  "lon": 33.802,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mwanza",
+  "country": "Tanzania",
+  "lat": -2.552,
+  "lon": 32.9468,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Songea",
+  "country": "Tanzania",
+  "lat": -10.6629,
+  "lon": 35.6476,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tabora",
+  "country": "Tanzania",
+  "lat": -5.029,
+  "lon": 32.8151,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tanga",
+  "country": "Tanzania",
+  "lat": -5.0938,
+  "lon": 39.1085,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Zanzibar City",
+  "country": "Tanzania",
+  "lat": -6.139,
+  "lon": 39.2319,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Arua",
+  "country": "Uganda",
+  "lat": 3.0132,
+  "lon": 30.9126,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bukalasi",
+  "country": "Uganda",
+  "lat": 1.0069,
+  "lon": 34.3518,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gulu",
+  "country": "Uganda",
+  "lat": 2.7664,
+  "lon": 32.2863,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Iganga",
+  "country": "Uganda",
+  "lat": 0.6187,
+  "lon": 33.4816,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Jinja",
+  "country": "Uganda",
+  "lat": 0.465,
+  "lon": 33.2317,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Kampala",
+  "country": "Uganda",
+  "lat": 0.2588,
+  "lon": 32.5377,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Lira",
+  "country": "Uganda",
+  "lat": 2.2446,
+  "lon": 32.8873,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Masaka",
+  "country": "Uganda",
+  "lat": -0.3316,
+  "lon": 31.7446,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mbale City",
+  "country": "Uganda",
+  "lat": 1.0878,
+  "lon": 34.2226,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mbarara",
+  "country": "Uganda",
+  "lat": -0.6106,
+  "lon": 30.6578,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Aberdeen",
+  "country": "United Kingdom",
+  "lat": 57.1363,
+  "lon": -2.1075,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Belfast",
+  "country": "United Kingdom",
+  "lat": 54.6215,
+  "lon": -5.9133,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Birmingham",
+  "country": "United Kingdom",
+  "lat": 52.5175,
+  "lon": -1.9598,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Blackpool",
+  "country": "United Kingdom",
+  "lat": 53.8403,
+  "lon": -3.0255,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bournemouth",
+  "country": "United Kingdom",
+  "lat": 50.7377,
+  "lon": -1.9118,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Brighton",
+  "country": "United Kingdom",
+  "lat": 50.8337,
+  "lon": -0.2592,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bristol",
+  "country": "United Kingdom",
+  "lat": 51.4793,
+  "lon": -2.5885,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cardiff",
+  "country": "United Kingdom",
+  "lat": 51.489,
+  "lon": -3.179,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Coventry",
+  "country": "United Kingdom",
+  "lat": 52.4298,
+  "lon": -1.502,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Derby",
+  "country": "United Kingdom",
+  "lat": 52.9176,
+  "lon": -1.4784,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Edinburgh",
+  "country": "United Kingdom",
+  "lat": 55.9493,
+  "lon": -3.1707,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Gillingham",
+  "country": "United Kingdom",
+  "lat": 51.3731,
+  "lon": 0.5558,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Glasgow",
+  "country": "United Kingdom",
+  "lat": 55.8589,
+  "lon": -4.2763,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Grays",
+  "country": "United Kingdom",
+  "lat": 51.4697,
+  "lon": 0.3084,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Hull",
+  "country": "United Kingdom",
+  "lat": 53.7713,
+  "lon": -0.3466,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Leeds",
+  "country": "United Kingdom",
+  "lat": 53.7959,
+  "lon": -1.6296,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Leicester",
+  "country": "United Kingdom",
+  "lat": 52.6393,
+  "lon": -1.1248,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Liverpool",
+  "country": "United Kingdom",
+  "lat": 53.4173,
+  "lon": -2.9512,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "London",
+  "country": "United Kingdom",
+  "lat": 51.5373,
+  "lon": -0.1275,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Luton",
+  "country": "United Kingdom",
+  "lat": 51.8955,
+  "lon": -0.4519,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Manchester",
+  "country": "United Kingdom",
+  "lat": 53.486,
+  "lon": -2.2087,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Middlesbrough",
+  "country": "United Kingdom",
+  "lat": 54.5719,
+  "lon": -1.2421,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Milton Keynes",
+  "country": "United Kingdom",
+  "lat": 52.0313,
+  "lon": -0.7704,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Newcastle upon Tyne",
+  "country": "United Kingdom",
+  "lat": 54.9892,
+  "lon": -1.554,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Northampton",
+  "country": "United Kingdom",
+  "lat": 52.2352,
+  "lon": -0.9082,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Norwich",
+  "country": "United Kingdom",
+  "lat": 52.6442,
+  "lon": 1.2885,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Nottingham",
+  "country": "United Kingdom",
+  "lat": 52.9714,
+  "lon": -1.1508,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Peterborough",
+  "country": "United Kingdom",
+  "lat": 52.5759,
+  "lon": -0.252,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Plymouth",
+  "country": "United Kingdom",
+  "lat": 50.3876,
+  "lon": -4.156,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Portsmouth",
+  "country": "United Kingdom",
+  "lat": 50.8433,
+  "lon": -1.1035,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Preston",
+  "country": "United Kingdom",
+  "lat": 53.7418,
+  "lon": -2.7022,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Reading",
+  "country": "United Kingdom",
+  "lat": 51.4455,
+  "lon": -0.9719,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Sheffield",
+  "country": "United Kingdom",
+  "lat": 53.3878,
+  "lon": -1.4543,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Southampton",
+  "country": "United Kingdom",
+  "lat": 50.901,
+  "lon": -1.3905,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Southend-on-Sea",
+  "country": "United Kingdom",
+  "lat": 51.5663,
+  "lon": 0.6244,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Stoke-on-Trent",
+  "country": "United Kingdom",
+  "lat": 53.0203,
+  "lon": -2.1867,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Sunderland",
+  "country": "United Kingdom",
+  "lat": 54.9096,
+  "lon": -1.4039,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Swindon",
+  "country": "United Kingdom",
+  "lat": 51.576,
+  "lon": -1.7862,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Wakefield",
+  "country": "United Kingdom",
+  "lat": 53.7024,
+  "lon": -1.655,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Walton-on-Thames",
+  "country": "United Kingdom",
+  "lat": 51.3538,
+  "lon": -0.4887,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Albuquerque",
+  "country": "United States",
+  "lat": 35.1246,
+  "lon": -106.5842,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Arlington",
+  "country": "United States",
+  "lat": 32.6937,
+  "lon": -97.106,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Atlanta",
+  "country": "United States",
+  "lat": 33.7974,
+  "lon": -84.3091,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Austin",
+  "country": "United States",
+  "lat": 30.3646,
+  "lon": -97.7149,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Bakersfield",
+  "country": "United States",
+  "lat": 35.3648,
+  "lon": -119.0391,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Baltimore",
+  "country": "United States",
+  "lat": 39.3222,
+  "lon": -76.6411,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Boston",
+  "country": "United States",
+  "lat": 42.3696,
+  "lon": -71.1118,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Buffalo",
+  "country": "United States",
+  "lat": 42.9146,
+  "lon": -78.7881,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Chicago",
+  "country": "United States",
+  "lat": 41.8625,
+  "lon": -87.8159,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Cleveland",
+  "country": "United States",
+  "lat": 41.4922,
+  "lon": -81.6248,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Colorado Springs",
+  "country": "United States",
+  "lat": 38.886,
+  "lon": -104.7661,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Columbus",
+  "country": "United States",
+  "lat": 40.0456,
+  "lon": -82.9818,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Dallas",
+  "country": "United States",
+  "lat": 32.9097,
+  "lon": -96.7582,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Denver",
+  "country": "United States",
+  "lat": 39.7416,
+  "lon": -104.9772,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Detroit",
+  "country": "United States",
+  "lat": 42.4058,
+  "lon": -83.0841,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "El Paso",
+  "country": "United States",
+  "lat": 31.7973,
+  "lon": -106.2777,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Escondido",
+  "country": "United States",
+  "lat": 33.1865,
+  "lon": -117.2655,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Fresno",
+  "country": "United States",
+  "lat": 36.7897,
+  "lon": -119.7743,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Honolulu",
+  "country": "United States",
+  "lat": 21.3349,
+  "lon": -157.8863,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Houston",
+  "country": "United States",
+  "lat": 29.8219,
+  "lon": -95.4481,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Las Vegas",
+  "country": "United States",
+  "lat": 36.122,
+  "lon": -115.1798,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Los Angeles",
+  "country": "United States",
+  "lat": 33.958,
+  "lon": -118.2227,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Louisville",
+  "country": "United States",
+  "lat": 38.2024,
+  "lon": -85.6967,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Mesa",
+  "country": "United States",
+  "lat": 33.351,
+  "lon": -111.859,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Miami",
+  "country": "United States",
+  "lat": 26.213,
+  "lon": -80.1905,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Milwaukee",
+  "country": "United States",
+  "lat": 43.042,
+  "lon": -87.9675,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Minneapolis",
+  "country": "United States",
+  "lat": 44.9747,
+  "lon": -93.1644,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "New Orleans",
+  "country": "United States",
+  "lat": 29.9543,
+  "lon": -90.113,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "New York City",
+  "country": "United States",
+  "lat": 40.736,
+  "lon": -73.7292,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Norfolk",
+  "country": "United States",
+  "lat": 36.8513,
+  "lon": -76.2192,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "North Richland Hills",
+  "country": "United States",
+  "lat": 32.8492,
+  "lon": -97.1784,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Oklahoma City",
+  "country": "United States",
+  "lat": 35.4653,
+  "lon": -97.5775,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Orlando",
+  "country": "United States",
+  "lat": 28.4977,
+  "lon": -81.3866,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Philadelphia",
+  "country": "United States",
+  "lat": 39.9741,
+  "lon": -75.1873,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Phoenix",
+  "country": "United States",
+  "lat": 33.5589,
+  "lon": -112.0932,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Pittsburgh",
+  "country": "United States",
+  "lat": 40.4219,
+  "lon": -80.026,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Portland",
+  "country": "United States",
+  "lat": 45.5379,
+  "lon": -122.5484,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Provo",
+  "country": "United States",
+  "lat": 40.3188,
+  "lon": -111.7049,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Riverside",
+  "country": "United States",
+  "lat": 33.9146,
+  "lon": -117.4627,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Sacramento",
+  "country": "United States",
+  "lat": 38.5927,
+  "lon": -121.4041,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Saint Petersburg",
+  "country": "United States",
+  "lat": 27.8994,
+  "lon": -82.7735,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Salt Lake City",
+  "country": "United States",
+  "lat": 40.6552,
+  "lon": -111.9374,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "San Antonio",
+  "country": "United States",
+  "lat": 29.4593,
+  "lon": -98.5123,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "San Diego",
+  "country": "United States",
+  "lat": 32.7196,
+  "lon": -117.0858,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "San Francisco",
+  "country": "United States",
+  "lat": 37.6052,
+  "lon": -122.0608,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Seattle",
+  "country": "United States",
+  "lat": 47.6246,
+  "lon": -122.1644,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "St. Louis",
+  "country": "United States",
+  "lat": 38.6904,
+  "lon": -90.383,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tampa",
+  "country": "United States",
+  "lat": 27.9884,
+  "lon": -82.4926,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Tucson",
+  "country": "United States",
+  "lat": 32.2365,
+  "lon": -110.9119,
+  "verdict": "not swept yet"
+ },
+ {
+  "asked": "Washington",
+  "country": "United States",
+  "lat": 38.9571,
+  "lon": -76.9878,
+  "verdict": "not swept yet"
  }
 ]

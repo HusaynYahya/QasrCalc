@@ -438,8 +438,12 @@
      A failure to load is not an error — the reader is simply told the border
      is too large and asked to choose, which is what happened before. */
   var URBAN_FILE = "urban-areas.json";
-  var urbanLoad = null;
+  var urbanLoad = null, shardLoad = {}, shardDir = "urban-areas/";
 
+  /* The index: every city's name and bounding box, and which file its shape
+     is in. Names and boxes only — three hundred cities of border is some
+     megabytes, and this is fetched while somebody is waiting to be told
+     whether to shorten their prayer. */
   function urbanAreas() {
     if (!urbanLoad) {
       urbanLoad = fetch(URBAN_FILE)
@@ -447,23 +451,60 @@
           if (!r.ok) throw new Error("the urban areas returned " + r.status);
           return r.json();
         })
-        .then(function (d) { return (d && d.areas) || []; })
+        .then(function (d) {
+          if (d && d.shards) shardDir = d.shards;
+          return (d && d.areas) || [];
+        })
         .catch(function () { urbanLoad = null; return []; });
     }
     return urbanLoad;
   }
 
+  /* One country's shapes, fetched once a box has matched and never before. */
+  function urbanShapes(shard) {
+    if (!shardLoad[shard]) {
+      shardLoad[shard] = fetch(shardDir + shard + ".json")
+        .then(function (r) {
+          if (!r.ok) throw new Error("the borders returned " + r.status);
+          return r.json();
+        })
+        .catch(function () { shardLoad[shard] = null; return {}; });
+    }
+    return shardLoad[shard];
+  }
+
   function urbanAreaAt(place) {
     return urbanAreas().then(function (list) {
-      for (var i = 0; i < list.length; i++) {
-        var a = list[i], b = a.box;
+      var maybe = list.filter(function (a) {
+        var b = a.box;
         /* The box first, as everywhere else here: a handful of comparisons
            against a point, where the shape is a walk round thousands. */
-        if (place.lat < b[0] || place.lat > b[2] ||
-            place.lon < b[1] || place.lon > b[3]) continue;
-        if (inShape(place.lat, place.lon, a.shape)) return a;
+        return b && place.lat >= b[0] && place.lat <= b[2] &&
+                    place.lon >= b[1] && place.lon <= b[3];
+      });
+
+      function next(i) {
+        if (i >= maybe.length) return null;
+        var a = maybe[i];
+        /* A shape carried in the index is used as it stands. Everything the
+           builder writes is sharded, but a caller may hand over a whole area
+           inline, and the tests do. */
+        if (a.shape) {
+          return inShape(place.lat, place.lon, a.shape) ? a : next(i + 1);
+        }
+        if (!a.shard) return next(i + 1);
+        return Promise.resolve(urbanShapes(a.shard)).then(function (shapes) {
+          var shape = shapes && shapes[a.name];
+          if (shape && inShape(place.lat, place.lon, shape)) {
+            var out = {};
+            Object.keys(a).forEach(function (k) { out[k] = a[k]; });
+            out.shape = shape;
+            return out;
+          }
+          return next(i + 1);
+        });
       }
-      return null;
+      return Promise.resolve(next(0));
     });
   }
 

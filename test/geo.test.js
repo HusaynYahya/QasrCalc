@@ -705,14 +705,51 @@ test("the two doubts cannot both be raised at once", function () {
 console.log("\nThe built-up areas");
 
 var URBAN = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "urban-areas.json"), "utf8"));
+
+/* The shapes live one file per country, so that a reader downloads their own
+   country's borders and nobody else's. The index carries the names and boxes;
+   these tests put the two back together. */
+var SHARDS = {};
+function shapeOf(a) {
+  if (a.shape) return a.shape;                 /* an older, whole file */
+  if (!SHARDS[a.shard]) {
+    SHARDS[a.shard] = JSON.parse(fs.readFileSync(
+      path.join(__dirname, "..", (URBAN.shards || "urban-areas/") + a.shard + ".json"),
+      "utf8"));
+  }
+  return SHARDS[a.shard][a.name];
+}
 function urban(name) {
-  return URBAN.areas.filter(function (a) { return a.name === name; })[0];
+  var a = URBAN.areas.filter(function (x) { return x.name === name; })[0];
+  if (!a) return a;
+  var out = {};
+  Object.keys(a).forEach(function (k) { out[k] = a[k]; });
+  out.shape = shapeOf(a);
+  return out;
 }
 
 test("it says where it came from", function () {
   assert.ok(/Australian Bureau of Statistics/.test(URBAN.source), "the source is not named");
   assert.ok(/CC BY/.test(URBAN.source), "the licence is not named");
   assert.ok(URBAN.areas.length >= 5, "only " + URBAN.areas.length + " built-up area(s) on file");
+});
+
+test("every area in the index has its shape on file", function () {
+  /* The index and the shards are written together and can drift apart — an
+     index entry whose shard never got written is a border the page will look
+     for, fail to find, and silently do without. */
+  var lost = URBAN.areas.filter(function (a) { return !shapeOf(a); });
+  assert.strictEqual(lost.length, 0,
+    lost.length + " area(s) named in the index with no shape in their shard: " +
+    lost.slice(0, 5).map(function (a) { return a.name; }).join(", "));
+});
+
+test("the index carries no geometry", function () {
+  /* The whole point of the split. An index with shapes in it is the file the
+     page used to download in full before it could answer anything. */
+  var fat = URBAN.areas.filter(function (a) { return a.shape; });
+  assert.strictEqual(fat.length, 0,
+    fat.length + " area(s) still carry their shape in the index");
 });
 
 test("Melbourne is the built-up city, not the region", function () {
@@ -736,7 +773,7 @@ test("Melbourne is the built-up city, not the region", function () {
 test("every one of them is small enough to be a city", function () {
   /* Otherwise the guard would fire on the very shape meant to satisfy it. */
   URBAN.areas.forEach(function (a) {
-    assert.strictEqual(G.cityTooBig({ shape: a.shape }), false,
+    assert.strictEqual(G.cityTooBig({ shape: shapeOf(a) }), false,
       a.name + " is " + a.areaKm2 + " km², which the guard would still refuse");
   });
 });
@@ -750,7 +787,7 @@ test("each carries a box that holds it", function () {
     return shape.type === "Polygon" ? [shape.coordinates] : shape.coordinates;
   }
   URBAN.areas.forEach(function (a) {
-    polygons(a.shape).forEach(function (poly) {
+    polygons(shapeOf(a)).forEach(function (poly) {
       poly[0].forEach(function (p) {
         assert.ok(p[1] >= a.box[0] && p[1] <= a.box[2] && p[0] >= a.box[1] && p[0] <= a.box[3],
           a.name + " runs outside its own box at " + p + " — the lookup would skip it");

@@ -21,7 +21,7 @@ tools/references.py. The output is committed, so the page never depends on
 these services being up.
 ========================================================================= """
 
-import argparse, json, os, subprocess, sys, urllib.parse
+import argparse, json, os, re, sys
 
 try:
     from shapely.geometry import mapping
@@ -36,6 +36,46 @@ from borders import (ask, ask_global, names_agree, thin, bbox,   # noqa: E402
                      CITY_MAX_KM2)
 
 ROOT = os.path.dirname(HERE)
+
+
+def slug(country):
+    return re.sub(r"[^a-z0-9]+", "-", str(country or "world").lower()).strip("-")
+
+
+def write_sharded(out, areas, index_path):
+    """An index the page always loads, and the geometry split by country so
+       that it never loads more than one.
+
+       Three hundred cities of border is some megabytes, and the page fetches
+       this the first time it needs a border — which is while somebody is
+       waiting to be told whether to shorten their prayer. The index is names
+       and bounding boxes, tens of kilobytes; the shape only arrives once a
+       box has matched, and only for that country."""
+    folder = os.path.splitext(index_path)[0]
+    if os.path.isdir(folder):
+        for old in os.listdir(folder):
+            if old.endswith(".json"):
+                os.remove(os.path.join(folder, old))
+    else:
+        os.makedirs(folder, exist_ok=True)
+
+    shards = {}
+    index = []
+    for a in areas:
+        shards.setdefault(a["shard"], {})[a["name"]] = a["shape"]
+        index.append({k: v for k, v in a.items() if k != "shape"})
+
+    for name, shapes in shards.items():
+        with open(os.path.join(folder, name + ".json"), "w") as fh:
+            json.dump(shapes, fh, separators=(",", ":"))
+            fh.write("\n")
+
+    out["areas"] = index
+    out["shards"] = os.path.basename(folder) + "/"
+    with open(index_path, "w") as fh:
+        json.dump(out, fh, separators=(",", ":"))
+        fh.write("\n")
+    return folder, len(shards)
 
 
 def main():
@@ -123,6 +163,7 @@ def main():
             "box": bbox(small),
             "shape": mapping(small)
         })
+        areas[-1]["shard"] = slug(c["country"])
         used[c["country"]] = ref["attribution"]
         print("%-15s %-34s %7.0f km2  (%.0f before thinning)" %
               (c["asked"], (label or "")[:34], now, was))
@@ -137,16 +178,17 @@ def main():
         # attributions require and what test/geo.test.js reads.
         "source": "  ".join(sorted(set(used.values()))),
         "sources": used,
-        "thinnedToKm": args.thin_km,
-        "areas": sorted(areas, key=lambda a: a["name"])
+        "thinnedToKm": args.thin_km
     }
-    with open(args.out, "w") as fh:
-        json.dump(out, fh, separators=(",", ":"))
-        fh.write("\n")
+    out["areas"] = sorted(areas, key=lambda a: a["name"])
+    folder, shard_count = write_sharded(out, out["areas"], args.out)
 
-    size = os.path.getsize(args.out)
-    print("\n%d areas from %d countries · %.1f MB · %s" %
-          (len(areas), len(used), size / 1e6, args.out))
+    whole = os.path.getsize(args.out) + sum(
+        os.path.getsize(os.path.join(folder, f)) for f in os.listdir(folder))
+    print("\n%d areas from %d countries · index %.0f kB, %d shards, %.1f MB "
+          "in all · %s" %
+          (len(areas), len(used), os.path.getsize(args.out) / 1e3,
+           shard_count, whole / 1e6, args.out))
     if missed:
         print("nothing adopted for: " + ", ".join(missed))
     if kept:
@@ -156,10 +198,8 @@ def main():
         print("held back, agglomeration sources (%d): %s" %
               (len(refused), ", ".join(sorted(set(r[1] for r in refused)))))
     if skipped:
-        print("no source for their country yet (%d): %s" %
-              (len(skipped), ", ".join(sorted(set(
-                  c.get("country") for c in cities
-                  if c["asked"] in skipped and c.get("country"))))))
+        print("nothing published anywhere for (%d): %s" %
+              (len(skipped), ", ".join(sorted(skipped)[:12])))
     print("countries still to find a source for: " + ", ".join(NOT_YET))
 
 
