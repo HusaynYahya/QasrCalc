@@ -17,8 +17,8 @@
 
   .bar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
          margin-bottom: .8rem; }
-  .bar input { font: inherit; padding: .45rem .6rem; border: 1px solid var(--line);
-               border-radius: 8px; background: #fff; }
+  .bar input, .bar select { font: inherit; padding: .45rem .6rem; border: 1px solid var(--line);
+               border-radius: 8px; background: #fff; color: inherit; }
   .count { color: #4a5b68; font-variant-numeric: tabular-nums; }
 
   #map { height: 62vh; min-height: 380px; border: 1px solid var(--line);
@@ -78,6 +78,7 @@ resident can. This shows them one at a time and writes down what you say.</p>
 </div>
 
 <div class="bar">
+  <label>Continent <select id="where"><option value="">Everywhere</option></select></label>
   <label>Or look at any city <input id="ask" placeholder="e.g. Karbala" size="18" /></label>
   <button id="askGo">Show it</button>
   <span class="count" id="count"></span>
@@ -163,6 +164,9 @@ function setWho(name) {
   load_answers();
   tally();
   if ($("whoName")) $("whoName").value = who;
+  /* A different reviewer has answered different things, so the counts and
+     the place in the queue both belong to them. */
+  if (all.length) { buildFilter(); applyFilter(); }
   gate();
 }
 /* Nothing is answered anonymously: a verdict with no name on it cannot be
@@ -281,13 +285,16 @@ function load(asked, place) {
 
 function step() {
   $("count").textContent = queue.length
-    ? (at + 1) + " of " + queue.length + " · " + Object.keys(said).length + " answered"
-    : "";
+    ? (at + 1) + " of " + queue.length + (where ? " in " + where : "") +
+      " · " + Object.keys(said).length + " answered in all"
+    : (where ? "Nothing queued for " + where + "." : "");
   if (!queue.length) return;
   if (at >= queue.length) {
     drawn.clearLayers();
     $("name").textContent = "That is all of them.";
-    $("facts").textContent = Object.keys(said).length + " answered. Download or copy the list below.";
+    $("facts").textContent = Object.keys(said).length + " answered" +
+      (where ? " — that is all of " + where + ". Pick another continent, or send what you have."
+             : ". Send or copy the list below.");
     $("auto").textContent = "";
     ["vYes", "vNearly", "vNo"].forEach(function (id) { $(id).disabled = true; });
     return;
@@ -307,6 +314,7 @@ function answer(verdict) {
   };
   remember();
   tally();
+  if (all.length) buildFilter();      /* "Europe (4 of 19)" moves as you go */
   at++;
   step();
 }
@@ -383,6 +391,11 @@ document.addEventListener("keydown", function (e) {
   if (e.key === "3") $("vNo").click();
 });
 
+$("where").addEventListener("change", function () {
+  where = $("where").value;
+  applyFilter();
+});
+
 $("whoGo").addEventListener("click", function () {
   var name = $("whoName").value.trim();
   if (!name) { $("whoNote").textContent = "A name is needed before answering."; return; }
@@ -426,26 +439,97 @@ $("clear").addEventListener("click", function () {
    cities. Falling back to the three that are drawn by hand if it cannot be
    read, which happens when this is opened from the file system rather than
    served. */
+/* Which continent a city is in, by the country it is in.
+
+   Taken from the country rather than guessed from the coordinates: a box
+   drawn round Europe takes half of Turkey and most of Russia with it, and
+   Istanbul would land in whichever of the two the box happened to favour.
+   The list carries its country, so the country is what decides. */
+var CONTINENT = {
+  "United Kingdom": "Europe", "Germany": "Europe", "Sweden": "Europe",
+  "Denmark": "Europe", "Norway": "Europe", "Netherlands": "Europe",
+  "Belgium": "Europe", "France": "Europe", "Austria": "Europe",
+  "Spain": "Europe", "Italy": "Europe", "Russia": "Europe", "Ireland": "Europe",
+  "United States": "North America", "Canada": "North America",
+  "Australia": "Oceania", "New Zealand": "Oceania",
+  "Tanzania": "Africa", "Kenya": "Africa", "Uganda": "Africa",
+  "Madagascar": "Africa", "Nigeria": "Africa", "Egypt": "Africa",
+  "South Africa": "Africa",
+  "Iran": "Asia", "Iraq": "Asia", "Pakistan": "Asia", "India": "Asia",
+  "Saudi Arabia": "Asia", "Lebanon": "Asia", "Azerbaijan": "Asia",
+  "Afghanistan": "Asia", "United Arab Emirates": "Asia", "Bahrain": "Asia",
+  "Kuwait": "Asia", "Qatar": "Asia", "Oman": "Asia", "Syria": "Asia",
+  "Turkey": "Asia", "Yemen": "Asia", "Bangladesh": "Asia",
+  "Malaysia": "Asia", "Singapore": "Asia", "Indonesia": "Asia", "Japan": "Asia",
+  "Brazil": "South America"
+};
+function continentOf(r) { return CONTINENT[r.country] || "Elsewhere"; }
+
+var all = [];          /* every city in the list, whatever the filter says */
+var where = "";        /* the continent chosen, or "" for all of them */
+try { where = localStorage.getItem("qasr.review.where") || ""; } catch (e) {}
+
+/* The answers are keyed by city, never by the filter, so narrowing to one
+   continent and widening again loses nothing. */
+function applyFilter() {
+  queue = all.filter(function (r) { return !where || continentOf(r) === where; });
+  /* Start at the first thing not yet judged rather than at the top: coming
+     back to a continent half done should carry on, not begin again. */
+  at = 0;
+  while (at < queue.length && said[queue[at].asked]) at++;
+  if (at >= queue.length) at = Math.max(0, queue.length - 1);
+  try { localStorage.setItem("qasr.review.where", where); } catch (e) {}
+  step();
+}
+
+function buildFilter() {
+  var counts = {};
+  all.forEach(function (r) { var c = continentOf(r); counts[c] = (counts[c] || 0) + 1; });
+  var sel = $("where");
+  sel.innerHTML = "";
+  function opt(value, label) {
+    var o = document.createElement("option");
+    o.value = value; o.textContent = label;
+    if (value === where) o.selected = true;
+    sel.appendChild(o);
+  }
+  opt("", "Everywhere (" + all.length + ")");
+  Object.keys(counts).sort().forEach(function (c) {
+    /* How many of that continent are already judged, so the reader can see
+       what is left without opening it. */
+    var done = all.filter(function (r) {
+      return continentOf(r) === c && said[r.asked];
+    }).length;
+    opt(c, c + " (" + (done ? done + " of " + counts[c] : counts[c]) + ")");
+  });
+  /* A continent that is not in this list any more must not stay selected. */
+  if (where && !counts[where]) { where = ""; sel.value = ""; }
+}
+
 fetch("sweep-cities.json")
   .then(function (r) { if (!r.ok) throw new Error("no list"); return r.json(); })
   .then(function (list) {
-    queue = list.map(function (r) { return { asked: r.asked, lat: r.lat, lon: r.lon }; });
+    all = list.map(function (r) {
+      return { asked: r.asked, lat: r.lat, lon: r.lon, country: r.country || null,
+               verdict: r.verdict || null };
+    });
     /* The ones nothing automatic complains about come first: they are the
        ones this tool exists for. A border the page already doubts out loud
        does not need a second opinion as urgently. */
-    queue.sort(function (x, y) {
-      var a = list.filter(function (r) { return r.asked === x.asked; })[0] || {};
-      var b = list.filter(function (r) { return r.asked === y.asked; })[0] || {};
+    all.sort(function (a, b) {
       var qa = a.verdict === "nothing obviously wrong" ? 0 : 1;
       var qb = b.verdict === "nothing obviously wrong" ? 0 : 1;
       return qa - qb;
     });
-    step();
+    buildFilter();
+    applyFilter();
   })
   .catch(function () {
-    queue = [{ asked: "London", lat: 51.5074, lon: -0.1278 },
-             { asked: "Toronto", lat: 43.6532, lon: -79.3832 },
-             { asked: "Dubai", lat: 25.1972, lon: 55.2744 }];
+    all = [{ asked: "London", lat: 51.5074, lon: -0.1278, country: "United Kingdom" },
+           { asked: "Toronto", lat: 43.6532, lon: -79.3832, country: "Canada" },
+           { asked: "Dubai", lat: 25.1972, lon: 55.2744, country: "United Arab Emirates" }];
+    queue = all.slice();
+    buildFilter();
     msg("The sweep's list could not be read, so only the hand-drawn three are queued. " +
         "Serve this folder over http rather than opening the file directly.", true);
     step();
