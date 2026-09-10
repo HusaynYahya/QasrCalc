@@ -21,6 +21,20 @@ var vm = require("vm");
 
 var UA = "qasrcalc-sweep/1.0 (+https://github.com/HusaynYahya/QasrCalc)";
 var GAP_MS = 1500;
+/* Long on purpose. A refusal means the service wants to be left alone, and
+   asking again a second later is how a run turns into a page of false
+   findings — this one reported New York, Los Angeles and San Jose as having
+   no border at all, on a run where all three answered perfectly well when
+   asked again on their own. */
+var BACKOFF_MS = 30000;
+
+/* The service's own words when it is refusing, so that a refusal can be told
+   from an answer. cityAt turns the response into a reason, and the reason is
+   all that reaches here. */
+function wasRefused(row) {
+  return /refusing requests|returned 4\d\d|returned 5\d\d/
+    .test((row.reason || row.error || ""));
+}
 
 function arg(name, fallback) {
   var i = process.argv.indexOf(name);
@@ -75,10 +89,23 @@ var CITIES = JSON.parse(fs.readFileSync(path.join(__dirname, "sweep-cities.json"
       row.fromUrban = city.fromUrban || null;
       row.insteadOf = city.insteadOf || null;
       row.shape = city.shape || null;
+      if (!city.shape) row.reason = city.reason || null;
     } catch (err) {
       row.error = String((err && err.message) || err);
       row.shape = null;
     }
+
+    /* A refusal is not a missing border. Wait properly and ask again, once. */
+    if (wasRefused(row) && !CITIES[i].retried) {
+      CITIES[i].retried = true;
+      console.log(c.asked + ": refused — waiting " + (BACKOFF_MS / 1000) +
+                  "s and asking again");
+      await new Promise(function (go) { setTimeout(go, BACKOFF_MS); });
+      i--;
+      continue;
+    }
+    if (CITIES[i].retried) row.retried = true;
+
     out.push(row);
     console.log(c.asked + " -> " + (row.got || "—") + (row.shape ? "" : "  (no border)"));
     await new Promise(function (go) { setTimeout(go, GAP_MS); });

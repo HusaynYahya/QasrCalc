@@ -81,6 +81,64 @@ REFERENCES = {
     }
 }
 
+# Municipal boundaries — the city as its own council draws it.
+#
+# These are not adopted. They are what OpenStreetMap already publishes for
+# North America, so taking them would change nothing; what they are for is
+# checking that what OpenStreetMap publishes is in fact the municipality and
+# not something else that happened to be at the address.
+#
+# The United States and Canada have no town-level built-up source, and that is
+# not an oversight of the search. Both countries publish built-up geography
+# only at agglomeration scale — the Census merges Dearborn into Detroit, and
+# Statistics Canada merges Mississauga into Toronto — because their cities
+# genuinely run into one another with no gap to draw a line in. So there are
+# two honest answers there and no third: the municipality, which is where the
+# council's writ ends, or the agglomeration, which is where the houses finally
+# stop. The page keeps the municipality, because that is what a reader means
+# by the name of their city, and these sources let that choice be verified
+# rather than assumed.
+# Countries where the municipality is the answer, and the global fallback is
+# therefore not to be used.
+#
+# Checked rather than assumed. For the three United States cities the global
+# layer was refused for — New York, Los Angeles, San Jose — what the page
+# already draws from OpenStreetMap matches the Census municipality at an
+# overlap of 0.99, 0.88 and 0.90; and every Canadian city's OpenStreetMap
+# border is its census subdivision to within a few square kilometres
+# (Calgary 855 against 849, Edmonton 783 against 784, Ottawa 2,884 against
+# 2,892). OpenStreetMap is already publishing the right thing in both.
+#
+# What the global layer would add is the metropolitan cluster: Detroit's is
+# 1,169 km2 against a city of 370, and it swallows Dearborn, whose own 63 km2
+# is what somebody in Dearborn means when they name their city. Nobody there
+# calls it Detroit. So these two countries keep what they have.
+#
+# Ottawa is the price of that rule and worth naming: its municipality is
+# 2,892 km2, most of it farmland, and it will be a poor border until somebody
+# draws a better one by hand. It is on the review list.
+KEEP_MUNICIPAL = ["United States", "Canada"]
+
+MUNICIPAL = {
+    "United States": {
+        "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/"
+               "Places_CouSub_ConCity_SubMCD/MapServer/4/query",
+        "name_field": "NAME",
+        "short": "the US Census Bureau",
+        "attribution": "2020 Census Incorporated Places, US Census Bureau "
+                       "TIGERweb. Public domain."
+    },
+    "Canada": {
+        "url": "https://geo.statcan.gc.ca/geo_wa/rest/services/2021/"
+               "Cartographic_boundary_files/MapServer/9/query",
+        "name_field": "CSDNAME",
+        "short": "Statistics Canada",
+        "attribution": "Census Subdivisions, 2021 Census cartographic boundary "
+                       "files, Statistics Canada. Reproduced under the "
+                       "Statistics Canada Open Licence."
+    }
+}
+
 # The global fallback, for a country with no town-level source of its own.
 #
 # GHS-UCDB is 11,422 urban centres covering the whole world, derived from
@@ -112,7 +170,7 @@ GLOBAL = {
 # Countries where a town-level source is still to be found, and which
 # therefore fall back to GLOBAL. Working order is the diaspora's, largest
 # communities first.
-NOT_YET = ["Canada", "United States", "Germany", "Sweden", "Denmark",
+NOT_YET = ["Germany", "Sweden", "Denmark",
            "Norway", "Netherlands", "Belgium", "France", "Austria",
            "Ireland", "New Zealand", "Tanzania", "Kenya", "Uganda",
            "Madagascar"]

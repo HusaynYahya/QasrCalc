@@ -24,141 +24,18 @@ these services being up.
 import argparse, json, os, subprocess, sys, urllib.parse
 
 try:
-    from shapely.geometry import shape, mapping
-    from shapely.ops import transform
-    import pyproj
+    from shapely.geometry import mapping
 except ImportError:
     sys.exit("needs shapely and pyproj:  pip install shapely pyproj")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from references import REFERENCES, GLOBAL, NOT_YET       # noqa: E402
+from references import (REFERENCES, GLOBAL, NOT_YET,     # noqa: E402
+                        KEEP_MUNICIPAL)
+from borders import (ask, ask_global, names_agree, thin, bbox,   # noqa: E402
+                     CITY_MAX_KM2)
 
 ROOT = os.path.dirname(HERE)
-
-# The same limit the page uses to decide a border is a region and not a city
-# — see CITY_MAX_KM2 in qasr.js. Kept in step by test/geo.test.js.
-CITY_MAX_KM2 = 3000
-
-
-def ask(ref, lat, lon):
-    """What built-up area holds this point, with its geometry."""
-    q = {"geometry": json.dumps({"x": lon, "y": lat,
-                                 "spatialReference": {"wkid": 4326}}),
-         "geometryType": "esriGeometryPoint", "inSR": "4326",
-         "spatialRel": "esriSpatialRelIntersects",
-         "outFields": ref["name_field"], "outSR": "4326",
-         "returnGeometry": "true", "f": "geojson"}
-    got = subprocess.run(
-        ["curl", "-s", "--max-time", "180", ref["url"] + "?" + urllib.parse.urlencode(q)],
-        capture_output=True, text=True).stdout
-    try:
-        d = json.loads(got)
-    except ValueError:
-        return None, None
-    feats = [f for f in (d.get("features") or []) if f.get("geometry")]
-    if not feats:
-        return None, None
-    f = feats[0]
-    label = (f.get("properties") or {}).get(ref["name_field"])
-    return shape(f["geometry"]).buffer(0), label
-
-
-_GLOBAL_LAYER = [None]
-
-
-def global_layer(path):
-    """The world's urban centres, read once and kept.
-
-       285 MB of geopackage, so it is not in the repository: pass --ghs with
-       the file from GLOBAL["download"]. Without it the global tier is simply
-       skipped and the national sources still run."""
-    if _GLOBAL_LAYER[0] is None:
-        if not path or not os.path.exists(path):
-            _GLOBAL_LAYER[0] = False
-            return None
-        import geopandas as gpd
-        g = gpd.read_file(path, layer=GLOBAL["layer"],
-                          columns=[GLOBAL["name_field"], GLOBAL["area_field"]])
-        _GLOBAL_LAYER[0] = g.to_crs(4326)
-    return _GLOBAL_LAYER[0] if _GLOBAL_LAYER[0] is not False else None
-
-
-def ask_global(path, lat, lon):
-    g = global_layer(path)
-    if g is None:
-        return None, None
-    from shapely.geometry import Point
-    hit = g[g.contains(Point(lon, lat))]
-    if not len(hit):
-        return None, None
-    row = hit.iloc[0]
-    return row.geometry.buffer(0), row[GLOBAL["name_field"]]
-
-
-def flat(lat, lon):
-    """Equal-area metres, centred on the city."""
-    crs = "+proj=laea +lat_0=%f +lon_0=%f +units=m" % (lat, lon)
-    return (pyproj.Transformer.from_crs("EPSG:4326", crs, always_xy=True).transform,
-            pyproj.Transformer.from_crs(crs, "EPSG:4326", always_xy=True).transform)
-
-
-def thin(geom, lat, lon, tolerance_km):
-    """Down to something a browser can carry. A border is used to find where a
-       road crosses it; a hundred and fifty metres of detail is past the point
-       at which that answer changes, and the full Glasgow polygon is nineteen
-       thousand vertices."""
-    to_m, to_deg = flat(lat, lon)
-    m = transform(to_m, geom)
-    # A fixed tolerance is wrong for a small town with a ragged edge. Milton
-    # Keynes lost a tenth of itself at 150 m, where Glasgow lost under one
-    # per cent, because the shaving is proportional to the length of the
-    # border and Milton Keynes has a great deal of border for its size. So
-    # the tolerance comes down until what is left is the same town.
-    for t in [tolerance_km, tolerance_km / 3.0, tolerance_km / 10.0, 0.0]:
-        small = (m.simplify(t * 1000, preserve_topology=True).buffer(0)
-                 if t else m)
-        if not m.area or abs(small.area - m.area) / m.area <= 0.03:
-            break
-    return transform(to_deg, small), m.area / 1e6, small.area / 1e6
-
-
-def tidy(s):
-    """For comparing a name to a name: accents off, case down, anything in
-       brackets and any trailing label dropped."""
-    import re, unicodedata
-    s = unicodedata.normalize("NFKD", str(s or ""))
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    # Both kinds of bracket. The global layer marks a merged cluster by
-    # listing what it swallowed — "Rotterdam [The Hague]", "Birmingham
-    # [Wolverhampton]" — so comparing against the whole string let a city
-    # match the cluster that had eaten it, and The Hague was written down as
-    # 678 km2 of Randstad. Only the main name counts.
-    s = re.sub(r"\(.*?\)|\[.*?\]", " ", s)
-    s = re.sub(r"\b(urban area|urban centre|city|town|built[- ]up area)\b", " ",
-               s, flags=re.I)
-    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
-
-
-def names_agree(asked, official):
-    a, o = tidy(asked), tidy(official)
-    if not a or not o:
-        return False
-    return a == o or a in o.split() or o in a.split() or a in o or o in a
-
-
-def bbox(geom):
-    """The order urbanAreaAt reads, rounded outward.
-
-       Rounded to nearest, Adelaide's box cut a hundredth of a degree off its
-       own western edge, and the lookup — which checks the box before the shape
-       and skips on a miss — would have declared a reader in Adelaide to be
-       nowhere near it."""
-    import math
-    lo_lon, lo_lat, hi_lon, hi_lat = geom.bounds
-    f = lambda v: math.floor(v * 1e4) / 1e4
-    c = lambda v: math.ceil(v * 1e4) / 1e4
-    return [f(lo_lat), f(lo_lon), c(hi_lat), c(hi_lon)]
 
 
 def main():
@@ -177,7 +54,7 @@ def main():
     if args.country:
         cities = [c for c in cities if c.get("country") == args.country]
 
-    areas, used, missed, skipped, refused = [], {}, [], [], []
+    areas, used, missed, skipped, refused, kept = [], {}, [], [], [], []
     for c in cities:
         national = REFERENCES.get(c.get("country"))
         town_level = national and (national.get("granularity") == "town"
@@ -194,9 +71,16 @@ def main():
         # reader's city, so neither is written down. A parenthetical or a
         # doubled district — "Watford (Watford)", "Perth (WA)" — is fine.
         ref, geom, label, why = None, None, None, []
-        for candidate in ([national] if town_level else []) + [GLOBAL]:
+        # The global layer is not offered where the municipality is the
+        # answer: it would trade a city for its conurbation.
+        tiers = ([national] if town_level else [])
+        if c.get("country") not in KEEP_MUNICIPAL:
+            tiers = tiers + [GLOBAL]
+        elif not tiers:
+            kept.append(c["asked"])
+        for candidate in tiers:
             if candidate is GLOBAL:
-                got, name = ask_global(args.ghs, c["lat"], c["lon"])
+                got, name = ask_global(GLOBAL, args.ghs, c["lat"], c["lon"])
             else:
                 got, name = ask(candidate, c["lat"], c["lon"])
             if got is None:
@@ -265,6 +149,9 @@ def main():
           (len(areas), len(used), size / 1e6, args.out))
     if missed:
         print("nothing adopted for: " + ", ".join(missed))
+    if kept:
+        print("kept as published, the municipality being the answer (%d): %s"
+              % (len(kept), ", ".join(sorted(set(kept)))))
     if refused:
         print("held back, agglomeration sources (%d): %s" %
               (len(refused), ", ".join(sorted(set(r[1] for r in refused)))))
