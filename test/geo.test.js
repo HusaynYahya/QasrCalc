@@ -702,6 +702,72 @@ test("the two doubts cannot both be raised at once", function () {
 
 /* --- the built-up areas ---------------------------------------------------
    Shipped as a file rather than in the page, so it is checked as a file. */
+console.log("\nWhere the route leaves the city");
+
+/* A square city, half a degree on a side, with its eastern edge at lon 0.5.
+   Distances along these routes are measured by the same haversine the page
+   uses, so the numbers below are kilometres. */
+var SQUARE = { type: "Polygon", coordinates: [[
+  [0.0, 0.0], [0.5, 0.0], [0.5, 0.5], [0.0, 0.5], [0.0, 0.0]
+]] };
+
+function straight(points) {
+  /* A route as the page hands it over: [lat, lon] pairs, densely sampled so
+     that crossings land where they should. */
+  var line = [];
+  for (var i = 1; i < points.length; i++) {
+    for (var k = 0; k < 60; k++) {
+      var a = points[i - 1], b = points[i], t = k / 60;
+      line.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+    }
+  }
+  line.push(points[points.length - 1]);
+  return line;
+}
+
+test("a route that runs along the border leaves the city once", function () {
+  /* The M25 case. Rickmansworth to Sevenoaks is 96 km, almost all of it on
+     the motorway that IS London's traced border, which the route crossed 45
+     times out and 44 back. Taking the last of those left 4.9 km counted and
+     ruled a drive from Hertfordshire to Kent a journey that never left town —
+     four rakʿah where two were due.
+
+     Here the route goes out through the eastern edge, weaves across it eight
+     times without ever getting clear of it, then leaves for good. */
+  var weave = [[0.25, 0.25], [0.25, 0.502]];
+  for (var w = 0; w < 8; w++) {
+    weave.push([0.25 + w * 0.002, 0.498], [0.25 + w * 0.002, 0.502]);
+  }
+  weave.push([0.25, 2.0]);
+  var line = straight(weave);
+  var exit = G.borderExitKm(line, SQUARE, 1);
+  assert.ok(exit !== null, "no exit found at all");
+  assert.ok(exit < 30,
+    "the route was followed along the border and " + Math.round(exit) +
+    " km was deducted; the city is only about 28 km across");
+});
+
+test("a route that really goes back in leaves the city at the later crossing", function () {
+  /* The other half of the rule, and the reason it is about depth and not
+     duration: a route that leaves, comes properly back into town, and leaves
+     again has not left until the second time. */
+  var line = straight([[0.25, 0.25], [0.25, 0.6], [0.25, 0.2], [0.25, 2.0]]);
+  var exit = G.borderExitKm(line, SQUARE, 1);
+  assert.ok(exit !== null, "no exit found at all");
+  /* Out at 0.5, back to 0.2, out again at 0.5: the second exit is far along. */
+  assert.ok(exit > 50,
+    "deducted only " + Math.round(exit) + " km — it took the first exit and " +
+    "ignored the return into the city");
+});
+
+test("a route that never comes back leaves where it leaves", function () {
+  var line = straight([[0.25, 0.25], [0.25, 2.0]]);
+  var exit = G.borderExitKm(line, SQUARE, 1);
+  assert.ok(exit !== null && exit > 20 && exit < 35,
+    "a single crossing of the eastern edge should fall near 28 km, got " +
+    (exit === null ? "null" : Math.round(exit)));
+});
+
 console.log("\nThe built-up areas");
 
 var URBAN = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "urban-areas.json"), "utf8"));

@@ -23,7 +23,31 @@ var { chromium } = require("playwright");
 
 var ROOT = path.join(__dirname, "..");
 var SHOTS = process.argv.indexOf("--shots") >= 0;
-var CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+/* Found rather than hard-coded. The path carries Playwright's build number
+   and the layout changed under it — chromium-1194/chrome-linux/chrome became
+   chromium-1243/chrome-linux64/chrome — so a pinned path turns a working
+   browser into "executable doesn't exist" on the next container. */
+var CHROME = (function () {
+  var root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
+  var found = null;
+  (function walk(dir, depth) {
+    if (found || depth > 3) return;
+    var kids;
+    try { kids = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+    kids.forEach(function (k) {
+      if (found) return;
+      var full = path.join(dir, k.name);
+      if (k.isDirectory()) walk(full, depth + 1);
+      else if (k.name === "chrome" && /chromium/.test(full)) found = full;
+    });
+  })(root, 0);
+  if (!found) {
+    throw new Error("no chromium under " + root +
+                    " — set PLAYWRIGHT_BROWSERS_PATH, and do not run " +
+                    "`playwright install`: the browser is provided.");
+  }
+  return found;
+})();
 
 var TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
               ".json": "application/json",

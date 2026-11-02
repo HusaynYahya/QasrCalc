@@ -3385,21 +3385,72 @@
   /* How far along the route the home city's border falls. This is where the
      legal distance starts being counted: the point at which people would call
      you a traveller, which the workshop puts at the city border.             */
+  /* How far inside the border the route must actually get before it counts
+     as having returned to town. Under this it is running along the line.     */
+  var RE_ENTRY_KM = 1;
+
+  /* Whether this point is more than `cap` kilometres inside the border — not
+     merely inside it. Returns as soon as any edge is found within `cap`,
+     which is the cheap and common answer. */
+  function deeperThan(lat, lon, shape, cap) {
+    var rings = outerRings(shape);
+    for (var i = 0; i < rings.length; i++) {
+      if (pointToLineKm(lat, lon, rings[i]) < cap) return false;
+    }
+    return true;
+  }
+
   function borderExitKm(line, shape, scale) {
     if (!shape) return null;
 
     /* The last moment the route is inside the city — not the first. A road
        that leaves and re-enters has not taken you out of town, and a reader
        whose own town sits inside a larger city they have named may start
-       outside the polygon and pass through it.                               */
-    var run = 0, exit = null, inside = inShape(line[0][0], line[0][1], shape);
+       outside the polygon and pass through it.
+
+       But only where it really has gone back in. Where the border IS the road
+       being driven, every slight wander puts the route nominally back inside,
+       and taking the last of those swallows the whole drive: Rickmansworth to
+       Sevenoaks is 96 km, almost all of it on the M25, which crosses the
+       traced ring forty-five times out and forty-four back. The last crossing
+       falls at 91.5 km, so 4.9 km was counted and a drive from Hertfordshire
+       to Kent was ruled a journey that never left town — four rakʿah where
+       two were due.
+
+       So a spell back inside counts only where the route gets more than
+       RE_ENTRY_KM clear of the border — properly into the place, not weaving
+       across the line that defines it. Length alone will not separate the
+       two: driving the M25 puts a car genuinely inside the ring for several
+       kilometres at a stretch, so a duration threshold moved this journey
+       from 91.5 km deducted to 80.2 and left it just as wrong.
+
+       The run the reader started in always counts, however shallow, because
+       that is their own town and they were in it.                            */
+    var marks = [];       /* every crossing: how far along, which way, how deep after */
+    var run = 0, inside = inShape(line[0][0], line[0][1], shape);
+    var deep = inside;    /* did the current inside run ever get clear of the line */
     for (var i = 1; i < line.length; i++) {
       var a = line[i - 1], b = line[i];
       var seg = haversineKm({ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] }) * scale;
       var nowIn = inShape(b[0], b[1], shape);
-      if (inside && !nowIn) exit = run + seg * crossing(a, b, shape);
+      if (nowIn && !deep && deeperThan(b[0], b[1], shape, RE_ENTRY_KM)) deep = true;
+      if (nowIn !== inside) {
+        marks.push({ km: run + seg * crossing(a, b, shape), into: nowIn, deep: deep });
+        /* A fresh run begins. The first one is the reader's own town and is
+           taken as real whatever its depth. */
+        deep = nowIn ? false : deep;
+      }
       inside = nowIn;
       run += seg;
+    }
+
+    var exit = null, first = true;
+    for (var m = 0; m < marks.length; m++) {
+      if (marks[m].into) continue;
+      /* An exit counts where the run it ends was the reader's own town, or
+         got properly inside. Otherwise the route was on the border. */
+      if (first || marks[m].deep) exit = marks[m].km;
+      first = false;
     }
     return exit;   /* null if the route never leaves the city, or never enters it */
   }
